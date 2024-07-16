@@ -1,5 +1,6 @@
 from flask import Flask, g, request, jsonify, render_template, url_for
 import os
+import yaml
 import logging
 import sqlite3
 
@@ -143,6 +144,7 @@ Payload: delete=<Boolean>
 Response: 200 OK
 '''
 @app.route('/admin/db/init', methods=['GET'])
+@login_required
 def init_db():
     if os.path.exists(DATABASE):
         if request.args.get('delete') and request.args.get('delete').lower() == 'true':
@@ -337,9 +339,27 @@ def index():
 
     return render_template('index.html', devices=devices)
 
+def read_config_file():
+    with open(APPDIR + '/config.yml', 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+def read_config_envars():
+    config = {}
+    # Get all the environment variables starting with 'COMPLEASY_'
+    for key, value in os.environ.items():
+        if key.startswith('COMPLEASY_'):
+            config[key] = value
+    return config
+
 if __name__ == '__main__':
     logger = logging.getLogger()
     logger.name = 'Compleasy'
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # Load configuration
+    config = read_config_file()
+    # Config priority: environment variables > config file
+    config.update(read_config_envars())
 
     app.run(host='0.0.0.0', port=3000, ssl_context='adhoc', debug=True)

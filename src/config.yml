@@ -1,0 +1,7 @@
+security:
+  token: my-custom-token
+  csrf_token: <change-this-token>
+  admin_username: admin
+  admin_password: change-this-password
+  analist_username: analist
+  analist_password: change-this-password
