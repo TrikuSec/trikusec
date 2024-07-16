@@ -55,7 +55,7 @@ upload-options=--insecure
 3. Run Lynis with the custom profile and upload the results to the Compleasy server:
 
 ```bash
-lynis audit system --profile custom.prf --upload --quick
+lynis audit system --profile compleasy.prf --upload --quick
 ```
 
 
