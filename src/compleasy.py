@@ -15,10 +15,13 @@ DATABASE = APPDIR + '/compleasy.db'
 
 # Class to parse Lynis reports
 class LynisReport:
-    def __init__(self, report_file):
+    def __init__(self, report_file_or_content):
         self.keys = {}
-        with open(report_file, 'r') as file:
-            self.report = file.read()
+        if os.path.exists(report_file_or_content):
+            with open(report_file_or_content, 'r') as file:
+                self.report = file.read()
+        else:
+            self.report = report_file_or_content
         self.keys = self.parse_report()
 
     def get_full_report(self):
@@ -313,8 +316,32 @@ def index():
     cursor = db.cursor()
     devices = db_get_devices(cursor)
 
+    new_fields = {}
     for d in devices:
         logging.info('Device hostname: %s', d['hostname'])
+        # Get last full report
+        cursor.execute('SELECT full_report FROM FullReports WHERE device_id = ? ORDER BY id DESC LIMIT 1', (d['id'],))
+        full_report = cursor.fetchone()
+        if full_report:
+            lynis_report = LynisReport(full_report['full_report'])
+            r = lynis_report.parse_report()
+        else:
+            logging.error('No full report found for device: %s', d['hostname'])
+        # Count warnings and suggestions
+        warnings = 0
+        suggestions = 0
+        for key in r.keys():
+            if key.startswith('suggestion[]'):
+                warnings += 1
+            if key.startswith('warning[]'):
+                suggestions += 1
+        
+        # New fields
+        new_fields = {}
+        new_fields['warnings'] = warnings
+        new_fields['suggestions'] = suggestions
+
+    devices = [dict(d, **new_fields) for d in devices]
 
     return render_template('index.html', devices=devices)
 
