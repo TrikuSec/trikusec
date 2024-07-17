@@ -25,4 +25,4 @@ python manage.py change_admin_password
 python manage.py populate_db_licensekey
 
 # Start server
-python manage.py runserver 0.0.0.0:${COMPLEASY_PORT:-8000}
+exec "$@"
