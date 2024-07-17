@@ -19,8 +19,6 @@ class LynisReport:
 
     def parse_report(self):
         """Parse the report and count warnings and suggestions."""
-        warning_count = 0
-        suggestion_count = 0
         parsed_keys = {}
         
         for line in self.report.split('\n'):
@@ -28,15 +26,19 @@ class LynisReport:
                 continue
             
             key, value = line.split('=', 1)
-            if key == 'warning[]':
-                warning_count += 1
-            elif key == 'suggestion[]':
-                suggestion_count += 1
             
-            parsed_keys[key] = value
-
-        parsed_keys['count_warnings'] = warning_count
-        parsed_keys['count_suggestions'] = suggestion_count
+            # Check if the key indicates a list type (contains '[]')
+            if '[]' in key:
+                base_key = key.replace('[]', '')
+                if base_key not in parsed_keys:
+                    parsed_keys[base_key] = []
+                parsed_keys[base_key].append(value)
+            else:
+                parsed_keys[key] = value
+        
+        # Optionally, you can count the warnings and suggestions if needed
+        parsed_keys['count_warnings'] = len(parsed_keys.get('warning', []))
+        parsed_keys['count_suggestions'] = len(parsed_keys.get('suggestion', []))
         
         return parsed_keys
     

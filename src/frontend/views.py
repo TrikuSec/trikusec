@@ -29,21 +29,12 @@ def device_detail(request, device_id):
 
     if not report:
         return HttpResponse('Failed to parse the report', status=500)
-
-    '''for warning in report['warnings']:
-        # Warning format: TIME-3185|systemd-timesyncd did not synchronized the time recently.
-        try:
-            warning = warning.split('|')
-            warnings[warning[0]] = warning[1]
-        except:
-            warnings[warning] = ''
     
-    for suggestion in report['suggestions']:
-        try:
-            suggestion = suggestion.split('|')
-            suggestions[suggestion[0]] = suggestion[1]
-        except:
-            suggestions[suggestion] = '''''
+    # Print suggestions
+    suggestions = report.get('suggestion', [])
+    print('Suggestions:')
+    for suggestion in suggestions:
+        print(f'  - {suggestion}')
 
     return render(request, 'device_detail.html', {'device': device, 'report': report})
 

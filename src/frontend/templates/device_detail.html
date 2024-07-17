@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +45,7 @@
                     <div><strong>Last report:</strong> {{ device.last_update }}</div>
                     <div><strong>Hardening index:</strong> {{ report.hardening_index }}</div>
                     <div><strong>Tests performed:</strong> {{ report.lynis_tests_done }}</div>
-                    <div><strong>Firewall:</strong> {{ report.firewall_active }} ({{ report.firewall_software }})</div>
+                    <div><strong>Firewall:</strong> {{ report.firewall_active|boolean_status }}</div>
                 </div>
             </div>
 
@@ -56,33 +57,33 @@
                 <div class="mb-6">
                     <h4 class="text-lg font-medium mb-2">Warnings</h4>
                     <ul class="list-disc pl-5">
+
                         {% for warning in report.warnings %}
                         <li class="mb-2">
-                            <span class="font-medium">Vulnerable PHP version detected</span>
-                            <br><span class="text-sm text-gray-600">Test ID: PHP-2018</span>
+                            {% with warning|split_messages:"|" as parts %}
+                            <span class="font-medium">{{ parts.0 }}</span>
+                            <br><span class="text-sm text-gray-600">{{ parts.1 }}</span>
+                            {% endwith %}
                         </li>
                         {% endfor %}
+
                     </ul>
                 </div>
-
-                {{ report}}
                 
                 <!-- Suggestions Subsection -->
                 <div>
                     <h4 class="text-lg font-medium mb-2">Suggestions</h4>
                     <ul class="list-disc pl-5">
+                        
+                        {% for suggestion in report.suggestion %}
                         <li class="mb-2">
-                            <span class="font-medium">Enable process accounting</span>
-                            <br><span class="text-sm text-gray-600">Test ID: ACCT-9622</span>
+                            {% with suggestion|split_messages:"|" as parts %}
+                            <span class="font-medium">{{ parts.0 }}</span>
+                            <br><span class="text-sm text-gray-600">{{ parts.1 }}</span>
+                            {% endwith %}
                         </li>
-                        <li class="mb-2">
-                            <span class="font-medium">Install AIDE (Advanced Intrusion Detection Environment)</span>
-                            <br><span class="text-sm text-gray-600">Test ID: FINT-4350</span>
-                        </li>
-                        <li class="mb-2">
-                            <span class="font-medium">Enable auditd service</span>
-                            <br><span class="text-sm text-gray-600">Test ID: ACCT-9628</span>
-                        </li>
+                        {% endfor %}
+
                     </ul>
                 </div>
             </div>
