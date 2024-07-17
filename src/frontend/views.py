@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from api.models import Device, FullReport
 from utils.lynis_report import LynisReport
+import os
 
 def index(request):
     devices = Device.objects.all()
@@ -10,8 +11,8 @@ def index(request):
     return render(request, 'index.html', {'devices': devices})
 
 def onboarding(request):
-    host = request.get_host()
-    return render(request, 'onboarding.html', {'host': host})
+    compleasy_url = os.getenv('COMPLEASY_URL')
+    return render(request, 'onboarding.html', {'compleasy_url': compleasy_url})
 
 def device_list(request):
     return render(request, 'device_list.html')
@@ -48,8 +49,6 @@ def report_detail(request, report_id):
     return render(request, 'report_detail.html')
 
 def enroll_sh(request):
-    # Get the host and port used to connect the webserver (behin a reverse proxy)
-    host = request.META.get('HTTP_X_FORWARDED_HOST', request.get_host())
-    port = request.META.get('HTTP_X_FORWARDED_PORT', request.get_port())
-    host = f'{host}:{port}'
-    return render(request, 'enroll.html', {'host': host})
+    # Get the server url from environment variable
+    compleasy_url = os.getenv('COMPLEASY_URL')
+    return render(request, 'enroll.html', {'compleasy_url': compleasy_url})
