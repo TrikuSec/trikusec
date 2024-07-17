@@ -4,7 +4,9 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('onboarding/', views.onboarding, name='onboarding'),
-    path('enroll.sh', views.enroll_sh, name='enroll_sh'),
+    path('download/enroll.sh', views.enroll_sh, name='enroll_sh'),
+    path('download/server.crt', views.download_server_crt, name='download_server_crt'),
+    path('download/lynis_custom_profile', views.download_lynis_custom_profile, name='download_lynis_custom_profile'),
     path('devices/', views.device_list, name='device_list'),
     path('device/<int:device_id>/', views.device_detail, name='device_detail'),
     path('reports/', views.report_list, name='report_list'),
