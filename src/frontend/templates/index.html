@@ -23,31 +23,31 @@
                 </thead>
                 <tbody class="text-gray-600 text-sm font-light">
 
-                    {% for d in devices %}
+                    {% for device in devices %}
                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                         <td class="py-3 px-6 text-left whitespace-nowrap">
                             <div class="flex items-center">
-                                <span class="font-medium">{{ d['hostname'] }}</span>
+                                <span class="font-medium"><a href="{% url 'device_detail' device_id=device.id %}">{{ device.hostname }}</a></span>
                             </div>
                         </td>
                         <td class="py-3 px-6 text-left">
                             <div class="flex items-center">
-                                <span>{{ d['distro'] }} {{ d['distro_version'] }}</span>
+                                <span>{{ device.distro }} {{ device.distro_version }}</span>
                             </div>
                         </td>
                         <td class="py-3 px-6 text-left">
                             <div class="flex items-center">
-                                <span>{{ d['lynis_version' ]}}</span>
+                                <span>{{ device.lynis_version }}</span>
                             </div>
                         </td>
                         <td class="py-3 px-6 text-center">
                             <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">?</span>
                         </td>
                         <td class="py-3 px-6 text-center">
-                            <span class="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">{{ d['warnings'] }}</span>
+                            <span class="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">{{ device.warnings }}</span>
                         </td>
                         <td class="py-3 px-6 text-left">
-                            <span>{{ d['last_update'] }}</span>
+                            <span>{{ device.last_update }}</span>
                         </td>
                     </tr>
                     {% endfor %}
