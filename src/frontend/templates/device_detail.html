@@ -58,7 +58,7 @@
                     <h4 class="text-lg font-medium mb-2">Warnings</h4>
                     <ul class="list-disc pl-5">
 
-                        {% for warning in report.warnings %}
+                        {% for warning in report.warning %}
                         <li class="mb-2">
                             {% with warning|split_messages:"|" as parts %}
                             <span class="font-medium">{{ parts.0 }}</span>
