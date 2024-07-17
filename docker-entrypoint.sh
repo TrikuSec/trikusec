@@ -8,8 +8,12 @@ COMPLEASY_ADMIN_USERNAME=${COMPLEASY_ADMIN_USERNAME:-admin}
 COMPLEASY_ADMIN_PASSWORD=${COMPLEASY_ADMIN_PASSWORD:-admin}
 DJANGO_SUPERUSER_PASSWORD=${COMPLEASY_ADMIN_PASSWORD}
 
+
+# Show database migrations
+python manage.py showmigrations
+
 # Apply database migrations
-python manage.py makemigrations
+python manage.py migrate
 
 # Create admin user (ignore errors)
 python manage.py createsuperuser --noinput --username=admin || true
