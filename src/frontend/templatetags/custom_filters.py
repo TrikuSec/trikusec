@@ -19,6 +19,10 @@ def filter_ipv4_address(value, arg):
     network_ipv4_addresses = value
     default_gateways = arg
 
+    # If default_gateways is empty return all network_ipv4_addresses
+    if not default_gateways:
+        return network_ipv4_addresses
+
     for default_gateway in default_gateways:
         # We assume network prefix is /24
         # Example: default gateway 192.168.180.1
@@ -30,3 +34,8 @@ def filter_ipv4_address(value, arg):
     # Convert list to string
     filtered_addresses = ' '.join(filtered_addresses)
     return filtered_addresses
+
+@register.filter(name='shorten_string')
+def shorten_string(value, arg):
+    # Return the last arg characters of the value
+    return "..." + value[-arg:]
