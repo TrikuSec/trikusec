@@ -9,7 +9,12 @@ def boolean_status(value):
 @register.filter(name='split_messages')
 def split_messages(value, arg):
     try:
-        return value.split(arg)
+        parts = value.split(arg)
+        # Remove empty parts (part is empty or contains just a -)
+        parts = [part for part in parts if part and part != '-']
+        # Strip "text:" from the beginning of each part
+        parts = [part.split('text:', 1)[1] if 'text:' in part else part for part in parts]
+        return parts
     except (ValueError, AttributeError):
         return [value, '']
 
