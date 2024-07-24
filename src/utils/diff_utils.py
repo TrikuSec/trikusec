@@ -47,6 +47,22 @@ def compare_delimited_values(old_value, new_value, delimiter='|'):
     removed_items = old_items - new_items
     return list(added_items), list(removed_items)
 
+def filter_diff(diff):
+    """ Remove some items from the diff """
+    ignore_keys = [
+        'report_datetime_start',
+        'report_datetime_end',
+        'slow_test',
+        'uptime_in_seconds'
+    ]
+
+    diff_lines = diff.splitlines(keepends=True)
+    filtered_diff = []
+    for line in diff_lines:
+        if not any(key in line for key in ignore_keys):
+            filtered_diff.append(line)
+    return ''.join(filtered_diff)
+
 def analyze_diff(diff):
     changes = parse_diff(diff)
     change_details = {
