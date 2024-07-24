@@ -44,12 +44,6 @@ def device_detail(request, device_id):
 
     if not report:
         return HttpResponse('Failed to parse the report', status=500)
-    
-    # Print suggestions
-    suggestions = report.get('suggestion', [])
-    print('Suggestions:')
-    for suggestion in suggestions:
-        print(f'  - {suggestion}')
 
     return render(request, 'device_detail.html', {'device': device, 'report': report})
 

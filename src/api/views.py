@@ -8,22 +8,6 @@ from utils.diff_utils import generate_diff, analyze_diff
 import os
 import logging
 
-'''def read_config_envars():
-    config = {}
-    for key, value in os.environ.items():
-        if key.startswith('COMPLEASY_'):
-            config[key] = value
-    return config'''
-
-def init_db(request):
-    if request.GET.get('delete') and request.GET.get('delete').lower() == 'true':
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'compleasy.db')
-        if os.path.exists(db_path):
-            os.remove(db_path)
-            logging.info('Database deleted')
-    # Reinitialize the database (usually handled by migrations)
-    return HttpResponse('Database initialized')
-
 @csrf_exempt
 def upload_report(request):
     logging.debug('Uploading report...')
