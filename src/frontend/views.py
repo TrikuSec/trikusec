@@ -33,10 +33,6 @@ def device_list(request):
     return render(request, 'device_list.html', {'devices': devices})
 
 @login_required
-def report_list(request):
-    return render(request, 'report_list.html')
-
-@login_required
 def device_detail(request, device_id):
     """Device detail view: show the details of a device"""
     warnings = {}
