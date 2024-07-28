@@ -106,7 +106,24 @@ def device_detail(request, device_id):
 
     return render(request, 'device_detail.html', {'device': device, 'report': report, 'evaluated_rulesets': evaluated_rulesets})
 
-#TODO: require login, add csrf token or license key
+@login_required
+def device_report(request, device_id):
+    """Device report view: show the full report of a device"""
+    device = get_object_or_404(Device, id=device_id)
+    report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+    if not report:
+        return HttpResponse('No report found for the device', status=404)
+    return HttpResponse(report.full_report, content_type='text/plain')
+
+@login_required
+def device_report_changelog(request, device_id):
+    """Device report changelog view: show the changelog of a device"""
+    device = get_object_or_404(Device, id=device_id)
+    changelog = DiffReport.objects.filter(device=device).order_by('-created_at')
+    if not changelog:
+        return HttpResponse('No changelog found for the device', status=404)
+    return HttpResponse(changelog.first().diff_report, content_type='text/plain')
+
 def enroll_sh(request):
     """Enroll view: generate enroll bash script to install the agent on a new device"""
     # Get license key from the URL
