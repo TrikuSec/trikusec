@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset
 from utils.lynis_report import LynisReport
-from utils.diff_utils import apply_diff
+from utils.diff_utils import analyze_diff
 from api.utils.policy_query import evaluate_query
 import os
 import logging
@@ -170,3 +170,64 @@ def download_lynis_custom_profile(request):
                       'lynis_version': lynis_version
                     },
                     content_type='text/plain')
+
+@login_required
+def activity(request):
+    """Activity view: show the activity of the devices (from DiffReport)"""
+
+    # My activity list with the devices and the changelog (added lines, removed lines and changed lines)
+    activities = []
+    max_activities = 30
+
+    # Get all diff reports (from most recent to oldest)
+    diff_reports = DiffReport.objects.all().order_by('-created_at')
+
+    if not diff_reports:
+        return HttpResponse('No activity found', status=404)
+    
+    # Let's humanize the diff reports to show them in the template
+    for diff_report in diff_reports:
+        if len(activities) >= max_activities:
+            break
+        
+        diff = diff_report.diff_report
+        ignore_keys = [
+            'report_datetime_start',
+            'report_datetime_end',
+            'slow_test[]',
+            'uptime_in_seconds',
+            'uptime_in_days'
+        ]
+        diff_analysis = analyze_diff(diff, ignore_keys=ignore_keys)
+
+        # Get the device
+        device = diff_report.device
+
+        for keyvalue in diff_analysis['added']:
+            activities.append({
+                'device': device,
+                'created_at': diff_report.created_at,
+                'line': keyvalue,
+                'type': 'added'
+            })
+        
+        for keyvalue in diff_analysis['removed']:
+            activities.append({
+                'device': device,
+                'created_at': diff_report.created_at,
+                'line': keyvalue,
+                'type': 'removed'
+            })
+        
+        for keyvalue in diff_analysis['changed']:
+            activities.append({
+                'device': device,
+                'created_at': diff_report.created_at,
+                'line': keyvalue,
+                'type': 'changed'
+            })
+
+        # Order activities by date (most recent first) and type (added, removed, changed)
+        activities = sorted(activities, key=lambda x: (x['created_at'], x['type']), reverse=True)
+        
+    return render(request, 'activity.html', {'activities': activities})

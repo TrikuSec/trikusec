@@ -16,4 +16,5 @@ urlpatterns = [
     path('device/<int:device_id>/', views.device_detail, name='device_detail'),
     path('device/<int:device_id>/report/', views.device_report, name='device_report'),
     path('device/<int:device_id>/report/changelog/', views.device_report_changelog, name='device_report_changelog'),
+    path('activity/', views.activity, name='activity'),
 ]

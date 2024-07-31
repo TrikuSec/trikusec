@@ -63,7 +63,7 @@ def filter_diff(diff):
             filtered_diff.append(line)
     return ''.join(filtered_diff)
 
-def analyze_diff(diff):
+def analyze_diff(diff, ignore_keys=[]):
     changes = parse_diff(diff)
     change_details = {
         'added': [],
@@ -76,6 +76,9 @@ def analyze_diff(diff):
 
     # Detect added and removed fields
     for key in added_dict:
+        if key in ignore_keys:
+            continue
+        
         if key in removed_dict:
             old_value = removed_dict[key]
             new_value = added_dict[key]
@@ -91,6 +94,9 @@ def analyze_diff(diff):
             change_details['added'].append({key: added_dict[key]})
     
     for key in removed_dict:
+        if key in ignore_keys:
+            continue
+        
         if key not in added_dict:
             change_details['removed'].append({key: removed_dict[key]})
     
