@@ -8,6 +8,20 @@ def boolean_status(value):
     """ Return 'enabled' if value is True, 'disabled' otherwise """
     return 'enabled' if value else 'disabled'
 
+@register.filter(name='boolean_icon')
+def boolean_icon(value):
+    """ Return a checkmark icon if value is True, a cross icon otherwise """
+    checkmark = '''<span class="text-green-700"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 ">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg><span>'''
+    cross = '''<span class="text-red-700"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg></span>'''
+    if value:
+        return mark_safe(checkmark)
+    return mark_safe(cross)
+
+
 @register.filter(name='format_list')
 def format_list(value, separator=', '):
     """ Convert a list to a string """
