@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Activity{% endblock %}
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">Compleasy</a></h1>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+
+    <!-- Create activity cards summarizing the changes in the servers -->
+    {% for activity in activities %}
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items center">
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold">{{ activity.device.hostname }}</h3>
+                    <!-- When (x time ago)-->
+                    <p class="text-sm text-gray-600">{{ activity.created_at|timesince }} ago</p>
+                </div>
+                <!-- Activity type -->
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600">{{ activity.type }}</p>
+                </div>
+                <!-- Key -->
+                <div class="flex-1">
+                    {% if activity.type == 'changed' %}
+                        <p class="text-sm text-gray-600">{{ activity.line.0 }}</p>
+                    {% else %}
+                        {% for key, value in activity.line.items %}
+                        <p class="text-sm text-gray-600">{{ key }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    {% if activity.type == 'changed' %}
+                        <p class="text-sm text-gray-600">{{ activity.line.1 }} -> {{ activity.line.2 }}</p>
+                    {% else %}
+                        {% for key, value in activity.line.items %}
+                        <p class="text-sm text-gray-600">{{ value }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+        </div>
+    </div>
+{% endblock %}

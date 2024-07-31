@@ -48,8 +48,8 @@
                   <div class="hidden sm:ml-6 sm:block">
                     <div class="flex space-x-4">
                       <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-                      <a href="#" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Devices</a>
-                      <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Activity</a>
+                      <a href="{% url 'device_list' %}" class="rounded-md px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'device_list' %} bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}" aria-current="page">Devices</a>
+                      <a href="{% url 'activity' %}" class="rounded-md px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'activity' %} bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}">Activity</a>
                       <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Policies</a>
                     </div>
                   </div>
