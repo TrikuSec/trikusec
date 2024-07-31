@@ -87,6 +87,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -160,3 +161,7 @@ if os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS'):
 # Login
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# Media files
+MEDIA_ROOT = BASE_DIR / 'frontend/media'
+MEDIA_URL = '/media/'
