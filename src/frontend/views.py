@@ -192,11 +192,12 @@ def activity(request):
         
         diff = diff_report.diff_report
         ignore_keys = [
-            'report_datetime_start',
-            'report_datetime_end',
-            'slow_test[]',
-            'uptime_in_seconds',
-            'uptime_in_days'
+            'report_datetime_start',    # It's always different
+            'report_datetime_end',      # It's always different
+            'slow_test[]',              # It will repeat the same line every audit
+            'uptime_in_seconds',        # It's always different
+            'uptime_in_days',           # It's always different
+            'deleted_file[]',           # Very noisy, is not relevant for the user
         ]
         diff_analysis = analyze_diff(diff, ignore_keys=ignore_keys)
 
