@@ -164,7 +164,7 @@ class LynisReport:
                     
                     if old_value != new_value:
                         logging.debug('Changed key: %s', key)
-                        if "|" in old_value or "|" in new_value:
+                        if "|" in old_value or "|" in new_value or "," in old_value or "," in new_value:
                             logging.debug('Delimited value detected. Looking for added and removed items.')
                             # If the value is a delimited value, compare the values and get the added and removed items
                             added_items, removed_items = self._compare_delimited_values(old_value, new_value)
