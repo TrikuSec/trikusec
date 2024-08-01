@@ -1,5 +1,6 @@
 import logging
 import difflib
+from typing import Dict, List, Tuple, Any
 
 class LynisReport:
     """
@@ -39,9 +40,9 @@ class LynisReport:
         '''
         def __init__(self, diff):
             self.diff = diff
-            self.changes = self.parse()
+            self.changes = self._parse_diff()
 
-        def parse(self):
+        def _parse_diff(self) -> Dict[str, List[str]]:
             '''
             Parse the diff and return the changes
             :return: dict
