@@ -2,7 +2,36 @@ import logging
 import difflib
 
 class LynisReport:
-    """ Class to represent a Lynis report """
+    """
+    Class to represent a Lynis report.
+
+    = About Lynis Reports =
+
+    Lynis report 1.0 is formatted as key-value pairs separated by '='
+    Example:
+
+    # Lynis Report
+    report_version_major=1
+    report_version_minor=0
+    linux_version=Ubuntu
+
+    The report contains the following types of keys:
+    - Single key-value pairs
+    - List key-value pairs (indicated by '[]' in the key)
+    - Comments (lines starting with '#')
+
+    The values can be strings or lists of strings:
+    Example:
+    
+    # List key-value pair with multiple values delimited by '|'
+    suggestion[]=LYNIS|This release is more than 4 months old. Check the website or GitHub to see if there is an update available.|-|-|
+
+    # Single key-value pair with a string value
+    binary_paths=/snap/bin,/usr/bin,/usr/sbin,/usr/local/bin,/usr/local/sbin
+
+    # List key-value pair with multiple values delimited by '|', itself delimited by ','
+    network_listen[]=raw,ss,v1|udp|224.0.0.251:5353|chrome|
+    """
 
     class Diff:
         '''
