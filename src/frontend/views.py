@@ -219,7 +219,6 @@ def activity(request):
                 activities.append({
                     'device': device,
                     'created_at': diff_report.created_at,
-                    'line': keyvalue,
                     'key': key,
                     'value': value,
                     'type': 'added'
@@ -233,7 +232,6 @@ def activity(request):
                 activities.append({
                     'device': device,
                     'created_at': diff_report.created_at,
-                    'line': keyvalue,
                     'key': key,
                     'value': value,
                     'type': 'removed'
@@ -249,7 +247,6 @@ def activity(request):
             activities.append({
                 'device': device,
                 'created_at': diff_report.created_at,
-                'line': keyvalue,
                 'key': key,
                 'old_value': LynisReport.LynisData(old_value).get(),
                 'new_value': LynisReport.LynisData(new_value).get(),
