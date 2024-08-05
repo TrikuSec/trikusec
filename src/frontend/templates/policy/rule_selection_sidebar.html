@@ -61,11 +61,19 @@
         
         rules.forEach(rule => {
             const ruleElement = document.querySelector(`[data-rule-id="${rule.id}"]`);
-            ruleElement.classList.add('bg-blue-200');
+            ruleElement.classList.add('rule-selected', 'bg-amber-100', 'hover:bg-yellow-600/50');
         });
     }
     function toggleRuleSelection(element) {
-        element.classList.toggle('bg-blue-200');
+        //element.classList.toggle('bg-amber-100');
+        is_selected = element.classList.contains('rule-selected');
+        if (is_selected) {
+            element.classList.remove('rule-selected', 'bg-amber-100', 'hover:bg-yellow-600/50');
+            element.classList.add('hover:bg-gray-200');
+        } else {
+            element.classList.add('rule-selected', 'bg-amber-100', 'hover:bg-yellow-600/50');
+            element.classList.remove('hover:bg-gray-200');
+        }
     }
     function searchRuleByName(name) {
         // Get all rule elements (li elements with name="rule")
@@ -85,7 +93,7 @@
     }
     function applyRuleSelection() {
         // Get all selected rule elements
-        const selectedRuleElements = document.querySelectorAll('li.bg-blue-200');
+        const selectedRuleElements = document.querySelectorAll('li.rule-selected');
         const selectedRuleIds = Array.from(selectedRuleElements).map(element => element.dataset.ruleId);
         console.log(selectedRuleIds);
         // Ajax call to save selected rules: /policies/{rulesetId}/rules
