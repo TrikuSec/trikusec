@@ -38,6 +38,13 @@
         panel.classList.toggle('hidden');
     }
     function loadRuleDetails(ruleId) {
+        // Empty data if ruleId is not provided (i.e. when creating a new rule)
+        if (!ruleId) {
+            document.getElementById('rule-name').value = '';
+            document.getElementById('rule-description').value = '';
+            document.getElementById('rule-query').value = '';
+            return;
+        }
         // Get rule details by ID
         const ruleDetails = rules.find(rule => rule.id === ruleId);
         document.getElementById('rule-name').value = ruleDetails.name;
