@@ -1,0 +1,45 @@
+<div id="rule-edit-panel" class="hidden fixed right-0 top-0 h-full w-1/4 bg-white shadow-md">
+    <div class="flex justify-between items-center p-4 border-b bg-gray-200">
+        <h2 class="text-xl font-bold">Edit Rule</h2>
+        <button class="text-gray-600" onclick="toggleRuleEditPanel()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <div class="p-4">
+        <!-- Rule edit form goes here -->
+        <form id="rule-edit-form">
+            <div class="mb-4">
+                <label for="rule-name" class="block text-sm font-medium text-gray-700">Rule Name</label>
+                <input type="text" id="rule-name" name="rule-name" class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
+            </div>
+            <div class="mb-4">
+                <label for="rule-description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="rule-description" name="rule-description" class="mt-1 p-2 block w-full border border-gray-300 rounded-md"></textarea>
+            </div>
+            <!-- Other form fields as needed -->
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleRuleEditPanel() {
+        const panel = document.getElementById('rule-edit-panel');
+        panel.classList.toggle('hidden');
+    }
+    function loadRuleDetails(ruleId) {
+        // Simulate loading rule details via AJAX
+        // Here you would make an AJAX request to your backend to fetch the rule details
+        // For demonstration, we'll just populate with some dummy data
+        const ruleDetails = {
+            name: 'Dummy Rule',
+            description: 'This is a dummy rule for demonstration purposes.'
+        };
+        document.getElementById('rule-name').value = ruleDetails.name;
+        document.getElementById('rule-description').value = ruleDetails.description;
+    }
+</script>
