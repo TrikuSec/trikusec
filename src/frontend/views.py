@@ -204,16 +204,19 @@ def ruleset_list(request):
     
     return render(request, 'policy/ruleset_list.html', context)
 
-"""
-View for ajax requests to update the ruleset's properties and/or rules
-"""
 @csrf_protect
 @login_required
 def ruleset_update(request, ruleset_id):
     try:
         # Parse the incoming JSON request body
         data = json.loads(request.body)
+        ruleset_name = data.get('name', '')
+        ruleset_description = data.get('description', '')
         selected_rule_ids = data.get('rules', [])
+        selected_device_ids = data.get('devices', [])
+
+        if not ruleset_id:
+            return JsonResponse({'status': 'error', 'message': 'No ruleset ID provided'}, status=400)
 
         # Get the PolicyRuleset object
         ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
@@ -221,8 +224,22 @@ def ruleset_update(request, ruleset_id):
         # Get the PolicyRule objects for the selected rules
         selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
 
+        # Get the Device objects for the selected devices
+        selected_devices = Device.objects.filter(id__in=selected_device_ids)
+
         # Update the ruleset with the selected rules
-        ruleset.rules.set(selected_rules)
+        if ruleset_name:
+            ruleset.name = ruleset_name
+
+        if ruleset_description:
+            ruleset.description = ruleset_description
+        
+        if selected_rules:
+            ruleset.rules.set(selected_rules)
+
+        if selected_devices:
+            ruleset.devices.set(selected_devices)
+        
         ruleset.save()
 
         return JsonResponse({'status': 'success'}, status=200)
