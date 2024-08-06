@@ -4,7 +4,7 @@
 {% endblock %}
 
 <!-- Hidden right panel, for rule management -->
-<div id="rule-selection-panel" class="hidden fixed right-0 bottom-0 h-full w-1/4 bg-white shadow-md">
+<div id="rule-selection-panel" class="hidden fixed right-0 bottom-0 h-full w-1/4 bg-white shadow-md" data-ruleset-id="">
     <div class="flex justify-between items-center p-4 border-b bg-gray-200">
         <h2 class="text-xl font-bold">Rules</h2>
         <button class="text-gray-600" onclick="toggleRuleSelectionPanel()">
@@ -36,6 +36,7 @@
     </div>
 
     <!-- Apply and cancel buttons (in a row, down at the bottom of the panel) -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <div class="absolute flex space-x-2 w-full bottom-0 p-4 bg-gray-200">
         <button class="w-1/2 bg-blue-500 text-white px-4 py-2 rounded" onclick="applyRuleSelection()">Apply</button>
         <button class="w-1/2 bg-gray-500 text-white px-4 py-2 rounded" onclick="toggleRuleSelectionPanel()">Cancel</button>
@@ -46,6 +47,10 @@
     function toggleRuleSelectionPanel(rulesetId) {
         const rulesetPanel = document.getElementById('rule-selection-panel');
         rulesetPanel.classList.toggle('hidden');
+
+        // Store the ruleset ID in the panel's data attribute
+        rulesetPanel.dataset.rulesetId = rulesetId;
+
         if (!rulesetPanel.classList.contains('hidden')) {
             selectRulesetRules(rulesetId);
         }
@@ -91,22 +96,47 @@
             }
         });
     }
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
     function applyRuleSelection() {
+        const csrfToken = getCsrfToken();
+        
+        // Retrieve the rulesetId from the data attribute
+        const rulesetPanel = document.getElementById('rule-selection-panel');
+        const rulesetId = rulesetPanel.getAttribute('data-ruleset-id');
+
         // Get all selected rule elements
         const selectedRuleElements = document.querySelectorAll('li.rule-selected');
         const selectedRuleIds = Array.from(selectedRuleElements).map(element => element.dataset.ruleId);
-        console.log(selectedRuleIds);
-        // Ajax call to save selected rules: /policies/{rulesetId}/rules
 
-    }
-    function openRuleEditPanel(event, ruleId) {
-        // Stop propagation
-        event.stopPropagation();
-        // Hide the rule selection panel
-        document.getElementById('rule-selection-panel').classList.add('hidden');
-        // Show the rule edit panel
-        document.getElementById('rule-edit-panel').classList.remove('hidden');
-        // Load rule details (for demonstration, assuming an AJAX call or similar)
-        loadRuleDetails(ruleId);
+        // Prepare the data to send
+        const data = {
+            rules: selectedRuleIds
+        };
+
+        // Perform the AJAX request
+        fetch(`/ruleset/${rulesetId}/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken // Include the CSRF token in the request headers
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Rules applied successfully.');
+                // Close the panel and update the ruleset list
+                toggleRuleSelectionPanel();
+                // Reload the page
+                location.reload();
+            } else {
+                console.error('Failed to apply rules.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 </script>

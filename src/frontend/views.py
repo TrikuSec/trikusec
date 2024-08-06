@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset
 from utils.lynis_report import LynisReport
 import os
+import json
 import logging
 
 @login_required
@@ -188,6 +190,7 @@ def ruleset_list(request):
             'created_at': ruleset.created_at,
             'updated_at': ruleset.updated_at,
             'rules': list(ruleset.rules.values()),
+            'devices': list(ruleset.devices.values()),
             'rules_count': ruleset.rules.count(),
             'devices_count': ruleset.devices.count()
         }
@@ -196,16 +199,35 @@ def ruleset_list(request):
     context = {
         'rulesets': rulesets_data,
         'rules': list(policy_rules),
-        'xabi': ['1', '2', '3']
+        'rules_count': len(policy_rules)
     }
     
     return render(request, 'policy/ruleset_list.html', context)
 
+"""
+View for ajax requests to update the ruleset's properties and/or rules
+"""
+@csrf_protect
 @login_required
-def ruleset_edit(request, ruleset_id):
-    """Policy edit view: edit a policy ruleset"""
-    policy_ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
-    return render(request, 'policy/ruleset_form.html', {'ruleset': policy_ruleset})
+def ruleset_update(request, ruleset_id):
+    try:
+        # Parse the incoming JSON request body
+        data = json.loads(request.body)
+        selected_rule_ids = data.get('rules', [])
+
+        # Get the PolicyRuleset object
+        ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
+
+        # Get the PolicyRule objects for the selected rules
+        selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
+
+        # Update the ruleset with the selected rules
+        ruleset.rules.set(selected_rules)
+        ruleset.save()
+
+        return JsonResponse({'status': 'success'}, status=200)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @login_required
 def ruleset_add(request):
