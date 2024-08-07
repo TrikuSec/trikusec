@@ -249,34 +249,6 @@ def ruleset_update(request, ruleset_id):
         return redirect('ruleset_list')
     return HttpResponse('Invalid request method', status=405)
 
-
-@csrf_protect
-@login_required
-def ruleset_update_ajax(request, ruleset_id):
-    """Update the rules of a policy ruleset (ajax)"""
-    try:
-        # Parse the incoming JSON request body
-        data = json.loads(request.body)
-        selected_rule_ids = data.get('rules', [])
-
-        if not ruleset_id:
-            return JsonResponse({'status': 'error', 'message': 'No ruleset ID provided'}, status=400)
-
-        # Get the PolicyRuleset object
-        ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
-
-        # Get the PolicyRule objects for the selected rules
-        selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
-
-        if selected_rules:
-            ruleset.rules.set(selected_rules)
-
-        ruleset.save()
-
-        return JsonResponse({'status': 'success'}, status=200)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
 @login_required
 def ruleset_add(request):
     """Policy add view: add a new policy ruleset"""

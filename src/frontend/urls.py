@@ -20,7 +20,6 @@ urlpatterns = [
     path('ruleset/<int:ruleset_id>/', views.ruleset_detail, name='ruleset_detail'),
     path('ruleset/create/', views.ruleset_create, name='ruleset_create'),
     path('ruleset/<int:ruleset_id>/edit/', views.ruleset_update, name='ruleset_update'),
-    path('ruleset/<int:ruleset_id>/update/ajax/', views.ruleset_update_ajax, name='ruleset_update_ajax'),
     path('ruleset/<int:ruleset_id>/delete/', views.ruleset_delete, name='ruleset_delete'),
     path('activity/', views.activity, name='activity'),
 ]
