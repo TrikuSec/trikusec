@@ -63,7 +63,15 @@
             return;
         }
         const rules = ruleset.rules;
+        console.log('Rules:', rules);
+
+        // First of all, deselect all rules
+        const ruleElements = document.querySelectorAll('li[name="rule"]');
+        ruleElements.forEach(element => {
+            element.classList.remove('rule-selected', 'bg-amber-100', 'hover:bg-yellow-600/50');
+        });
         
+        // Get ruleset rule and mark them as selected
         rules.forEach(rule => {
             const ruleElement = document.querySelector(`[data-rule-id="${rule.id}"]`);
             ruleElement.classList.add('rule-selected', 'bg-amber-100', 'hover:bg-yellow-600/50');
