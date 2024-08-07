@@ -19,8 +19,8 @@
                     <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                         <th class="py-3 px-6 text-left">Name</th>
                         <th class="py-3 px-6 text-left">Description</th>
-                        <th class="py-3 px-6 text-center">Rules</th>
-                        <th class="py-3 px-6 text-center">Devices</th>
+                        <th class="py-3 px-6 text-left">Rules</th>
+                        <th class="py-3 px-6 text-left">Devices</th>
                         <th class="py-3 px-6 text-left">Last Updated</th>
                     </tr>
                 </thead>
@@ -38,13 +38,13 @@
                                 <span>{{ ruleset.description }}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-left">
                             <div class="flex items-start inline-flex hover:text-gray-900">
                                 <!-- align items vertically -->
-                                <span class="align-center text-left">
+                                <span class="align-left text-left">
                                     {% for rule in ruleset.rules|slice:"4" %}
                                     <!-- Rules (max. 4 items) one per line -->
-                                    <p class="text-gray-900 px-2 py-1 text-xs">{{ rule.name }}</p>
+                                    <p class="text-gray-900 py-1 text-xs">{{ rule.name }}</p>
                                     {% endfor %}
                                     <!-- The following line will only be visible if there are more than 4 rules -->
                                     {% if ruleset.rules_count > 4 %}
@@ -60,13 +60,13 @@
                                 </div>                   
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-left">
                             <!-- Show device list -->
                             <div class="flex inline-flex items-start">
                                 <span class="align-top text-left">
                                     {% for device in ruleset.devices %}
                                     <!-- Devices (max. 4 items) one per line -->
-                                    <p class="text-gray-900 px-2 py-1 text-xs">{{ device.hostname }}</p>
+                                    <p class="text-gray-900 py-1 text-xs">{{ device.hostname }}</p>
                                     {% endfor %}
                                     <!-- The following line will only be visible if there are more than 4 devices -->
                                     {% if ruleset.devices_count > 4 %}
