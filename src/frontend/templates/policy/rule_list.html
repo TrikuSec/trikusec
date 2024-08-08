@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load custom_filters %}
+{% load humanize %}
 
 {% block title %}Policies{% endblock %}
 {% block content %}
@@ -57,7 +58,7 @@
                             </div>
                         </td>
                         <td class="py-3 px-6 text-left">
-                            <span>{{ rule.updated_at }}</span>
+                            <span>{{ rule.updated_at|timesince }}</span>
                         </td>
                     </tr>
                     {% empty %}
