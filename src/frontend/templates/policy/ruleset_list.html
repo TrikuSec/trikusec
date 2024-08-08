@@ -113,6 +113,11 @@
         rules = JSON.parse(document.getElementById('rules-data').textContent);
         console.log(rulesets);
         console.log(rules);
+
+        // If rules is empty; redirect to rules list
+        if (Object.keys(rules).length === 0) {
+            window.location.href = "{% url 'rule_list' %}";
+        }
     });
 </script>
 {% endblock %}
