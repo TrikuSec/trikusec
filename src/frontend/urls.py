@@ -21,5 +21,9 @@ urlpatterns = [
     path('ruleset/create/', views.ruleset_create, name='ruleset_create'),
     path('ruleset/<int:ruleset_id>/edit/', views.ruleset_update, name='ruleset_update'),
     path('ruleset/<int:ruleset_id>/delete/', views.ruleset_delete, name='ruleset_delete'),
+    path('rules/', views.rule_list, name='rule_list'),
+    path('rule/<int:rule_id>/', views.rule_detail, name='rule_detail'),
+    path('rule/create/', views.rule_create, name='rule_create'),
+    path('rule/<int:rule_id>/edit/', views.rule_update, name='rule_update'),
     path('activity/', views.activity, name='activity'),
 ]

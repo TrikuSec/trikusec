@@ -262,10 +262,43 @@ def ruleset_delete(request, ruleset_id):
     return redirect('ruleset_list')
 
 @login_required
-def rule_edit(request, rule_id):
-    """Rule edit view: edit a policy rule"""
+def rule_list(request):
+    """Rule list view: show all policy rules"""
+    policy_rules = PolicyRule.objects.all()
+    if not policy_rules:
+        return HttpResponse('No policy rules found', status=404)
+    
+    return render(request, 'policy/rules_list.html', {'rules': policy_rules})
+
+@login_required
+def rule_detail(request, rule_id):
+    """Rule detail view: show the details of a policy rule"""
     policy_rule = get_object_or_404(PolicyRule, id=rule_id)
+    return render(request, 'policy/rule_detail.html', {'rule': policy_rule})
+
+@login_required
+def rule_update(request, rule_id):
+    """Rule update view: update a policy rule"""
+    policy_rule = get_object_or_404(PolicyRule, id=rule_id)
+    if request.method == 'POST':
+        policy_rule.name = request.POST.get('name')
+        policy_rule.description = request.POST.get('description')
+        policy_rule.rule_query = request.POST.get('rule_query')
+        policy_rule.save()
+        return redirect('rule_detail', rule_id=policy_rule.id)
     return render(request, 'policy/rule_form.html', {'rule': policy_rule})
+
+@login_required
+def rule_create(request):
+    """Rule create view: create a new policy rule"""
+    if request.method == 'POST':
+        policy_rule = PolicyRule()
+        policy_rule.name = request.POST.get('name')
+        policy_rule.description = request.POST.get('description')
+        policy_rule.rule_query = request.POST.get('rule_query')
+        policy_rule.save()
+        return redirect('rule_list')
+    return render(request, 'policy/rule_form.html')
 
 @login_required
 def rule_add(request):
