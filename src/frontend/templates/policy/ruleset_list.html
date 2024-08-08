@@ -84,6 +84,10 @@
                             <span>{{ ruleset.updated_at }}</span>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-3 px-6 text-left">No rulesets found</td>
+                    </tr>
                     {% endfor %}
             </table>
             <!-- Add new ruleset button -->
