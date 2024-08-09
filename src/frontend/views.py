@@ -278,7 +278,8 @@ def rule_detail(request, rule_id):
         form = PolicyRuleForm(request.POST, instance=rule)
         if form.is_valid():
             form.save()
-            return redirect('ruleset_detail', ruleset_id=rule.id)
+            return redirect('rule_list')
+        form = PolicyRuleForm(instance=rule)
     else:
         form = PolicyRuleForm(instance=rule)
     return render(request, 'policy/rule_detail.html', {'form': form, 'rule': rule})
