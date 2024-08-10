@@ -290,6 +290,10 @@ def rule_update(request, rule_id):
     policy_rule = get_object_or_404(PolicyRule, id=rule_id)
     if request.method == 'POST':
         logging.debug('Request POST: %s', request.POST)
+        if request.POST.get('enabled'):
+            policy_rule.enabled = True
+        else:
+            policy_rule.enabled = False
         policy_rule.name = request.POST.get('name')
         policy_rule.description = request.POST.get('description')
         policy_rule.rule_query = request.POST.get('rule_query')
