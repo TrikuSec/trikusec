@@ -1,11 +1,21 @@
 let rulesets = {};
 let rules = {};
 
+
 document.addEventListener('DOMContentLoaded', function() {
     rulesets = JSON.parse(document.getElementById('rulesets-data').textContent);
     rules = JSON.parse(document.getElementById('rules-data').textContent);
-    console.log(rulesets);
-    console.log(rules);
+    //console.log(rulesets);
+    //console.log(rules);
+
+    // Search rules by name
+    const ruleSelectionIcons = document.getElementsByName('rule-selection-icon');
+    ruleSelectionIcons.forEach(button => {
+        button.addEventListener('click', function() {
+            const rulesetId = button.dataset.rulesetId;
+            toggleRuleSelectionPanel(rulesetId);
+        });
+    });
 
     // If rules is empty; redirect to rules list
     if (Object.keys(rules).length === 0) {
@@ -31,6 +41,9 @@ function toggleRuleSelectionPanel(rulesetId) {
 }
 
 function selectRulesetRules(rulesetId) {
+    // Convert the ruleset ID to a number
+    rulesetId = Number(rulesetId);
+
     // Get the ruleset by ID
     const ruleset = rulesets.find(ruleset => ruleset.id === rulesetId);
     if (!ruleset) {
