@@ -107,6 +107,7 @@
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/rulesets.js' %}" defer></script>
+<script src="{% static 'js/rules.js' %}" defer></script>
 {{ rulesets|json_script:"rulesets-data" }}
 {{ rules|json_script:"rules-data" }}
 {% endblock %}
