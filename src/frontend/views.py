@@ -306,7 +306,8 @@ def rule_create(request):
         form = PolicyRuleForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('rule_list')
+            # Redirect to the referer page
+            return redirect(request.META.get('HTTP_REFERER'))
     else:
         form = PolicyRuleForm()
     return render(request, 'policy/rule_detail.html', {'form': form})
