@@ -16,11 +16,11 @@
         <button class="rule-edit-panel-button bg-gray-500 text-white px-4 py-2 rounded" aria-label="Create new rule">+ Rule</button>
     </div>
 
-    <div class="p-4">
+    <div>
         <form id="rule-selection-form" method="post" action="">
             {% csrf_token %}
             <input type="hidden" name="ruleset_id" id="ruleset_id" value="">
-            <div id="rules" class="space-y-2">
+            <div id="rules" class="p-4 space-y-2">
                 {% for rule in rules %}
                 <div class="flex items-center group/rule">
                     <input type="checkbox" id="rule-{{ rule.id }}" name="rules" value="{{ rule.id }}" class="hidden peer">
