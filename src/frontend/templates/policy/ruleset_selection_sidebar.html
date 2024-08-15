@@ -13,13 +13,15 @@
       <button class="rule-edit-panel-button bg-gray-500 text-white px-2 py-2 rounded" aria-label="Create new ruleset">+ Ruleset</button>
     </div>
     <div class="flex-grow overflow-hidden">
-      <form id="ruleset-selection-form" method="post" action="" class="h-full flex flex-col">
+      <form id="ruleset-selection-form" method="post" action="{% url 'device_update' device_id=device.id %}" class="h-full flex flex-col">
         {% csrf_token %}
         <input type="hidden" name="device_id" id="device_id" value="{{ device.id }}">
         <div id="rulesets" class="p-4 space-y-2 overflow-y-auto flex-grow">
           {% for ruleset in rulesets %}
           <div class="flex items-center group/rule">
-            <input type="checkbox" id="ruleset-{{ ruleset.id }}" value="{{ ruleset.id }}" class="hidden peer">
+            <input type="checkbox" name="rulesets" id="ruleset-{{ ruleset.id }}" value="{{ ruleset.id }}"
+                   class="hidden peer"
+                   {% if ruleset in device.rulesets.all %} checked {% endif %}>
             <label for="ruleset-{{ ruleset.id }}" class="flex-1 flex justify-between items-center py-1 px-4 bg-white rounded cursor-pointer hover:bg-gray-200 peer-checked:bg-amber-100 peer-checked:hover:bg-yellow-600/50 font-light">
               {{ ruleset.name }}
               <a href="#" class="group rule-edit-panel-button relative rounded-full p-1 bg-transparent" data-ruleset-id="{{ ruleset.id }}">

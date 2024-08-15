@@ -340,6 +340,15 @@
                                 </td>
                             {% endfor %}
 
+                            {% empty %}
+
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <td class="py-3 px-6 text-center" colspan="5">
+                                    <span class="block">No rulesets assigned.</span>
+                                    <span class="block">You can assign rulesets to this device by clicking the <span class="font-medium italic">Select rulesets</span> button below or going to the <span class="font-medium italic">Policy > Rulesets</span> section in the top menu.</span>
+                                </td>
+                            </tr>
+
                             {% endfor %}
                     </table>
                 </div>
@@ -461,25 +470,30 @@
             document.getElementById('ruleset-selection-panel').classList.toggle('hidden');
         }
 
-        function selectRulesets(deviceId) {
-            console.log('Selecting rulesets for device', deviceId);
-            const evaluated_rulesets = JSON.parse(document.getElementById('evaluated-rulesets-data').textContent);
-            
-            // Find rulesets elements in the side-panel
-            ruleset_checkbox_elements.forEach(function(ruleset) {
-                var ruleset_id = parseInt(ruleset.value);
-                var evaluated_ruleset_ids = evaluated_rulesets.map(function(ruleset) {
-                    return ruleset.id;
-                });
+        /*
 
-                // Check if the ruleset is in the evaluated rulesets (assigned to the device)
-                if (evaluated_ruleset_ids.includes(ruleset_id)) {
-                    ruleset.checked = true;
-                } else {
-                    ruleset.checked = false;
-                }
-            });        
-        }
+        Not used for now. The rulesets are marked as checked using the django template tags.
+
+         */
+        // function selectRulesets(deviceId) {
+        //     console.log('Selecting rulesets for device', deviceId);
+        //     const evaluated_rulesets = JSON.parse(document.getElementById('evaluated-rulesets-data').textContent);
+            
+        //     // Find rulesets elements in the side-panel
+        //     ruleset_checkbox_elements.forEach(function(ruleset) {
+        //         var ruleset_id = parseInt(ruleset.value);
+        //         var evaluated_ruleset_ids = evaluated_rulesets.map(function(ruleset) {
+        //             return ruleset.id;
+        //         });
+
+        //         // Check if the ruleset is in the evaluated rulesets (assigned to the device)
+        //         if (evaluated_ruleset_ids.includes(ruleset_id)) {
+        //             ruleset.checked = true;
+        //         } else {
+        //             ruleset.checked = false;
+        //         }
+        //     });        
+        // }
 
         function searchRulesetByName(name) {
             if (!name) {
@@ -513,7 +527,7 @@
             document.querySelectorAll('.button-ruleset-selection-panel').forEach(function(button) {
                 button.addEventListener('click', function() {
                     toggleRulesetSelectionPanel();
-                    selectRulesets(device_id);
+                    //selectRulesets(device_id);
                 });
             });
 

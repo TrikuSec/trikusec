@@ -14,6 +14,7 @@ urlpatterns = [
     path('download/lynis_custom_profile', views.download_lynis_custom_profile, name='download_lynis_custom_profile'),
     path('devices/', views.device_list, name='device_list'),
     path('device/<int:device_id>/', views.device_detail, name='device_detail'),
+    path('device/<int:device_id>/edit/', views.device_update, name='device_update'),
     path('device/<int:device_id>/report/', views.device_report, name='device_report'),
     path('device/<int:device_id>/report/changelog/', views.device_report_changelog, name='device_report_changelog'),
     path('rulesets/', views.ruleset_list, name='ruleset_list'),
