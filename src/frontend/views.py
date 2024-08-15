@@ -96,6 +96,7 @@ def device_detail(request, device_id):
         
         for rule in policy_ruleset.rules.all():
             rule_dict = {
+                'id': rule.id,
                 'name': rule.name,
                 'description': rule.description,
                 'enabled': rule.enabled,

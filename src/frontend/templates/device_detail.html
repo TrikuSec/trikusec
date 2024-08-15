@@ -239,7 +239,7 @@
                         <tbody class="text-gray-600 text-sm font-light">
 
                             {% for ruleset in evaluated_rulesets %}
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <tr id="ruleset-{{ ruleset.id }}" data-ruleset-id="{{ ruleset.id }}" class="evaluated-ruleset border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 justify-center">
                                     <span class="cursor-pointer" onclick="toggleRules(this)">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-gray-900">
@@ -288,7 +288,7 @@
 
                             <!-- Rules hidden -->
                             {% for rule in ruleset.rules %}
-                            <tr class="hidden-rule hidden border-b border-gray-200 hover:bg-gray-100">
+                            <tr id="rule-{{ rule.id }}" data-rule-id="{{ rule.id }}" data-ruleset-id="{{ ruleset.id }}" class="evaluated-rule hidden-rule hidden border-b border-gray-200 hover:bg-gray-100">
                                 <td class="w-4 py-3 px-6"></td>
                                 <td class="py-3 px-6 text-left">
                                     <div class="flex items-center space-x-2">
@@ -450,14 +450,16 @@
             }
         }
         function toggleRules(element) {
-            var rules = document.querySelectorAll('.hidden-rule');
+            var ruleset_id = element.closest('tr').dataset.rulesetId;
+            //var rules = document.querySelectorAll('.hidden-rule');
+            // Select only the evaluated rules that has the data-ruleset-id attribute equal to the ruleset_id
+            var rules = document.querySelectorAll('.evaluated-rule[data-ruleset-id="' + ruleset_id + '"]');
             rules.forEach(function(rule) {
                 rule.classList.toggle('hidden');
             });
         }
     </script>
-<!-- </body>
-</html> -->
+
 {% endblock %}
 
 {% block scripts %}
