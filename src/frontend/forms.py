@@ -1,5 +1,15 @@
 from django import forms
-from api.models import PolicyRuleset, PolicyRule
+from api.models import Device, PolicyRuleset, PolicyRule
+
+class DeviceForm(forms.ModelForm):
+    class Meta:
+        model = Device
+        fields = ['rulesets']
+        widgets = {
+            'rulesets': forms.SelectMultiple(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
+        }
 
 class PolicyRulesetForm(forms.ModelForm):
     class Meta:

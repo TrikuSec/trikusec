@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load custom_filters %}
 {% load humanize %}
 
@@ -6,17 +7,13 @@
 {% block content %}
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">Compleasy</a></h1>
+
+        <!-- Rule selection side-panel -->
+        {% include 'policy/ruleset_selection_sidebar.html' %}
         
         <!-- Device details Screen -->
         <div id="serverDetails">
             <!--<h2 class="text-2xl font-bold mb-6">{{ report.hostname }}</h2>-->
-
-            <!-- Back button (arrow) -->
-            <a href="{% url 'device_list' %}" class="p-2 text-gray-600 hover:text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
 
             <!-- Overview Section -->
             <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
@@ -217,213 +214,28 @@
             </div>
 
             <!-- Compliance Section -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
-                <h3 class="text-xl font-semibold mb-4">Compliance</h3>
-                <div class="mb-6">
-                    <h4 class="text-lg font-medium mb-2">Policy Rulesets</h4>
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="w-4 py-3 px-2 text-left"></th>
-                                <th class="w-64 py-3 px-6 text-left">Rule</th>
-                                <th class="py-3 px-6 text-left">Description</th>
-                                <th class="min-w-10 max-w-12 py-3 px-6 text-center">Policy status</th>
-                                <!-- Action buttons -->
-                                <th class="py-3 px-6 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm font-light">
-
-                            {% for ruleset in evaluated_rulesets %}
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 justify-center">
-                                    <span class="cursor-pointer" onclick="toggleRules(this)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-gray-900">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                        </svg>
-                                    </span>
-                                </td>
-                                <td class="py-3 px-6 text-left"><span>{{ ruleset.name }}</span></td>
-                                <td class="w-1/2 py-3 px-6 text-left"><span">{{ ruleset.description }}</span></td>
-                                <td class="py-3 px-6 justify-center">
-                                    {% if ruleset.compliant %}
-                                    <!-- Green check -->
-                                     <span class="fill-current text-green-600" title="Compliant">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mx-auto">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                                        </svg>
-                                          
-                                             
-                                      </span>                                 
-                                        
-                                    {% else %}
-                                    <span class="fill-current text-red-600" title="Non-Compliant">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mx-auto">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
-                                          </svg>                                               
-                                      </span>   
-                                    {% endif %}
-                                </td>
-                                <!-- Buttons to Unassign policy ruleset to the device, or Edit the ruleset -->
-                                <td class="py-3 px-6 text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <a href="#" class="text-gray-600 hover:text-red-800">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.181 8.68a4.503 4.503 0 0 1 1.903 6.405m-9.768-2.782L3.56 14.06a4.5 4.5 0 0 0 6.364 6.365l3.129-3.129m5.614-5.615 1.757-1.757a4.5 4.5 0 0 0-6.364-6.365l-4.5 4.5c-.258.26-.479.541-.661.84m1.903 6.405a4.495 4.495 0 0 1-1.242-.88 4.483 4.483 0 0 1-1.062-1.683m6.587 2.345 5.907 5.907m-5.907-5.907L8.898 8.898M2.991 2.99 8.898 8.9" />
-                                            </svg>
-                                            
-                                        </a>
-                                        <a href="#" class="text-gray-600 hover:text-gray-900">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                            </svg>
-                                            
-                                        </a>
-                                    </div> 
-                            </tr>
-
-                            <!-- Rules hidden -->
-                            {% for rule in ruleset.rules %}
-                            <tr class="hidden-rule hidden border-b border-gray-200 hover:bg-gray-100">
-                                <td class="w-4 py-3 px-6"></td>
-                                <td class="py-3 px-6 text-left">
-                                    <div class="flex items-center space-x-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                                        </svg>        
-                                    <span>{{ rule.name }}</span>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-6 text-left">{{ rule.description }}</td>
-                                <td class="py-3 px-6 justify-center">
-                                    {% if rule.compliant %}
-                                        {% if rule.enabled %}
-                                        <!-- Enabled Pass: Green check -->
-                                        <span class="fill-current text-green-600" title="Pass">
-                                        {% else %}
-                                        <!-- Disabled Pass: Gray check -->
-                                        <span class="fill-current text-gray-600" title="Pass (disabled)">
-                                        {% endif %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mx-auto">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                            </svg>                                               
-                                        </span>  
-                                    {% else %}
-                                        {% if rule.enabled %}
-                                        <!-- Enabled Fail: Red X -->
-                                        <span class="fill-current text-red-600" title="Fail">
-                                        {% else %}
-                                        <!-- Disabled Fail: Gray X -->
-                                        <span class="fill-current text-gray-600" title="Fail (disabled)">
-                                        {% endif %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mx-auto">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                            </svg>                                                                                         
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-3 px-6 text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <!--empty div to align edit buttons. I know, i know...-->
-                                        <div class="w-6"></div>
-                                        <a href="#" class="text-gray-600 hover:text-gray-900">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                            </svg>
-                                            
-                                        </a>
-                                    </div>
-                                </td>
-                            {% endfor %}
-
-                            {% endfor %}
-                    </table>
-                </div>
-                <!-- Button: create a ruleset -->
-                <div class="text-right">
-                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded inline-flex items-center">New ruleset</button>
-                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded inline-flex items-center">New rule</button>
-                </div>
-                
-
-            </div>
+            {% include 'device/device_compliance.html' with evaluated_rulesets=evaluated_rulesets %}
 
             <!-- Security Section -->
             <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
                 <h3 class="text-xl font-semibold mb-4">Security feedback</h3>
                 
                 <!-- Warnings Subsection -->
-                <div class="mb-6">
-                    <h4 class="text-lg font-medium mb-2">Warnings</h4>
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="w-36 py-3 px-6 text-left">Test-ID</th>
-                                <th class="py-3 px-6 text-left">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm font-light">
-
-                            {% for warning in report.warning %}
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 text-left">{{ warning.0 }}</td>
-                                <td class="py-3 px-6 text-left">
-                                    <span {%  if warning|length > 2 %} class="expand-description" onclick="toggleDetails(this)" {% endif %}>{{ warning.1 }}
-                                    {% if warning|length > 2 %}
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    {% endif %}
-                                    </span>
-                                    <div class="hidden-details hidden mt-2">
-                                        {% for detail in warning|slice:'2:' %}
-                                        <p class="italic">{{ detail }}</p>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-
-                        </tbody>
-                    </table>
-                </div>
+                {% include 'device/device_warnings.html' with warnings=report.warning %}
                 
                 <!-- Suggestions Subsection -->
-                <div>
-                    <h4 class="text-lg font-medium mb-2">Suggestions</h4>
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="w-36 py-3 px-6 text-left">Test-ID</th>
-                                <th class="py-3 px-6 text-left">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm font-light">
-
-                            {% for suggestion in report.suggestion %}
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 text-left">{{ suggestion.0 }}</td>
-                                <td class="py-3 px-6 text-left">
-                                    <span {%  if suggestion|length > 2 %}class="expand-description" onclick="toggleDetails(this)"{% endif %}>{{ suggestion.1 }}
-                                    {% if suggestion|length > 2 %}
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    {% endif %}
-                                    </span>
-                                    <div class="hidden-details hidden mt-2">
-                                        {% for detail in suggestion|slice:'2:' %}
-                                        <p class="italic">{{ detail }}</p>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            
-                        </tbody>
-                    </table>
-                </div>
+                {% include 'device/device_suggestions.html' with suggestions=report.suggestion %}
             </div>
         </div>
     </div>
 
+{% endblock %}
+
+{% block scripts %}
     <script>
+        const ruleset_checkbox_elements = document.querySelectorAll('#rulesets input[type="checkbox"]');
+        const ruleset_checkbox_divs = document.querySelectorAll('#rulesets > div');
+
         function toggleDetails(element) {
             var details = element.closest('td').querySelector('.hidden-details');
             if (details.style.display === 'none' || details.style.display === '') {
@@ -433,12 +245,84 @@
             }
         }
         function toggleRules(element) {
-            var rules = document.querySelectorAll('.hidden-rule');
+            var ruleset_id = element.closest('tr').dataset.rulesetId;
+            //var rules = document.querySelectorAll('.hidden-rule');
+            // Select only the evaluated rules that has the data-ruleset-id attribute equal to the ruleset_id
+            var rules = document.querySelectorAll('.evaluated-rule[data-ruleset-id="' + ruleset_id + '"]');
             rules.forEach(function(rule) {
                 rule.classList.toggle('hidden');
             });
         }
+
+        function toggleRulesetSelectionPanel() {
+            // Toggle the hidden ruleset selection side-panel
+            document.getElementById('ruleset-selection-panel').classList.toggle('hidden');
+        }
+
+        function searchRulesetByName(name) {
+            if (!name) {
+                // Remove hidden for every ruleset checkbox element
+                ruleset_checkbox_divs.forEach(function(ruleset) {
+                    ruleset.classList.remove('hidden');
+                });
+                return;
+            }
+            
+            // Hide rulesets that do not match the search query
+            ruleset_checkbox_divs.forEach(function(ruleset) {
+                // The ruleset name is in the label element
+                var ruleset_name = ruleset.querySelector('label').textContent.trim();
+                if (ruleset_name.toLowerCase().includes(name.toLowerCase())) {
+                    ruleset.classList.remove('hidden');
+                } else {
+                    ruleset.classList.add('hidden');
+                }
+            });
+        }
+
+        function loadMoreSuggestions() {
+            var rows = document.querySelectorAll('#suggestions tr.hidden');
+            var count = 5;
+
+            for (var i = 0; i < rows.length && i < count; i++) {
+                rows[i].classList.remove('hidden');
+            }      
+
+            // If there are no more hidden rows, hide the "Load more" button
+            if (rows.length <= count) {
+                // Add class hidden
+                document.getElementById('load-more-suggestions-btn').classList.add('hidden');
+            }
+        }
+
+        // Event listeners added after DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const ruleset_selection_panel = document.getElementById('ruleset-selection-panel');
+            const device_id = ruleset_selection_panel.dataset.deviceId;
+            const ruleset_selection_panel_button = document.getElementById('button-ruleset-selection-panel');
+            const ruleset_search_input = document.getElementById('ruleset-search-input');
+            const load_more_suggestions_btn = document.getElementById('load-more-suggestions-btn');
+
+            // Add a click event listener to the hidden ruleset selection side-panel
+            document.querySelectorAll('.button-ruleset-selection-panel').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    toggleRulesetSelectionPanel();
+                    //selectRulesets(device_id);
+                });
+            });
+
+            ruleset_search_input.addEventListener('onkeyup', function() {
+                searchRulesetByName(ruleset_search_input.value);
+            });
+
+            // Add a click event listener to the load more suggestions button
+            if (load_more_suggestions_btn) {
+                load_more_suggestions_btn.addEventListener('click', function() {
+                    loadMoreSuggestions();
+                });
+            }
+        });
     </script>
-<!-- </body>
-</html> -->
+    {{ evaluated_rulesets|json_script:"evaluated-rulesets-data" }}
 {% endblock %}
+

@@ -1,0 +1,46 @@
+<div>
+    <h4 class="text-lg font-medium mb-2">Suggestions</h4>
+    <table id="suggestions" class="min-w-full">
+        <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                <th class="w-36 py-3 px-6 text-left">Test-ID</th>
+                <th class="py-3 px-6 text-left">Description</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm font-light">
+
+            {% for suggestion in suggestions %}
+            <tr class="border-b border-gray-200 hover:bg-gray-100 {% if forloop.counter > 5 %} hidden{% endif %}">
+                <td class="py-3 px-6 text-left">{{ suggestion.0 }}</td>
+                <td class="py-3 px-6 text-left">
+                    <span {%  if suggestion|length > 2 %}class="expand-description" onclick="toggleDetails(this)"{% endif %}>{{ suggestion.1 }}
+                    {% if suggestion|length > 2 %}
+                    <i class="fas fa-info-circle info-icon"></i>
+                    {% endif %}
+                    </span>
+                    <div class="hidden-details hidden mt-2">
+                        {% for detail in suggestion|slice:'2:' %}
+                        <p class="italic">{{ detail }}</p>
+                        {% endfor %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            
+        </tbody>
+    </table>
+    <!-- Load more button -->
+    {% if suggestions|length > 5 %}
+    <div class="fter:h-px flex items-center before:h-px before:flex-1  before:bg-gray-300 before:content-[''] after:h-px after:flex-1 after:bg-gray-300  after:content-['']">
+        <button type="button" id="load-more-suggestions-btn"
+            class="flex items-center rounded-full border border-gray-300 bg-secondary-50 px-3 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-1 h-4 w-4">
+                <path fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clip-rule="evenodd" />
+            </svg>
+            View More
+        </button>
+    </div>
+    {% endif %}
+</div>
