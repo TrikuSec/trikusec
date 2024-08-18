@@ -287,12 +287,28 @@
             });
         }
 
+        function loadMoreSuggestions() {
+            var rows = document.querySelectorAll('#suggestions tr.hidden');
+            var count = 5;
+
+            for (var i = 0; i < rows.length && i < count; i++) {
+                rows[i].classList.remove('hidden');
+            }      
+
+            // If there are no more hidden rows, hide the "Load more" button
+            if (rows.length <= count) {
+                // Add class hidden
+                document.getElementById('load-more-suggestions-btn').classList.add('hidden');
+            }
+        }
+
         // Event listeners added after DOMContentLoaded
         document.addEventListener('DOMContentLoaded', function() {
             const ruleset_selection_panel = document.getElementById('ruleset-selection-panel');
             const device_id = ruleset_selection_panel.dataset.deviceId;
             const ruleset_selection_panel_button = document.getElementById('button-ruleset-selection-panel');
             const ruleset_search_input = document.getElementById('ruleset-search-input');
+            const load_more_suggestions_btn = document.getElementById('load-more-suggestions-btn');
 
             // Add a click event listener to the hidden ruleset selection side-panel
             document.querySelectorAll('.button-ruleset-selection-panel').forEach(function(button) {
@@ -305,6 +321,13 @@
             ruleset_search_input.addEventListener('onkeyup', function() {
                 searchRulesetByName(ruleset_search_input.value);
             });
+
+            // Add a click event listener to the load more suggestions button
+            if (load_more_suggestions_btn) {
+                load_more_suggestions_btn.addEventListener('click', function() {
+                    loadMoreSuggestions();
+                });
+            }
         });
     </script>
     {{ evaluated_rulesets|json_script:"evaluated-rulesets-data" }}
