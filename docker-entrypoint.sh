@@ -29,8 +29,12 @@ python manage.py createsuperuser --noinput --username=${COMPLEASY_ADMIN_USERNAME
 # Update admin user password (from environment variable)
 python manage.py change_admin_password
 
-# Add a random licensekey
-python manage.py populate_db_licensekey
+# Add a license key (use provided env var if available, otherwise generate)
+if [ -n "${COMPLEASY_LICENSE_KEY}" ]; then
+  python manage.py populate_db_licensekey "${COMPLEASY_LICENSE_KEY}"
+else
+  python manage.py populate_db_licensekey
+fi
 
 # Start server
 exec "$@"
