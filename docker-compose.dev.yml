@@ -9,9 +9,10 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - DJANGO_DEBUG=True
-      - COMPLEASY_URL=http://compleasy-dev:8000
+      - COMPLEASY_URL=https://compleasy-dev:443
       - COMPLEASY_ADMIN_USERNAME=admin
       - COMPLEASY_ADMIN_PASSWORD=compleasy
+      - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
       - DJANGO_ALLOWED_HOSTS=*
     ports:
       - 8000:8000
@@ -22,6 +23,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  nginx-dev:
+    image: nginx:latest
+    container_name: nginx-dev
+    ports:
+      - 443:443
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/generate-certs.sh:/docker-entrypoint.d/40-generate-cert.sh
+      - ./nginx/certs:/etc/nginx/certs
+    environment:
+      - NGINX_CERT_CN=${NGINX_CERT_CN:-nginx-dev}
+    depends_on:
+      compleasy-dev:
+        condition: service_healthy
+    networks:
+      - default
 
   test:
     build:
@@ -46,11 +64,12 @@ services:
       dockerfile: lynis/Dockerfile
     container_name: lynis-client
     environment:
-      - COMPLEASY_SERVER_URL=http://compleasy-dev:8000
-      - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY}
+      - COMPLEASY_SERVER_URL=https://nginx-dev:443
+      - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
+      - DEBIAN_FRONTEND=noninteractive
     depends_on:
-      compleasy-dev:
-        condition: service_healthy
+      nginx-dev:
+        condition: service_started
     networks:
       - default
     command: ["/test/run-lynis-test.sh"]

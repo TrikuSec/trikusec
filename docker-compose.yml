@@ -23,5 +23,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/generate-certs.sh:/docker-entrypoint.d/40-generate-cert.sh
       - ./nginx/certs:/etc/nginx/certs
+    environment:
+      - NGINX_CERT_CN=${NGINX_CERT_CN:-nginx}
     depends_on:
       - compleasy

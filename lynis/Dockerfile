@@ -1,7 +1,17 @@
-FROM alpine:latest
+FROM ubuntu:latest
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Lynis and required dependencies
-RUN apk add --no-cache lynis curl bash
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends lynis curl bash wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Pre-configure Postfix to avoid interactive prompts (if it gets installed later)
+RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections && \
+    echo "postfix postfix/main_mailer_type string 'Local only'" | debconf-set-selections
 
 # Create directory for Lynis plugin
 RUN mkdir -p /usr/local/lynis/plugins
@@ -21,5 +31,5 @@ RUN chmod +x /test/run-lynis-test.sh
 WORKDIR /test
 
 # Default command
-CMD ["/bin/sh"]
+CMD ["/bin/bash"]
 
