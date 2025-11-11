@@ -32,7 +32,17 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 
 3. Edit the `.env` file and replace `GENERATE_THIS_SECRET_KEY_AS_EXPLAINED_ABOVE` with your newly generated key.
 
-4. (Optional) For development environments only, you can enable DEBUG mode by adding `DJANGO_DEBUG=True` to your `.env` file. 
+4. (Optional) For development environments only, you can enable DEBUG mode by adding `DJANGO_DEBUG=True` to your `.env` file.
+5. (Recommended) Set `DJANGO_ALLOWED_HOSTS` to a comma-separated list of your domains in production.
+6. (Optional) Enable HTTPS security headers in production:
+   - `SECURE_SSL_REDIRECT=True`
+   - `SECURE_HSTS_SECONDS=31536000`
+   - `SESSION_COOKIE_SECURE=True`
+   - `CSRF_COOKIE_SECURE=True`
+7. (Optional) Configure rate limiting:
+   - `RATELIMIT_ENABLE=True` (default)
+8. (Optional) PostgreSQL in production (instead of SQLite):
+   - Set `DATABASE_URL=postgresql://user:password@host:5432/dbname`
 
 > [!CAUTION]
 > **Security Critical:** NEVER set `DJANGO_DEBUG=True` in production environments. Running with DEBUG enabled exposes sensitive information including stack traces, environment variables, and database queries to potential attackers. The default is `False` for security.
@@ -129,6 +139,13 @@ sudo apt install rkhunter auditd aide
 No local installation required! All development and testing happens in Docker containers.
 
 The test container automatically runs database migrations before executing tests.
+
+### Security Notes
+
+- Never use default admin credentials in production. Set `COMPLEASY_ADMIN_PASSWORD` in your `.env`.
+- Set `DJANGO_ALLOWED_HOSTS` to your production domains (comma-separated).
+- Keep `DJANGO_DEBUG=False` in production.
+- When serving over HTTPS, enable HSTS and secure cookies as shown above.
 
 ### Running Tests Locally
 

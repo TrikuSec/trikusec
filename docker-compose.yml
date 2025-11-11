@@ -9,7 +9,9 @@ services:
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
       - COMPLEASY_URL=https://localhost:3000
       - COMPLEASY_ADMIN_USERNAME=admin
-      - COMPLEASY_ADMIN_PASSWORD=compleasy
+      # SECURITY WARNING: Change admin credentials in production!
+      # Set COMPLEASY_ADMIN_PASSWORD in .env file
+      - COMPLEASY_ADMIN_PASSWORD=${COMPLEASY_ADMIN_PASSWORD:-compleasy}
     ports:
       - 8000:8000
     restart: unless-stopped

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.decorators import ratelimit
 from .models import LicenseKey, Device, FullReport, DiffReport
 from .forms import ReportUploadForm
 from utils.lynis_report import LynisReport
@@ -9,6 +10,7 @@ import os
 import logging
 
 @csrf_exempt
+@ratelimit(key='ip', rate='100/h', method='POST')
 def upload_report(request):
     logging.debug('Uploading report...')
     if request.method == 'POST':
@@ -79,6 +81,7 @@ def upload_report(request):
     return HttpResponse('Invalid request method', status=405)
 
 @csrf_exempt
+@ratelimit(key='ip', rate='50/h', method='POST')
 def check_license(request):
     if request.method == 'POST':
         post_licensekey = request.POST.get('licensekey')
