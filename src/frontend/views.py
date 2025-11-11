@@ -18,7 +18,8 @@ def index(request):
 @login_required
 def onboarding(request):
     """Onboarding view: show when no devices are found to help the user to enroll a new device"""
-    compleasy_url = os.getenv('COMPLEASY_URL')
+    # Derive current server base URL from the incoming request (scheme + host[:port])
+    compleasy_url = request.build_absolute_uri('/').rstrip('/')
     #TODO: allow license management. By now, we just get the last license key from the user
     user_license = LicenseKey.objects.filter(created_by=request.user).last()
     if not user_license:
@@ -146,8 +147,8 @@ def enroll_sh(request):
     if not LicenseKey.objects.filter(licensekey=licensekey).exists():
         return HttpResponse('Invalid license key', status=401)
 
-    # Get the server url from environment variable
-    compleasy_url = os.getenv('COMPLEASY_URL')
+    # Derive the server base URL from the incoming request
+    compleasy_url = request.build_absolute_uri('/').rstrip('/')
     return render(request, 'enroll.html', {'compleasy_url': compleasy_url, 'licensekey': licensekey})
 
 def download_lynis_custom_profile(request):
@@ -166,7 +167,9 @@ def download_lynis_custom_profile(request):
     # Should we check licensekey is valid?
     # By bow we just generate a profile with the indicated license key
     
-    server_address_without_proto = os.getenv('COMPLEASY_URL').split('://')[1]
+    # Build server address based on current request (without protocol)
+    base_url = request.build_absolute_uri('/').rstrip('/')
+    server_address_without_proto = base_url.split('://', 1)[1]
     compleasy_upload_server = f'{server_address_without_proto}/api/lynis'
     return render(request, 'lynis_custom_profile.html',
                     {
