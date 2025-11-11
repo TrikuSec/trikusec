@@ -89,7 +89,14 @@ jobs:
     
     - name: Check integration test results
       run: |
-        EXIT_CODE=$(docker compose -f docker-compose.dev.yml ps -q lynis-client | xargs docker inspect -f '{{.State.ExitCode}}')
+        # Inspect by container name to avoid empty ID when the container has exited
+        if ! docker inspect lynis-client >/dev/null 2>&1; then
+          echo "lynis-client container not found. Dumping compose ps and logs for debugging."
+          docker compose -f docker-compose.dev.yml ps -a || true
+          docker compose -f docker-compose.dev.yml logs lynis-client || true
+          exit 1
+        fi
+        EXIT_CODE=$(docker inspect -f '{{.State.ExitCode}}' lynis-client)
         if [ "$EXIT_CODE" != "0" ]; then
           echo "Integration test failed with exit code $EXIT_CODE"
           docker compose -f docker-compose.dev.yml logs lynis-client
