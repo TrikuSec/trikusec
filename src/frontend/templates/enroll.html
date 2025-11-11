@@ -30,7 +30,14 @@ if [ $? -ne 0 ]; then
         echo "openssl or ca-certificates are not installed. Installing them..."
         ${SUDO} apt-get update && ${SUDO} apt-get install -y openssl ca-certificates
     fi
-    openssl s_client -showcerts -connect ${COMPLEASY_URL#https://} </dev/null 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' > ${COMPLEASY_CERT_TMP}
+    # Derive host:port from COMPLEASY_URL, defaulting to 443 when no port provided
+    HOSTPORTPATH=${COMPLEASY_URL#https://}
+    HOSTPORT=${HOSTPORTPATH%%/*}
+    case "$HOSTPORT" in
+        *:*) OPENSSL_CONNECT="$HOSTPORT" ;;
+        *) OPENSSL_CONNECT="$HOSTPORT:443" ;;
+    esac
+    openssl s_client -showcerts -connect "${OPENSSL_CONNECT}" </dev/null 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' > ${COMPLEASY_CERT_TMP}
     ${SUDO} cp ${COMPLEASY_CERT_TMP} /usr/local/share/ca-certificates/compleasy.crt
     ${SUDO} update-ca-certificates
     rm -f ${COMPLEASY_CERT_TMP}
