@@ -63,7 +63,7 @@ jobs:
     
     - name: Start Compleasy service
       run: |
-        docker compose -f docker-compose.dev.yml up -d compleasy-dev
+        docker compose -f docker-compose.dev.yml up -d compleasy
       env:
         SECRET_KEY: ${{ env.SECRET_KEY }}
     
@@ -73,7 +73,7 @@ jobs:
     
     - name: Create test license key in database
       run: |
-        docker compose -f docker-compose.dev.yml exec -T compleasy-dev python manage.py shell <<EOF
+        docker compose -f docker-compose.dev.yml exec -T compleasy python manage.py shell <<EOF
         from django.contrib.auth.models import User
         from api.models import LicenseKey
         user = User.objects.first()
