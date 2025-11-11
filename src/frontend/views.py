@@ -9,6 +9,20 @@ from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm
 import os
 import json
 import logging
+from urllib.parse import urlparse
+from django.urls import reverse
+import re
+
+def safe_redirect(request, fallback_url_name='device_list', **kwargs):
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        parsed = urlparse(referer)
+        if parsed.netloc == request.get_host():
+            return redirect(referer)
+    try:
+        return redirect(reverse(fallback_url_name, kwargs=kwargs) if kwargs else reverse(fallback_url_name))
+    except Exception:
+        return redirect('device_list')
 
 @login_required
 def index(request):
@@ -107,7 +121,7 @@ def device_update(request, device_id):
             device.rulesets.set(selected_rulesets)
             form.save()
             # Return to the referer page
-            return redirect(request.META.get('HTTP_REFERER'))
+            return safe_redirect(request, 'device_detail', device_id=device_id)
         else:
             logging.error('Form is not valid')
     else:
@@ -140,9 +154,12 @@ def device_report_changelog(request, device_id):
 def enroll_sh(request):
     """Enroll view: generate enroll bash script to install the agent on a new device"""
     # Get license key from the URL
-    licensekey = request.GET.get('licensekey')
+    licensekey = request.GET.get('licensekey', '').strip()
     if not licensekey:
         return HttpResponse('No license key provided', status=400)
+    # Validate license key format
+    if not re.match(r'^[a-zA-Z0-9_-]+$', licensekey) or len(licensekey) > 255:
+        return HttpResponse('Invalid license key format', status=400)
     # Validate license key exists
     if not LicenseKey.objects.filter(licensekey=licensekey).exists():
         return HttpResponse('Invalid license key', status=401)
@@ -154,18 +171,21 @@ def enroll_sh(request):
 def download_lynis_custom_profile(request):
     """Generate a custom Lynis profile with the provided license key"""
     # TODO: get Lynis version from the URL, so we can generate the profile for the specific version
-    lynis_version = request.GET.get('lynis_version')
-    if not lynis_version:
-        # Assume version 2.7.5
-        lynis_version = '2.7.5'
+    lynis_version = request.GET.get('lynis_version', '2.7.5')
+    if lynis_version:
+        lynis_version = lynis_version.strip()
+    if not re.match(r'^\d+\.\d+\.\d+$', lynis_version):
+        return HttpResponse('Invalid Lynis version format', status=400)
     logging.debug('Lynis version: %s', lynis_version)
 
     # Get the licensekey from the URL
-    licensekey = request.GET.get('licensekey')
+    licensekey = request.GET.get('licensekey', '').strip()
     if not licensekey:
         return HttpResponse('No license key provided', status=400)
-    # Should we check licensekey is valid?
-    # By bow we just generate a profile with the indicated license key
+    if not re.match(r'^[a-zA-Z0-9_-]+$', licensekey) or len(licensekey) > 255:
+        return HttpResponse('Invalid license key format', status=400)
+    if not LicenseKey.objects.filter(licensekey=licensekey).exists():
+        return HttpResponse('Invalid license key', status=401)
     
     # Build server address based on current request (without protocol)
     base_url = request.build_absolute_uri('/').rstrip('/')
@@ -300,7 +320,7 @@ def rule_update(request, rule_id):
         if form.is_valid():
             policy_rule.save()
             # Redirect to the referer page
-            return redirect(request.META.get('HTTP_REFERER'))
+            return safe_redirect(request, 'rule_list')
     else:
         form = PolicyRuleForm(instance=policy_rule)
     return render(request, 'policy/rule_detail.html', {'rule': policy_rule})
@@ -313,7 +333,7 @@ def rule_create(request):
         if form.is_valid():
             form.save()
             # Redirect to the referer page
-            return redirect(request.META.get('HTTP_REFERER'))
+            return safe_redirect(request, 'rule_list')
     else:
         form = PolicyRuleForm()
     return render(request, 'policy/rule_detail.html', {'form': form})
