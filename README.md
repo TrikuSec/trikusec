@@ -139,37 +139,37 @@ All tests run inside Docker containers - no local installation required.
 Run all unit tests:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test
+docker compose -f docker-compose.dev.yml --profile test run --rm test
 ```
 
 Run specific test file:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test pytest api/tests.py -v
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest api/tests.py -v
 ```
 
 Run with HTML coverage report:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test pytest --cov=api --cov=frontend --cov-report=html --cov-report=term-missing
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest --cov=api --cov=frontend --cov-report=html --cov-report=term-missing
 ```
 
 Run specific test:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test pytest api/tests.py::TestUploadReport::test_upload_report_valid_license_new_device -v
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest api/tests.py::TestUploadReport::test_upload_report_valid_license_new_device -v
 ```
 
 Run tests excluding integration tests:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test pytest -m "not integration" -v
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m "not integration" -v
 ```
 
 Access the test container shell for debugging:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test /bin/bash
+docker compose -f docker-compose.dev.yml --profile test run --rm test /bin/bash
 ```
 
 #### Integration Tests
@@ -184,7 +184,7 @@ export SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))
 export COMPLEASY_LICENSE_KEY=test-license-key-$(date +%s)
 
 # Start services
-docker compose -f docker compose.dev.yml up -d compleasy-dev
+docker compose -f docker-compose.dev.yml up -d compleasy
 ```
 
 2. Wait for the service to be ready:
@@ -208,19 +208,19 @@ EOF
 4. Run the Lynis integration test:
 
 ```bash
-docker compose -f docker compose.dev.yml up --abort-on-container-exit lynis-client
+docker compose -f docker-compose.dev.yml up --abort-on-container-exit lynis-client
 ```
 
 5. Run Python integration tests:
 
 ```bash
-docker compose -f docker compose.dev.yml --profile test run --rm test pytest api/tests_integration.py -v -m integration
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest api/tests_integration.py -v -m integration
 ```
 
 6. Cleanup:
 
 ```bash
-docker compose -f docker compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 ```
 
 ### Test Structure

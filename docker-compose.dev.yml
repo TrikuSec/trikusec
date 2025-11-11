@@ -1,5 +1,5 @@
 services:
-  compleasy-dev:
+  compleasy:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,7 +9,7 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - DJANGO_DEBUG=True
-      - COMPLEASY_URL=https://compleasy-dev:443
+      - COMPLEASY_URL=https://compleasy:443
       - COMPLEASY_ADMIN_USERNAME=admin
       - COMPLEASY_ADMIN_PASSWORD=compleasy
       - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
@@ -24,7 +24,7 @@ services:
       retries: 5
       start_period: 30s
 
-  nginx-dev:
+  nginx:
     image: nginx:latest
     container_name: nginx-dev
     ports:
@@ -36,7 +36,7 @@ services:
     environment:
       - NGINX_CERT_CN=${NGINX_CERT_CN:-nginx-dev}
     depends_on:
-      compleasy-dev:
+      compleasy:
         condition: service_healthy
     networks:
       - default
@@ -68,7 +68,7 @@ services:
       - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
       - DEBIAN_FRONTEND=noninteractive
     depends_on:
-      nginx-dev:
+      nginx:
         condition: service_started
     networks:
       - default
