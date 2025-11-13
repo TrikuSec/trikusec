@@ -1,5 +1,5 @@
 from django import forms
-from api.models import Device, PolicyRuleset, PolicyRule
+from api.models import Device, PolicyRuleset, PolicyRule, LicenseKey
 
 class DeviceForm(forms.ModelForm):
     class Meta:
@@ -58,3 +58,33 @@ class PolicyRuleForm(forms.ModelForm):
                 'placeholder': 'Enter rule query',
             }),
         }
+
+
+class LicenseKeyForm(forms.ModelForm):
+    class Meta:
+        model = LicenseKey
+        fields = ['name', 'max_devices', 'expires_at', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'Enter license name (e.g., "Production servers" or "web-01")',
+            }),
+            'max_devices': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'Leave empty for unlimited',
+                'min': 1,
+            }),
+            'expires_at': forms.DateTimeInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'type': 'datetime-local',
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make max_devices optional (null means unlimited)
+        self.fields['max_devices'].required = False
+        self.fields['expires_at'].required = False

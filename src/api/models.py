@@ -1,11 +1,41 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .utils.policy_query import evaluate_query
 
-class LicenseKey(models.Model):
-    licensekey = models.CharField(max_length=255, db_index=True)
+class Organization(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+
+class LicenseKey(models.Model):
+    licensekey = models.CharField(max_length=255, unique=True, db_index=True)
+    name = models.CharField(max_length=255)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    max_devices = models.IntegerField(null=True, blank=True)  # null=unlimited
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def device_count(self):
+        return self.device_set.count()
+    
+    def has_capacity(self):
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        if self.max_devices is None:
+            return True
+        return self.device_count() < self.max_devices
+    
+    def __str__(self):
+        return f"{self.name} ({self.licensekey[:8]}...)"
 
 class Device(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

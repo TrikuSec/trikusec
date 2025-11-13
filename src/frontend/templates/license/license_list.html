@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}License Keys{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">License Keys</h1>
+            <a href="{% url 'license_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">+ New License</a>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Name</th>
+                        <th class="py-3 px-6 text-left">License Key</th>
+                        <th class="py-3 px-6 text-left">Devices</th>
+                        <th class="py-3 px-6 text-left">Expires</th>
+                        <th class="py-3 px-6 text-left">Status</th>
+                        <th class="py-3 px-6 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light">
+                    {% for license in licenses %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6 text-left">
+                            <a href="{% url 'license_detail' license_id=license.id %}" class="font-medium text-gray-800 hover:text-gray-900">
+                                {{ license.name }}
+                            </a>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <span class="license-key-masked" data-key="{{ license.licensekey }}">
+                                {{ license.licensekey|slice:":8" }}...
+                            </span>
+                            <button onclick="copyLicenseKey('{{ license.licensekey }}', this)" class="ml-2 text-gray-600 hover:text-gray-800 text-xs">
+                                Copy
+                            </button>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {% if license.max_devices %}
+                                {{ license.device_count }}/{{ license.max_devices }}
+                            {% else %}
+                                {{ license.device_count }}/∞
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {% if license.expires_at %}
+                                {{ license.expires_at|date:"Y-m-d H:i" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {% if not license.is_active %}
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Inactive</span>
+                            {% elif license.expires_at and license.expires_at < now %}
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Expired</span>
+                            {% else %}
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'license_detail' license_id=license.id %}" class="text-gray-600 hover:text-gray-800" title="View">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </a>
+                                <a href="{% url 'license_edit' license_id=license.id %}" class="text-gray-600 hover:text-gray-800" title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
+                                    </svg>
+                                </a>
+                                {% if license.has_capacity %}
+                                    <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="text-gray-600 hover:text-gray-800" title="Enroll Device">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="text-gray-400 cursor-not-allowed" title="No available capacity">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-3 px-6 text-center">No licenses found. <a href="{% url 'license_create' %}" class="text-gray-600 hover:text-gray-800">Create one</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function copyLicenseKey(key, button) {
+            const el = document.createElement('textarea');
+            el.value = key;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.classList.add('text-green-600');
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('text-green-600');
+            }, 2000);
+        }
+    </script>
+{% endblock %}
+

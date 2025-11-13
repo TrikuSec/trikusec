@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
-from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset
+from django.db.models import Q, F, Count
+from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance
-from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm
+from api.utils.license_utils import generate_license_key
+from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm
 import os
 import json
 import logging
@@ -428,3 +430,199 @@ def activity(request):
         activities = sorted(activities, key=lambda x: (x['created_at'], x['type']), reverse=True)
         
     return render(request, 'activity.html', {'activities': activities})
+
+
+@login_required
+def license_list(request):
+    """License list view: show all licenses"""
+    from django.utils import timezone
+    licenses = LicenseKey.objects.all().order_by('-created_at')
+    return render(request, 'license/license_list.html', {
+        'licenses': licenses,
+        'now': timezone.now()
+    })
+
+
+@login_required
+def license_detail(request, license_id):
+    """License detail view: show license details and associated devices"""
+    from django.utils import timezone
+    license = get_object_or_404(LicenseKey, id=license_id)
+    devices = Device.objects.filter(licensekey=license).order_by('-last_update')
+    compleasy_url = request.build_absolute_uri('/').rstrip('/')
+    return render(request, 'license/license_detail.html', {
+        'license': license,
+        'devices': devices,
+        'compleasy_url': compleasy_url,
+        'now': timezone.now()
+    })
+
+
+@login_required
+@csrf_protect
+def license_create(request):
+    """Create new license key"""
+    if request.method == 'POST':
+        form = LicenseKeyForm(request.POST)
+        if form.is_valid():
+            license = form.save(commit=False)
+            license.created_by = request.user
+            # Generate unique license key if not provided
+            if not license.licensekey:
+                license.licensekey = generate_license_key()
+            # Get or create default organization
+            default_org, _ = Organization.objects.get_or_create(
+                slug='default',
+                defaults={'name': 'Default Organization', 'is_active': True}
+            )
+            license.organization = default_org
+            license.save()
+            return redirect('license_detail', license_id=license.id)
+    else:
+        form = LicenseKeyForm()
+    
+    return render(request, 'license/license_form.html', {'form': form})
+
+
+@login_required
+@csrf_protect
+def license_edit(request, license_id):
+    """Edit existing license"""
+    license = get_object_or_404(LicenseKey, id=license_id)
+    if request.method == 'POST':
+        form = LicenseKeyForm(request.POST, instance=license)
+        if form.is_valid():
+            form.save()
+            return redirect('license_detail', license_id=license.id)
+    else:
+        form = LicenseKeyForm(instance=license)
+    
+    return render(request, 'license/license_form.html', {'form': form, 'license': license})
+
+
+@login_required
+@csrf_protect
+def license_delete(request, license_id):
+    """Delete/deactivate license"""
+    license = get_object_or_404(LicenseKey, id=license_id)
+    if request.method == 'POST':
+        # Instead of deleting, deactivate the license
+        license.is_active = False
+        license.save()
+        return redirect('license_list')
+    return render(request, 'license/license_confirm_delete.html', {'license': license})
+
+
+@login_required
+def enroll_device(request):
+    """Enroll device view: create new license or select existing, show enrollment instructions"""
+    compleasy_url = request.build_absolute_uri('/').rstrip('/')
+    
+    if request.method == 'POST':
+        # User chose to create new license or use existing
+        action = request.POST.get('action')
+        
+        if action == 'create_new':
+            # Create new unique license for this device
+            form = LicenseKeyForm(request.POST)
+            if form.is_valid():
+                license = form.save(commit=False)
+                license.created_by = request.user
+                license.licensekey = generate_license_key()
+                # Set max_devices to 1 for per-device licenses if not specified
+                if license.max_devices is None:
+                    license.max_devices = 1
+                # Get or create default organization
+                default_org, _ = Organization.objects.get_or_create(
+                    slug='default',
+                    defaults={'name': 'Default Organization', 'is_active': True}
+                )
+                license.organization = default_org
+                license.save()
+                return render(request, 'license/enroll_device.html', {
+                    'license': license,
+                    'compleasy_url': compleasy_url,
+                    'enrollment_complete': True
+                })
+        elif action == 'use_existing':
+            # Use existing license
+            license_id = request.POST.get('license_id')
+            try:
+                license = LicenseKey.objects.get(id=license_id)
+                # Check if license has capacity
+                if not license.has_capacity():
+                    form = LicenseKeyForm()
+                    available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
+                        device_count=Count('device')
+                    ).filter(
+                        Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
+                    )
+                    return render(request, 'license/enroll_device.html', {
+                        'form': form,
+                        'available_licenses': available_licenses,
+                        'compleasy_url': compleasy_url,
+                        'error': 'Selected license has reached maximum device limit'
+                    })
+                return render(request, 'license/enroll_device.html', {
+                    'license': license,
+                    'compleasy_url': compleasy_url,
+                    'enrollment_complete': True
+                })
+            except LicenseKey.DoesNotExist:
+                form = LicenseKeyForm()
+                available_licenses = LicenseKey.objects.filter(is_active=True)
+                return render(request, 'license/enroll_device.html', {
+                    'form': form,
+                    'available_licenses': available_licenses,
+                    'compleasy_url': compleasy_url,
+                    'error': 'License not found'
+                })
+    else:
+        # GET request - show enrollment form
+        license_id = request.GET.get('license_id')
+        
+        # If license_id is provided, check if we can skip directly to enrollment
+        if license_id:
+            try:
+                license = LicenseKey.objects.get(id=license_id)
+                # If license has capacity, skip directly to enrollment
+                if license.has_capacity():
+                    return render(request, 'license/enroll_device.html', {
+                        'license': license,
+                        'compleasy_url': compleasy_url,
+                        'enrollment_complete': True
+                    })
+                # If license doesn't have capacity, show form with selected license (disabled)
+                else:
+                    form = LicenseKeyForm()
+                    # Get all licenses with available capacity for the dropdown
+                    available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
+                        device_count=Count('device')
+                    ).filter(
+                        Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
+                    )
+                    return render(request, 'license/enroll_device.html', {
+                        'form': form,
+                        'available_licenses': available_licenses,
+                        'selected_license': license,  # License without capacity
+                        'compleasy_url': compleasy_url,
+                        'error': 'Selected license has reached maximum device limit'
+                    })
+            except LicenseKey.DoesNotExist:
+                # License not found, show normal form
+                pass
+        
+        # Normal flow - show enrollment form
+        form = LicenseKeyForm()
+        # Get licenses with available capacity
+        available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
+            device_count=Count('device')
+        ).filter(
+            Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
+        )
+        
+        return render(request, 'license/enroll_device.html', {
+            'form': form,
+            'available_licenses': available_licenses,
+            'compleasy_url': compleasy_url
+        })

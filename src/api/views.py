@@ -7,6 +7,7 @@ from .models import LicenseKey, Device, FullReport, DiffReport
 from .forms import ReportUploadForm
 from api.utils.lynis_report import LynisReport
 from api.utils.error_responses import internal_error
+from api.utils.license_utils import validate_license, check_license_capacity
 #from utils.diff_utils import generate_diff, analyze_diff
 import os
 import logging
@@ -29,10 +30,15 @@ def upload_report(request):
             # Check if the license key is valid
             # Keep original response format for Lynis compatibility
             try:
-                if not LicenseKey.objects.filter(licensekey=post_licensekey).exists():
-                    return HttpResponse('Invalid license key', status=401)
-                else:
-                    licensekey = LicenseKey.objects.get(licensekey=post_licensekey)
+                is_valid, error_msg = validate_license(post_licensekey)
+                if not is_valid:
+                    logging.error(f'License validation failed: {error_msg}')
+                    return HttpResponse(error_msg or 'Invalid license key', status=401)
+                
+                licensekey = LicenseKey.objects.get(licensekey=post_licensekey)
+            except LicenseKey.DoesNotExist:
+                logging.error('License key does not exist')
+                return HttpResponse('Invalid license key', status=401)
             except DatabaseError as e:
                 logging.error(f'Database error checking license key: {e}')
                 return internal_error('Database error while checking license key')
@@ -46,9 +52,20 @@ def upload_report(request):
                 logging.error('No report found')
                 return HttpResponse('No report found', status=400)
 
-            # Check if the device already exists. If not, create it
+            # Check if the device already exists
             try:
-                device, created = Device.objects.get_or_create(hostid=post_hostid, hostid2=post_hostid2, licensekey=licensekey)
+                device = Device.objects.filter(hostid=post_hostid, hostid2=post_hostid2, licensekey=licensekey).first()
+                created = device is None
+                
+                # If device doesn't exist, check license capacity before creating
+                if created:
+                    has_capacity, capacity_error = check_license_capacity(post_licensekey)
+                    if not has_capacity:
+                        logging.error(f'License capacity check failed: {capacity_error}')
+                        return HttpResponse(capacity_error or 'License has reached maximum device limit', status=403)
+                    
+                    # Create the new device
+                    device = Device.objects.create(hostid=post_hostid, hostid2=post_hostid2, licensekey=licensekey)
             except DatabaseError as e:
                 logging.error(f'Database error creating/retrieving device: {e}')
                 return internal_error('Database error while processing device')
@@ -128,11 +145,12 @@ def check_license(request):
 
         # Keep original response format for Lynis compatibility
         try:
-            if LicenseKey.objects.filter(licensekey=post_licensekey).exists():
+            is_valid, error_msg = validate_license(post_licensekey)
+            if is_valid:
                 logging.info('License key is valid')
                 return HttpResponse('Response 100')
             else:
-                logging.error('License key is invalid')
+                logging.error(f'License key is invalid: {error_msg}')
                 return HttpResponse('Response 500', status=401)
         except DatabaseError as e:
             logging.error(f'Database error checking license: {e}')

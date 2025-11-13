@@ -153,6 +153,51 @@ sudo apt install rkhunter auditd aide
 
 1. Access the Compleasy server at `http://yourserver:3000`.
 
+### License Management
+
+Compleasy supports flexible license key management with two models:
+
+#### Per-Device Licenses (Recommended)
+- Each device gets its own unique license key
+- Granular control: revoke individual devices without affecting others
+- Better audit trail: track which license is used by which device
+- Default when enrolling new devices
+
+#### Shared Licenses
+- One license key can be used by multiple devices
+- Set a maximum device limit (or leave unlimited)
+- Useful for managing server fleets with a single license
+- Can be shared across multiple servers
+
+#### Managing Licenses
+
+1. **Access License Management**: Click on your profile menu → "License keys"
+
+2. **Create a New License**:
+   - Click "+ New License"
+   - Enter a name (e.g., "Production servers" or "web-01.example.com")
+   - Set maximum devices (leave empty for unlimited)
+   - Set expiration date (optional)
+   - Click "Save"
+
+3. **Enroll a Device**:
+   - Click "Enroll Device" from the license list or device list
+   - Choose to create a new unique license (recommended) or use an existing license
+   - Follow the enrollment instructions shown
+
+4. **View License Details**:
+   - Click on any license name to see details
+   - View all devices using that license
+   - Copy license key for manual configuration
+   - Edit license settings or deactivate
+
+#### License Capacity
+
+- Licenses with device limits will reject new enrollments when at capacity
+- Existing devices can continue to upload reports even if license is at capacity
+- Deactivated licenses cannot be used for new enrollments
+- Expired licenses are automatically rejected
+
 ### Collecting Static Files for Production
 
 Before deploying to production, collect static files:

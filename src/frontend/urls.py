@@ -27,4 +27,10 @@ urlpatterns = [
     path('rule/create/', views.rule_create, name='rule_create'),
     path('rule/<int:rule_id>/edit/', views.rule_update, name='rule_update'),
     path('activity/', views.activity, name='activity'),
+    path('licenses/', views.license_list, name='license_list'),
+    path('licenses/create/', views.license_create, name='license_create'),
+    path('license/<int:license_id>/', views.license_detail, name='license_detail'),
+    path('license/<int:license_id>/edit/', views.license_edit, name='license_edit'),
+    path('license/<int:license_id>/delete/', views.license_delete, name='license_delete'),
+    path('enroll/', views.enroll_device, name='enroll_device'),
 ]

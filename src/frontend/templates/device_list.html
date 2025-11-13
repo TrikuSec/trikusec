@@ -5,7 +5,10 @@
 {% block title %}Devices{% endblock %}
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">Devices</a></h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold"><a href="{% url 'index' %}">Devices</a></h1>
+            <a href="{% url 'enroll_device' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">+ New Device</a>
+        </div>
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <table class="min-w-full">
                 <thead>

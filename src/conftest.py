@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
-from api.models import LicenseKey, Device, FullReport, DiffReport
-from factory import Faker, SubFactory
+from api.models import LicenseKey, Device, FullReport, DiffReport, Organization
+from factory import Faker, SubFactory, LazyAttribute
 from factory.django import DjangoModelFactory
 
 
@@ -15,13 +15,26 @@ class UserFactory(DjangoModelFactory):
     password = Faker('password')
 
 
+class OrganizationFactory(DjangoModelFactory):
+    class Meta:
+        model = Organization
+        django_get_or_create = ('slug',)
+
+    name = Faker('company')
+    slug = LazyAttribute(lambda obj: obj.name.lower().replace(' ', '-')[:50])
+
+
 class LicenseKeyFactory(DjangoModelFactory):
     class Meta:
         model = LicenseKey
         django_get_or_create = ('licensekey',)
 
     licensekey = Faker('uuid4')
+    name = Faker('word')
+    organization = SubFactory(OrganizationFactory)
     created_by = SubFactory(UserFactory)
+    max_devices = None  # Unlimited by default
+    is_active = True
 
 
 class DeviceFactory(DjangoModelFactory):
@@ -49,7 +62,17 @@ def test_user(db):
 @pytest.fixture
 def test_license_key(db, test_user):
     """Create a test license key."""
-    return LicenseKeyFactory(created_by=test_user, licensekey='test-license-key-123')
+    # Get or create default organization
+    default_org, _ = Organization.objects.get_or_create(
+        slug='default',
+        defaults={'name': 'Default Organization', 'is_active': True}
+    )
+    return LicenseKeyFactory(
+        created_by=test_user,
+        licensekey='test-license-key-123',
+        name='Test License',
+        organization=default_org
+    )
 
 
 @pytest.fixture

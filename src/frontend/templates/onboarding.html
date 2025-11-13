@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,8 +31,12 @@
             <h3 class="text-xl font-semibold mb-2">Alternative Installation</h3>
             <p class="mb-4">If you prefer a manual installation or need more control over the process, check out our <a href="https://github.com/compleasy/compleasy/blob/main/README.md" class="text-blue-500 hover:underline">comprehensive documentation</a> for step-by-step instructions and advanced configuration options.</p>
             
-            <!-- "Done!" button -->
-            <button onclick="onDeviceEnrolled()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Done!</button>
+            <div class="mt-4 flex gap-2">
+                <!-- "Enroll Device" button -->
+                <a href="{% url 'enroll_device' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Enroll Device</a>
+                <!-- "Done!" button -->
+                <button onclick="onDeviceEnrolled()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Done!</button>
+            </div>
         </div>
 
         <!-- Server List Table (hidden initially) -->

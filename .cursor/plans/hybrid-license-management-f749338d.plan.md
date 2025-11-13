@@ -260,13 +260,13 @@ Document new license model structure and important constraints:
 
 ### To-dos
 
-- [ ] Add Organization model and extend LicenseKey model with new fields, create and run migration
-- [ ] Create license utility functions and update device enrollment validation logic
-- [ ] Create LicenseKeyForm for license management
-- [ ] Implement license management views (list, detail, create, edit, delete, enroll)
-- [ ] Create license management templates and update base/onboarding templates
-- [ ] Add URL patterns for license management endpoints
-- [ ] Update Django admin to support Organization and extended LicenseKey model
-- [ ] Update populate_db_licensekey command to support new license fields
-- [ ] Write unit and integration tests for license validation and enrollment
-- [ ] Update README.md and AGENTS.md with license management documentation
+- [x] Add Organization model and extend LicenseKey model with new fields, create and run migration
+- [x] Create license utility functions and update device enrollment validation logic
+- [x] Create LicenseKeyForm for license management
+- [x] Implement license management views (list, detail, create, edit, delete, enroll)
+- [x] Create license management templates and update base/onboarding templates
+- [x] Add URL patterns for license management endpoints
+- [x] Update Django admin to support Organization and extended LicenseKey model
+- [x] Update populate_db_licensekey command to support new license fields
+- [x] Write unit and integration tests for license validation and enrollment
+- [x] Update README.md and AGENTS.md with license management documentation

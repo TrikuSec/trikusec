@@ -73,6 +73,64 @@ The following Lynis API endpoints **MUST** remain unchanged to maintain compatib
 - Never change request/response format
 - Always test with actual Lynis client before committing changes
 
+## License Key Management System
+
+### License Model Structure
+
+The license system supports both **per-device licenses** and **shared licenses** with device limits:
+
+#### Organization Model (Future Multi-Tenancy)
+- **Location**: `src/api/models.py` - `Organization` class
+- **Purpose**: Foundation for future multi-tenant support (currently single-tenant)
+- **Key Fields**: `name`, `slug`, `is_active`
+- **Note**: All licenses are currently linked to a default organization
+
+#### LicenseKey Model
+- **Location**: `src/api/models.py` - `LicenseKey` class
+- **Key Fields**:
+  - `licensekey`: Unique license key string (used by Lynis clients)
+  - `name`: Human-readable name (e.g., "Production servers" or "web-01")
+  - `organization`: ForeignKey to Organization (null allowed for backward compatibility)
+  - `max_devices`: Integer or null (null = unlimited devices)
+  - `expires_at`: DateTime or null (null = no expiration)
+  - `is_active`: Boolean (inactive licenses cannot enroll new devices)
+- **Methods**:
+  - `device_count()`: Returns number of devices using this license
+  - `has_capacity()`: Checks if license can accept more devices (considers active status, expiration, and device count)
+
+#### Critical Constraints
+
+1. **Lynis API Compatibility**: 
+   - The `licensekey` field is the ONLY authentication mechanism
+   - There is NO separate "device token" - license key = device authentication
+   - Lynis clients send `licensekey` in POST data - this cannot be changed
+
+2. **License Capacity Checks**:
+   - New device enrollment checks license capacity before creating device
+   - Existing devices can continue uploading reports even if license is at capacity
+   - Capacity check considers: `is_active`, `expires_at`, and `device_count` vs `max_devices`
+
+3. **License Validation**:
+   - `validate_license()`: Checks if license exists, is active, and not expired
+   - `check_license_capacity()`: Validates license AND checks if it has capacity
+   - Both functions used in `upload_report()` endpoint
+
+#### License Utilities
+
+- **Location**: `src/api/utils/license_utils.py`
+- **Functions**:
+  - `generate_license_key()`: Generates unique license key in format `xxxxxxxx-xxxxxxxx-xxxxxxxx`
+  - `validate_license(licensekey)`: Returns (is_valid: bool, error_message: str)
+  - `check_license_capacity(licensekey)`: Returns (has_capacity: bool, error_message: str)
+
+#### Migration Notes
+
+- Migration `0010_add_organization_and_license_fields.py`:
+  - Creates default organization
+  - Sets existing licenses to `max_devices=null` (unlimited) to maintain current behavior
+  - Adds new fields to LicenseKey model
+  - Makes `licensekey` field unique
+
 ## Project Structure
 
 ### Key Directories

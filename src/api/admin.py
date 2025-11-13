@@ -1,14 +1,35 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import LicenseKey, Device, FullReport, DiffReport, PolicyRule, PolicyRuleset
+from .models import LicenseKey, Device, FullReport, DiffReport, PolicyRule, PolicyRuleset, Organization
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('name', 'slug')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
 
 @admin.register(LicenseKey)
 class LicenseKeyAdmin(admin.ModelAdmin):
-    list_display = ('licensekey', 'created_by', 'created_at', 'device_count')
-    list_filter = ('created_at', 'created_by')
-    search_fields = ('licensekey', 'created_by__username')
-    readonly_fields = ('created_at',)
+    list_display = ('name', 'licensekey', 'organization', 'created_by', 'device_count', 'max_devices', 'expires_at', 'is_active', 'created_at')
+    list_filter = ('is_active', 'expires_at', 'created_at', 'created_by', 'organization')
+    search_fields = ('licensekey', 'name', 'created_by__username', 'organization__name')
+    readonly_fields = ('created_at', 'licensekey')
     date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'licensekey', 'organization', 'created_by')
+        }),
+        ('License Configuration', {
+            'fields': ('max_devices', 'expires_at', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
     
     def device_count(self, obj):
         return obj.device_set.count()

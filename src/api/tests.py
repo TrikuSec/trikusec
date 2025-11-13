@@ -529,3 +529,228 @@ class TestDatabaseIndexes:
                 
                 # Should have indexes (exact names depend on Django's naming)
                 assert len(device_indexes) > 0, "Device table should have indexes"
+
+
+@pytest.mark.django_db
+class TestLicenseValidation:
+    """Tests for license validation and capacity checking."""
+
+    def test_validate_license_active(self, test_license_key):
+        """Test validating an active license."""
+        from api.utils.license_utils import validate_license
+        
+        is_valid, error = validate_license(test_license_key.licensekey)
+        assert is_valid is True
+        assert error is None
+
+    def test_validate_license_inactive(self, test_license_key):
+        """Test validating an inactive license."""
+        from api.utils.license_utils import validate_license
+        
+        test_license_key.is_active = False
+        test_license_key.save()
+        
+        is_valid, error = validate_license(test_license_key.licensekey)
+        assert is_valid is False
+        assert "inactive" in error.lower()
+
+    def test_validate_license_expired(self, test_license_key):
+        """Test validating an expired license."""
+        from api.utils.license_utils import validate_license
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        test_license_key.expires_at = timezone.now() - timedelta(days=1)
+        test_license_key.save()
+        
+        is_valid, error = validate_license(test_license_key.licensekey)
+        assert is_valid is False
+        assert "expired" in error.lower()
+
+    def test_validate_license_nonexistent(self):
+        """Test validating a non-existent license."""
+        from api.utils.license_utils import validate_license
+        
+        is_valid, error = validate_license('nonexistent-key-12345')
+        assert is_valid is False
+        assert "does not exist" in error.lower()
+
+    def test_check_license_capacity_unlimited(self, test_license_key):
+        """Test checking capacity for unlimited license."""
+        from api.utils.license_utils import check_license_capacity
+        
+        test_license_key.max_devices = None  # Unlimited
+        test_license_key.save()
+        
+        has_capacity, error = check_license_capacity(test_license_key.licensekey)
+        assert has_capacity is True
+        assert error is None
+
+    def test_check_license_capacity_with_space(self, test_license_key):
+        """Test checking capacity for license with available space."""
+        from api.utils.license_utils import check_license_capacity
+        
+        test_license_key.max_devices = 5
+        test_license_key.save()
+        
+        # Create 2 devices (below limit of 5)
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host1',
+            hostid2='host1-2'
+        )
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host2',
+            hostid2='host2-2'
+        )
+        
+        has_capacity, error = check_license_capacity(test_license_key.licensekey)
+        assert has_capacity is True
+        assert error is None
+
+    def test_check_license_capacity_at_limit(self, test_license_key):
+        """Test checking capacity for license at device limit."""
+        from api.utils.license_utils import check_license_capacity
+        
+        test_license_key.max_devices = 2
+        test_license_key.save()
+        
+        # Create 2 devices (at limit)
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host1',
+            hostid2='host1-2'
+        )
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host2',
+            hostid2='host2-2'
+        )
+        
+        has_capacity, error = check_license_capacity(test_license_key.licensekey)
+        assert has_capacity is False
+        assert "maximum device limit" in error.lower()
+
+    def test_license_has_capacity_method(self, test_license_key):
+        """Test LicenseKey.has_capacity() method."""
+        test_license_key.max_devices = 3
+        test_license_key.save()
+        
+        # Initially has capacity
+        assert test_license_key.has_capacity() is True
+        
+        # Create devices up to limit
+        for i in range(3):
+            Device.objects.create(
+                licensekey=test_license_key,
+                hostid=f'host{i}',
+                hostid2=f'host{i}-2'
+            )
+        
+        # Refresh from DB
+        test_license_key.refresh_from_db()
+        assert test_license_key.has_capacity() is False
+
+    def test_license_device_count_method(self, test_license_key):
+        """Test LicenseKey.device_count() method."""
+        assert test_license_key.device_count() == 0
+        
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host1',
+            hostid2='host1-2'
+        )
+        
+        assert test_license_key.device_count() == 1
+        
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='host2',
+            hostid2='host2-2'
+        )
+        
+        assert test_license_key.device_count() == 2
+
+    def test_generate_license_key_uniqueness(self):
+        """Test that generate_license_key creates unique keys."""
+        from api.utils.license_utils import generate_license_key
+        from api.models import LicenseKey
+        
+        key1 = generate_license_key()
+        key2 = generate_license_key()
+        
+        assert key1 != key2
+        assert len(key1) == 26  # Format: xxxxxxxx-xxxxxxxx-xxxxxxxx
+        assert key1.count('-') == 2
+        
+        # Verify keys don't exist in database
+        assert not LicenseKey.objects.filter(licensekey=key1).exists()
+        assert not LicenseKey.objects.filter(licensekey=key2).exists()
+
+
+@pytest.mark.django_db
+class TestLicenseCapacityEnrollment:
+    """Tests for device enrollment with license capacity limits."""
+
+    def test_upload_report_respects_license_capacity(self, test_license_key, sample_lynis_report):
+        """Test that upload_report rejects enrollment when license is at capacity."""
+        from django.test import Client
+        from django.urls import reverse
+        
+        # Set license to allow only 1 device
+        test_license_key.max_devices = 1
+        test_license_key.save()
+        
+        # Create one device (at capacity)
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='existing-host',
+            hostid2='existing-host-2'
+        )
+        
+        client = Client()
+        url = reverse('upload_report')
+        
+        # Try to enroll a new device
+        response = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'new-host-id-1',
+            'hostid2': 'new-host-id-2',
+            'data': sample_lynis_report
+        })
+        
+        # Should be rejected with 403
+        assert response.status_code == 403
+        assert "maximum device limit" in response.content.decode().lower()
+
+    def test_upload_report_allows_existing_device_update(self, test_license_key, sample_lynis_report):
+        """Test that upload_report allows updates to existing devices even at capacity."""
+        from django.test import Client
+        from django.urls import reverse
+        
+        # Set license to allow only 1 device
+        test_license_key.max_devices = 1
+        test_license_key.save()
+        
+        # Create one device (at capacity)
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='existing-host',
+            hostid2='existing-host-2'
+        )
+        
+        client = Client()
+        url = reverse('upload_report')
+        
+        # Update existing device (should work even at capacity)
+        response = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'existing-host',
+            'hostid2': 'existing-host-2',
+            'data': sample_lynis_report
+        })
+        
+        # Should succeed
+        assert response.status_code == 200
+        assert response.content == b'OK'

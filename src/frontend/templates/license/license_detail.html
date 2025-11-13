@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ license.name }}{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">{{ license.name }}</h1>
+            <div>
+                <a href="{% url 'license_edit' license_id=license.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2">Edit</a>
+                {% if license.has_capacity %}
+                    <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Enroll Device</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">License Information</h2>
+                <dl class="grid grid-cols-2 gap-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">License Key</dt>
+                        <dd class="mt-1 flex items-center">
+                            <span id="license-key-display" class="font-mono">{{ license.licensekey|slice:":8" }}...</span>
+                            <button onclick="toggleLicenseKey('{{ license.licensekey }}')" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">Show</button>
+                            <button onclick="copyLicenseKey('{{ license.licensekey }}', this)" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">Copy</button>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Status</dt>
+                        <dd class="mt-1">
+                            {% if not license.is_active %}
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Inactive</span>
+                            {% elif license.expires_at and license.expires_at < now %}
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Expired</span>
+                            {% else %}
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Device Capacity</dt>
+                        <dd class="mt-1">
+                            {% if license.max_devices %}
+                                {{ license.device_count }}/{{ license.max_devices }} devices
+                            {% else %}
+                                {{ license.device_count }}/∞ devices (unlimited)
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Expires</dt>
+                        <dd class="mt-1">
+                            {% if license.expires_at %}
+                                {{ license.expires_at|date:"Y-m-d H:i" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Created</dt>
+                        <dd class="mt-1">{{ license.created_at|date:"Y-m-d H:i" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Created By</dt>
+                        <dd class="mt-1">{{ license.created_by.username }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Devices Using This License</h2>
+                {% if devices %}
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">Hostname</th>
+                                <th class="py-3 px-6 text-left">OS</th>
+                                <th class="py-3 px-6 text-left">Lynis Version</th>
+                                <th class="py-3 px-6 text-left">Last Update</th>
+                                <th class="py-3 px-6 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm font-light">
+                            {% for device in devices %}
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <td class="py-3 px-6 text-left">
+                                    <a href="{% url 'device_detail' device_id=device.id %}" class="text-blue-600 hover:text-blue-800">
+                                        {{ device.hostname|default:device.hostid }}
+                                    </a>
+                                </td>
+                                <td class="py-3 px-6 text-left">{{ device.os|default:"-" }}</td>
+                                <td class="py-3 px-6 text-left">{{ device.lynis_version|default:"-" }}</td>
+                                <td class="py-3 px-6 text-left">
+                                    {% if device.last_update %}
+                                        {{ device.last_update|timesince }} ago
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-6 text-left">
+                                    <a href="{% url 'device_detail' device_id=device.id %}" class="text-gray-600 hover:text-gray-800" title="View">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-gray-500">No devices are using this license yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let keyVisible = false;
+        function toggleLicenseKey(fullKey) {
+            const display = document.getElementById('license-key-display');
+            const button = event.target;
+            if (keyVisible) {
+                display.textContent = fullKey.substring(0, 8) + '...';
+                button.textContent = 'Show';
+                keyVisible = false;
+            } else {
+                display.textContent = fullKey;
+                button.textContent = 'Hide';
+                keyVisible = true;
+            }
+        }
+
+        function copyLicenseKey(key, button) {
+            const el = document.createElement('textarea');
+            el.value = key;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        }
+    </script>
+{% endblock %}
+
