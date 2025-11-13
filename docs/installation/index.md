@@ -9,6 +9,9 @@ Compleasy consists of two main components:
 1. **Compleasy Server** - The central server that receives and manages audit reports
 2. **Lynis Client** - The auditing tool installed on each server you want to monitor
 
+!!! tip "Security-First Design"
+    Compleasy uses a **read-only architecture** - it only receives data from your servers and never pushes changes or executes commands. The only requirement on monitored servers is [Lynis](https://cisofy.com/lynis/), a well-established open-source tool available in standard Linux repositories.
+
 ## Installation Options
 
 - **[Docker Installation](docker.md)** - Recommended for most users (quick setup)

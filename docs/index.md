@@ -2,14 +2,52 @@
 
 Welcome to the Compleasy documentation!
 
-**Compleasy** is a Linux server auditing solution based on [Lynis](https://cisofy.com/lynis/). It is designed to simplify and automate the process of ensuring your servers adhere to security and operational policies.
+**Compleasy** is a centralized Linux server auditing and compliance management platform built on [Lynis](https://cisofy.com/lynis/). It collects, stores, and analyzes security audit reports from multiple Linux servers in one place, enabling centralized monitoring and policy compliance management across your infrastructure.
+
+## Security Philosophy
+
+Compleasy is designed with security as the top priority. We believe that security monitoring tools should never compromise the security of the systems they monitor.
+
+**Key Principles:**
+
+- **Read-Only Architecture**: Compleasy only receives data from your servers. It never initiates connections, executes commands, or modifies configurations on monitored servers.
+- **Minimal Footprint**: Only requires [Lynis](https://cisofy.com/lynis/) installation on monitored servers - a trusted, well-maintained open-source tool available in standard Linux repositories.
+- **No Agent Dependencies**: No proprietary agents, daemons, or services required on your servers.
+- **Server Autonomy**: Your servers remain completely independent - Compleasy is a passive observer, not an active controller.
+- **Well-Established Foundation**: Lynis is a popular, well-maintained open-source security auditing tool that is easily installable and updatable via standard package managers like `apt`, `yum`, or `dnf`.
+
+This design ensures that adding Compleasy to your infrastructure enhances visibility without introducing new risks or attack vectors.
 
 ## Features
 
-- **Easy implementation:** Compleasy server is a Docker-based solution that can be deployed in minutes
-- **Easy configuration:** Compleasy client is based on Lynis, which can be installed on any Linux server in seconds
-- **Centralized management:** All audit results are sent to the Compleasy server, where they can be viewed and managed
-- **Customizable policies:** Compleasy allows you to define custom policies that can be applied to all servers
+### Core Capabilities
+
+- **Centralized Audit Collection**: Receives audit reports from multiple Linux servers via Lynis clients, storing full reports and generating diff reports to track changes over time
+- **Device Management**: Tracks all monitored servers with metadata including hostname, OS, distribution, version, and compliance status
+- **Policy & Compliance Management**: Define custom compliance rules using a query language and automatically evaluate devices against assigned policies
+- **Report Analysis**: View complete audit reports, track changes between audits, and analyze historical compliance trends
+- **Web Dashboard**: User-friendly interface for viewing devices, compliance status, policies, and reports
+- **API Integration**: Lynis-compatible API endpoints for seamless integration with existing Lynis installations
+
+### Technical Features
+
+- **Easy Implementation**: Docker-based solution that can be deployed in minutes
+- **Easy Configuration**: Client setup requires only Lynis installation via standard package managers
+- **License Key Management**: Secure authentication system for client enrollment
+- **Health Monitoring**: Health check endpoint for container orchestration and monitoring
+- **Database Support**: SQLite for development, PostgreSQL for production
+- **Audit Logging**: Comprehensive audit trail for sensitive operations
+- **Rate Limiting**: API protection against abuse
+
+## Use Cases
+
+Compleasy is ideal for:
+
+- **Security Compliance Monitoring**: Ensure servers meet security policies and regulatory requirements
+- **Infrastructure Auditing**: Track security posture across multiple servers from a single dashboard
+- **Change Tracking**: Monitor changes between audit runs to identify security drift
+- **Policy Enforcement**: Automatically evaluate compliance against organizational policies
+- **Centralized Reporting**: Single point of visibility for all server audits across your infrastructure
 
 ## Quick Start
 

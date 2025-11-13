@@ -3,14 +3,45 @@
 > [!WARNING]
 > This project is still in development and should NOT be used in production.
 
-**Compleasy** is a Linux server auditing solution based on [Lynis](https://cisofy.com/lynis/). It is designed to simplify and automate the process of ensuring your servers adhere to security and operational policies.
+**Compleasy** is a centralized Linux server auditing and compliance management platform built on [Lynis](https://cisofy.com/lynis/). It collects, stores, and analyzes security audit reports from multiple Linux servers in one place, enabling centralized monitoring and policy compliance management across your infrastructure.
+
+## Use Cases
+
+Compleasy is ideal for:
+
+- **Security Compliance Monitoring**: Ensure servers meet security policies and regulatory requirements
+- **Infrastructure Auditing**: Track security posture across multiple servers from a single dashboard
+- **Change Tracking**: Monitor changes between audit runs to identify security drift
+- **Policy Enforcement**: Automatically evaluate compliance against organizational policies
+- **Centralized Reporting**: Single point of visibility for all server audits across your infrastructure
 
 ## Features
 
-- **Easy implementation:** Compleasy server is a Docker-based solution that can be deployed in minutes.
-- **Easy configuration:** Compleasy client is based on Lynis, which can be installed on any Linux server in seconds.
-- **Centralized management:** All audit results are sent to the Compleasy server, where they can be viewed and managed.
-- **Customizable policies:** Compleasy allows you to define custom policies that can be applied to all servers.
+### Core Capabilities
+
+- **Centralized Audit Collection**: Receives audit reports from multiple Linux servers via Lynis clients, storing full reports and generating diff reports to track changes over time
+- **Device Management**: Tracks all monitored servers with metadata including hostname, OS, distribution, version, and compliance status
+- **Policy & Compliance Management**: Define custom compliance rules using a query language and automatically evaluate devices against assigned policies
+- **Report Analysis**: View complete audit reports, track changes between audits, and analyze historical compliance trends
+- **Web Dashboard**: User-friendly interface for viewing devices, compliance status, policies, and reports
+- **API Integration**: Lynis-compatible API endpoints for seamless integration with existing Lynis installations
+
+
+## Security Philosophy
+
+> **We don't compromise the security of the servers we protect.**
+
+Compleasy follows a **read-only security model** to ensure maximum protection for your infrastructure:
+
+- **Read-Only Operations**: Compleasy only **reads** audit data from your servers. It never pushes changes, executes commands, or modifies configurations on monitored servers.
+- **Passive Monitoring**: All data flows one-way: from your servers to Compleasy. Your servers remain completely autonomous and secure.
+- **Minimal Requirements**: The only requirement on monitored servers is [Lynis](https://cisofy.com/lynis/), a well-established, popular open-source security auditing tool that is:
+  - **Well-maintained** by the security community
+  - **Easily installable** via standard package managers (`apt`, `yum`, `dnf`, etc.)
+  - **Simple to update** through your existing package management workflow
+  - **Non-intrusive** - runs audits without modifying system state
+
+This approach ensures that Compleasy enhances your security posture without introducing new attack vectors or dependencies on your production servers.
 
 ## Installation vía Docker
 
