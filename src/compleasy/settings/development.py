@@ -23,3 +23,13 @@ LOGGING['root']['level'] = 'DEBUG'
 # Email backend for development (console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Custom SQLite database filename for development
+# Override the default 'compleasy.sqlite3' to keep dev and production databases separate
+if not os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'compleasy-dev.sqlite3',
+        }
+    }
+
