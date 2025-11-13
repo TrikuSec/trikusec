@@ -5,7 +5,7 @@ services:
     volumes:
       - ./src:/app
     environment:
-      - SECRET_KEY=${SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:-"CHANGE_ME_IN_PRODUCTION"}
       - DJANGO_ENV=production
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
       - COMPLEASY_URL=https://localhost:3000
