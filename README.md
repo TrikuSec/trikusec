@@ -41,8 +41,9 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
    - `CSRF_COOKIE_SECURE=True`
 7. (Optional) Configure rate limiting:
    - `RATELIMIT_ENABLE=True` (default)
-8. (Optional) PostgreSQL in production (instead of SQLite):
+8. (Recommended) PostgreSQL in production (SQLite is used by default):
    - Set `DATABASE_URL=postgresql://user:password@host:5432/dbname`
+   - See "PostgreSQL Setup" section below for detailed instructions
 
 > [!CAUTION]
 > **Security Critical:** NEVER set `DJANGO_DEBUG=True` in production environments. Running with DEBUG enabled exposes sensitive information including stack traces, environment variables, and database queries to potential attackers. The default is `False` for security.
@@ -135,6 +136,133 @@ This collects all static files into `STATIC_ROOT` (default: `staticfiles/`) for 
 
 - **Add a license key**: `curl -k https://yourserver:3000/admin/license -X POST -d "licensekey=YOUR_LICENSE`
 - **Empty the database**: `curl https://yourserver:3000/admin/db/init?delete=true -k`
+
+## PostgreSQL Setup (Recommended for Production)
+
+Compleasy uses SQLite by default for easy installation, but PostgreSQL is **strongly recommended** for production deployments due to better performance, concurrency, and reliability.
+
+### Why PostgreSQL?
+
+- **Better Performance**: Handles concurrent connections and large datasets more efficiently
+- **Concurrency**: SQLite has limitations with concurrent writes
+- **Reliability**: Better transaction handling and data integrity
+- **Scalability**: Better suited for production workloads
+
+### Quick Setup with Docker Compose
+
+The easiest way to set up PostgreSQL is using Docker Compose. Add a PostgreSQL service to your `docker-compose.yml`:
+
+```yaml
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: compleasy
+      POSTGRES_USER: compleasy_user
+      POSTGRES_PASSWORD: your_secure_password_here
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compleasy_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+```
+
+Then set the `DATABASE_URL` environment variable in your Compleasy service:
+
+```yaml
+services:
+  compleasy:
+    environment:
+      DATABASE_URL: postgresql://compleasy_user:your_secure_password_here@postgres:5432/compleasy
+```
+
+### Manual PostgreSQL Setup
+
+1. **Install PostgreSQL** (if not using Docker):
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install postgresql postgresql-contrib
+
+# macOS (with Homebrew)
+brew install postgresql
+brew services start postgresql
+
+# Or use your distribution's package manager
+```
+
+2. **Create Database and User**:
+
+```bash
+# Connect to PostgreSQL
+sudo -u postgres psql
+
+# Create database and user
+CREATE DATABASE compleasy;
+CREATE USER compleasy_user WITH PASSWORD 'your_secure_password_here';
+ALTER ROLE compleasy_user SET client_encoding TO 'utf8';
+ALTER ROLE compleasy_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE compleasy_user SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE compleasy TO compleasy_user;
+\q
+```
+
+3. **Set DATABASE_URL Environment Variable**:
+
+```bash
+export DATABASE_URL=postgresql://compleasy_user:your_secure_password_here@localhost:5432/compleasy
+```
+
+Or add it to your `.env` file or Docker Compose configuration.
+
+4. **Run Migrations**:
+
+```bash
+docker compose exec compleasy python manage.py migrate
+```
+
+### Verifying PostgreSQL Connection
+
+After setting up PostgreSQL, verify the connection:
+
+```bash
+# Check if Compleasy can connect
+docker compose exec compleasy python manage.py dbshell
+
+# Or test the connection
+docker compose exec compleasy python manage.py shell
+>>> from django.db import connection
+>>> connection.ensure_connection()
+>>> print("PostgreSQL connection successful!")
+```
+
+### Migration from SQLite to PostgreSQL
+
+If you're already running with SQLite and want to migrate to PostgreSQL:
+
+1. **Backup your SQLite database** (see Backup & Recovery section)
+2. **Set up PostgreSQL** (as described above)
+3. **Export data from SQLite**:
+
+```bash
+# Export data
+docker compose exec compleasy python manage.py dumpdata > backup.json
+```
+
+4. **Load data into PostgreSQL**:
+
+```bash
+# Make sure DATABASE_URL points to PostgreSQL
+docker compose exec compleasy python manage.py loaddata backup.json
+```
+
+> [!NOTE]
+> SQLite is perfectly fine for small deployments, testing, or development. PostgreSQL becomes important when you have multiple concurrent users, large amounts of data, or need high availability.
 
 ## Development & Testing
 
@@ -269,7 +397,7 @@ docker compose -f docker-compose.dev.yml down -v
 Settings are organized by environment using the `DJANGO_ENV` environment variable:
 
 - **Development** (`DJANGO_ENV=development` or unset): Debug mode enabled, relaxed security
-- **Production** (`DJANGO_ENV=production`): Debug disabled, strict security, requires `DJANGO_ALLOWED_HOSTS` and `DATABASE_URL`
+- **Production** (`DJANGO_ENV=production`): Debug disabled, strict security, requires `DJANGO_ALLOWED_HOSTS` (SQLite used by default, PostgreSQL recommended)
 - **Testing** (`DJANGO_ENV=testing`): In-memory SQLite, faster password hashing, rate limiting disabled
 
 The settings package automatically loads the appropriate configuration based on `DJANGO_ENV`.
