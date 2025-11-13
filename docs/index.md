@@ -24,6 +24,7 @@ Welcome to the Compleasy documentation!
 - **[Usage](usage/index.md)** - User guides for dashboard, policies, and reports
 - **[API Reference](api/index.md)** - API endpoints and integration guides
 - **[Development](development/index.md)** - Contributing, testing, and development setup
+- **[License](license.md)** - License information (GPL-3.0)
 
 ## Status
 

@@ -433,3 +433,9 @@ The CI pipeline includes:
 - Code quality checks
 
 See `.github/workflows/test.yml` for the complete CI configuration.
+
+## License
+
+Compleasy is licensed under the **GNU General Public License v3.0** (GPL-3.0).
+
+See the [LICENSE](LICENSE) file for the full license text.
