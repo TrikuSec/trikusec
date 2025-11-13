@@ -12,12 +12,36 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Logging
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'audit': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+        },
+        'audit_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'audit.log',
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 10,
+            'formatter': 'audit',
+        },
+    },
+    'loggers': {
+        'audit': {
+            'handlers': ['audit_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
     'root': {
@@ -56,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'api.middleware.AuditLoggingMiddleware',  # Add audit logging
 ]
 
 ROOT_URLCONF = 'compleasy.urls'

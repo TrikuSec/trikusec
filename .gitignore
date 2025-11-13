@@ -13,3 +13,7 @@ nginx/certs/*
 htmlcov/
 *.pyc
 __pycache__/
+
+# Log files
+logs/*.log
+*.log
