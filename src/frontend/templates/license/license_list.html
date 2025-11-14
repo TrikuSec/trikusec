@@ -8,7 +8,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold">License Keys</h1>
-            <a href="{% url 'license_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">+ New License</a>
+            <button onclick="toggleLicenseEditPanel(null)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">+ New License</button>
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
@@ -70,11 +70,11 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     </svg>
                                 </a>
-                                <a href="{% url 'license_edit' license_id=license.id %}" class="text-gray-600 hover:text-gray-800" title="Edit">
+                                <button onclick="toggleLicenseEditPanel({{ license.id }})" class="text-gray-600 hover:text-gray-800" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
                                     </svg>
-                                </a>
+                                </button>
                                 {% if license.has_capacity %}
                                     <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="text-gray-600 hover:text-gray-800" title="Enroll Device">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
@@ -93,13 +93,16 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="py-3 px-6 text-center">No licenses found. <a href="{% url 'license_create' %}" class="text-gray-600 hover:text-gray-800">Create one</a></td>
+                        <td colspan="6" class="py-3 px-6 text-center">No licenses found. <button onclick="toggleLicenseEditPanel(null)" class="text-blue-600 hover:text-blue-800 underline">Create one</button></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
+    <!-- Include license edit sidebar -->
+    {% include 'license/license_edit_sidebar.html' %}
 
     <script>
         function copyLicenseKey(key, button) {
@@ -118,6 +121,10 @@
                 button.classList.remove('text-green-600');
             }, 2000);
         }
+
+        // Pass license data to JavaScript
+        const licenses = {{ licenses_json|safe }};
     </script>
+    <script src="{% static 'js/licenses.js' %}"></script>
 {% endblock %}
 

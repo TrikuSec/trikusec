@@ -436,9 +436,24 @@ def activity(request):
 def license_list(request):
     """License list view: show all licenses"""
     from django.utils import timezone
+    import json
     licenses = LicenseKey.objects.all().order_by('-created_at')
+    
+    # Serialize licenses for JavaScript
+    licenses_data = []
+    for license in licenses:
+        licenses_data.append({
+            'id': license.id,
+            'name': license.name,
+            'licensekey': license.licensekey,
+            'max_devices': license.max_devices,
+            'expires_at': license.expires_at.isoformat() if license.expires_at else None,
+            'is_active': license.is_active,
+        })
+    
     return render(request, 'license/license_list.html', {
         'licenses': licenses,
+        'licenses_json': json.dumps(licenses_data),
         'now': timezone.now()
     })
 
@@ -447,11 +462,24 @@ def license_list(request):
 def license_detail(request, license_id):
     """License detail view: show license details and associated devices"""
     from django.utils import timezone
+    import json
     license = get_object_or_404(LicenseKey, id=license_id)
     devices = Device.objects.filter(licensekey=license).order_by('-last_update')
     compleasy_url = request.build_absolute_uri('/').rstrip('/')
+    
+    # Serialize license for JavaScript
+    license_data = {
+        'id': license.id,
+        'name': license.name,
+        'licensekey': license.licensekey,
+        'max_devices': license.max_devices,
+        'expires_at': license.expires_at.isoformat() if license.expires_at else None,
+        'is_active': license.is_active,
+    }
+    
     return render(request, 'license/license_detail.html', {
         'license': license,
+        'license_json': json.dumps(license_data),
         'devices': devices,
         'compleasy_url': compleasy_url,
         'now': timezone.now()
@@ -462,6 +490,8 @@ def license_detail(request, license_id):
 @csrf_protect
 def license_create(request):
     """Create new license key"""
+    from django.http import JsonResponse
+    
     if request.method == 'POST':
         form = LicenseKeyForm(request.POST)
         if form.is_valid():
@@ -477,27 +507,63 @@ def license_create(request):
             )
             license.organization = default_org
             license.save()
-            return redirect('license_detail', license_id=license.id)
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'license_id': license.id,
+                    'message': 'License created successfully'
+                })
+            else:
+                return redirect('license_detail', license_id=license.id)
+        else:
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
     else:
         form = LicenseKeyForm()
     
-    return render(request, 'license/license_form.html', {'form': form})
+    # Fallback: redirect to license list (since we removed the form template)
+    return redirect('license_list')
 
 
 @login_required
 @csrf_protect
 def license_edit(request, license_id):
     """Edit existing license"""
+    from django.http import JsonResponse
+    
     license = get_object_or_404(LicenseKey, id=license_id)
     if request.method == 'POST':
         form = LicenseKeyForm(request.POST, instance=license)
         if form.is_valid():
             form.save()
-            return redirect('license_detail', license_id=license.id)
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'license_id': license.id,
+                    'message': 'License updated successfully'
+                })
+            else:
+                return redirect('license_detail', license_id=license.id)
+        else:
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
     else:
         form = LicenseKeyForm(instance=license)
     
-    return render(request, 'license/license_form.html', {'form': form, 'license': license})
+    # Fallback: redirect to license detail (since we removed the form template)
+    return redirect('license_detail', license_id=license.id)
 
 
 @login_required

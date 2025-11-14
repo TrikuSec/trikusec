@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold">{{ license.name }}</h1>
             <div>
-                <a href="{% url 'license_edit' license_id=license.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2">Edit</a>
+                <button onclick="toggleLicenseEditPanel({{ license.id }})" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2">Edit</button>
                 {% if license.has_capacity %}
                     <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Enroll Device</a>
                 {% endif %}
@@ -122,6 +122,9 @@
         </div>
     </div>
 
+    <!-- Include license edit sidebar -->
+    {% include 'license/license_edit_sidebar.html' %}
+
     <script>
         let keyVisible = false;
         function toggleLicenseKey(fullKey) {
@@ -152,6 +155,10 @@
                 button.textContent = originalText;
             }, 2000);
         }
+
+        // Pass license data to JavaScript
+        const licenseData = {{ license_json|safe }};
     </script>
+    <script src="{% static 'js/licenses.js' %}"></script>
 {% endblock %}
 
