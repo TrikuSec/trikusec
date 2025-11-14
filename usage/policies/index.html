@@ -1019,6 +1019,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rule-query-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule Query Syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#creating-policies" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1515,12 +1526,13 @@
 </ul>
 <h3 id="policy-components">Policy Components<a class="headerlink" href="#policy-components" title="Permanent link">&para;</a></h3>
 <h4 id="policy-rules">Policy Rules<a class="headerlink" href="#policy-rules" title="Permanent link">&para;</a></h4>
-<p>Individual rules that define specific requirements:</p>
+<p>Individual rules that define specific requirements using query expressions:</p>
 <ul>
-<li><strong>Test ID</strong> - Lynis test identifier</li>
-<li><strong>Operator</strong> - Comparison operator (equals, greater than, etc.)</li>
-<li><strong>Value</strong> - Expected or threshold value</li>
-<li><strong>Severity</strong> - Warning or error level</li>
+<li><strong>Name</strong> - Descriptive name for the rule</li>
+<li><strong>Rule Query</strong> - Query expression that evaluates against Lynis report data</li>
+<li><strong>Description</strong> - Purpose and explanation of the rule</li>
+<li><strong>Enabled</strong> - Whether the rule is active</li>
+<li><strong>Alert</strong> - Whether to generate alerts when rule fails</li>
 </ul>
 <h4 id="policy-rule-sets">Policy Rule Sets<a class="headerlink" href="#policy-rule-sets" title="Permanent link">&para;</a></h4>
 <p>Collections of rules that can be applied to devices:</p>
@@ -1529,16 +1541,91 @@
 <li><strong>Description</strong> - Purpose and scope</li>
 <li><strong>Rules</strong> - List of policy rules</li>
 </ul>
+<h3 id="rule-query-syntax">Rule Query Syntax<a class="headerlink" href="#rule-query-syntax" title="Permanent link">&para;</a></h3>
+<p>Rule queries use a simple expression format to evaluate device reports. The syntax is:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>field operator value
+</span></code></pre></div>
+<h4 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h4>
+<p><strong>Field</strong>: The name of a field from the Lynis report (case-sensitive)
+- Examples: <code>os</code>, <code>hardening_index</code>, <code>firewall_active</code>, <code>vulnerable_packages_found</code>
+- Field names can contain letters, numbers, and underscores</p>
+<p><strong>Operator</strong>: One of the supported comparison operators:
+- <code>=</code> - Equals
+- <code>!=</code> - Not equals
+- <code>&gt;</code> - Greater than
+- <code>&gt;=</code> - Greater than or equal
+- <code>&lt;</code> - Less than
+- <code>&lt;=</code> - Less than or equal
+- <code>contains</code> - String/list contains value (for strings and arrays)</p>
+<p><strong>Value</strong>: The value to compare against
+- <strong>Strings</strong>: Use quotes, e.g., <code>"Linux"</code>, <code>"Ubuntu"</code>
+- <strong>Numbers</strong>: No quotes needed, e.g., <code>70</code>, <code>0</code>, <code>1</code></p>
+<h4 id="query-examples">Query Examples<a class="headerlink" href="#query-examples" title="Permanent link">&para;</a></h4>
+<p><strong>String equality:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>os = &quot;Linux&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>os_name = &quot;Ubuntu&quot;
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>hostname = &quot;web-server-01&quot;
+</span></code></pre></div></p>
+<p><strong>Numeric comparisons:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>hardening_index &gt; 70
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>hardening_index &gt;= 60
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>hardening_index &lt; 80
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>vulnerable_packages_found = 0
+</span></code></pre></div></p>
+<p><strong>Contains operator (for strings or lists):</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>automation_tool_running contains &quot;ansible&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>vulnerable_package contains &quot;libc6&quot;
+</span></code></pre></div></p>
+<p><strong>Not equals:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>os != &quot;Windows&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>firewall_active != 0
+</span></code></pre></div></p>
+<h4 id="available-report-fields">Available Report Fields<a class="headerlink" href="#available-report-fields" title="Permanent link">&para;</a></h4>
+<p>Common fields available in Lynis reports include:</p>
+<p><strong>System Information:</strong>
+- <code>os</code> - Operating system (e.g., "Linux")
+- <code>os_name</code> - OS distribution name (e.g., "Ubuntu")
+- <code>os_version</code> - OS version (e.g., "22.04")
+- <code>hostname</code> - System hostname
+- <code>lynis_version</code> - Lynis version used</p>
+<p><strong>Security Metrics:</strong>
+- <code>hardening_index</code> - Overall hardening score (0-100)
+- <code>vulnerable_packages_found</code> - Number of vulnerable packages (0 or 1)
+- <code>firewall_active</code> - Firewall status (0 or 1)
+- <code>firewall_installed</code> - Firewall installed (0 or 1)
+- <code>ssh_daemon_running</code> - SSH daemon status (0 or 1)
+- <code>openssh_daemon_running</code> - OpenSSH daemon status (0 or 1)</p>
+<p><strong>Package Management:</strong>
+- <code>installed_packages</code> - Number of installed packages
+- <code>vulnerable_package</code> - List of vulnerable packages (use <code>contains</code>)</p>
+<p><strong>Network:</strong>
+- <code>ipv6_mode</code> - IPv6 mode (e.g., "auto")
+- <code>dhcp_client_running</code> - DHCP client status (0 or 1)</p>
+<p><strong>Services:</strong>
+- <code>automation_tool_running</code> - Automation tool name (if any)
+- <code>ntp_daemon_running</code> - NTP daemon status (0 or 1)
+- <code>linux_auditd_running</code> - Audit daemon status (0 or 1)</p>
+<div class="admonition tip">
+<p class="admonition-title">Finding Available Fields</p>
+<p>To see all available fields for a device and discover new fields for rule queries:</p>
+<ol>
+<li>Navigate to <strong>Devices</strong> → Select a device</li>
+<li>View the <strong>Device Detail</strong> page</li>
+<li>Access the <strong>full report</strong> which shows all available fields from the Lynis audit</li>
+</ol>
+<p>The full report displays all key-value pairs from the device's latest audit, making it easy to identify field names and their values for creating specific rule queries. Fields are extracted directly from the Lynis report data.</p>
+</div>
 <h3 id="creating-policies">Creating Policies<a class="headerlink" href="#creating-policies" title="Permanent link">&para;</a></h3>
 <h4 id="1-create-a-policy-rule">1. Create a Policy Rule<a class="headerlink" href="#1-create-a-policy-rule" title="Permanent link">&para;</a></h4>
 <ol>
 <li>Navigate to <strong>Policies</strong> → <strong>Rules</strong></li>
-<li>Click <strong>Create New Rule</strong></li>
+<li>Click <strong>Create New Rule</strong> (or use the edit panel)</li>
 <li>Configure:</li>
-<li>Test ID (e.g., <code>FILE-7524</code>)</li>
-<li>Operator (equals, not equals, greater than, etc.)</li>
-<li>Expected value</li>
-<li>Severity level</li>
+<li><strong>Name</strong>: Descriptive name (e.g., "Linux OS Check")</li>
+<li><strong>Rule Query</strong>: Query expression (e.g., <code>os = "Linux"</code>)</li>
+<li><strong>Description</strong>: Explanation of what the rule checks</li>
+<li><strong>Enabled</strong>: Check to activate the rule</li>
+<li><strong>Alert</strong>: Check to generate alerts on failure</li>
 <li>Save the rule</li>
 </ol>
 <h4 id="2-create-a-policy-rule-set">2. Create a Policy Rule Set<a class="headerlink" href="#2-create-a-policy-rule-set" title="Permanent link">&para;</a></h4>
@@ -1546,41 +1633,62 @@
 <li>Navigate to <strong>Policies</strong> → <strong>Rule Sets</strong></li>
 <li>Click <strong>Create New Rule Set</strong></li>
 <li>Enter name and description</li>
-<li>Select rules to include</li>
+<li>Select rules to include from the list</li>
 <li>Save the rule set</li>
 </ol>
 <h4 id="3-apply-to-devices">3. Apply to Devices<a class="headerlink" href="#3-apply-to-devices" title="Permanent link">&para;</a></h4>
 <ol>
 <li>Navigate to <strong>Devices</strong></li>
 <li>Select a device</li>
-<li>Go to <strong>Policy Rulesets</strong></li>
+<li>Go to <strong>Policy Rulesets</strong> tab</li>
 <li>Assign rule sets to the device</li>
 </ol>
 <h3 id="common-policy-examples">Common Policy Examples<a class="headerlink" href="#common-policy-examples" title="Permanent link">&para;</a></h3>
-<h4 id="file-permissions">File Permissions<a class="headerlink" href="#file-permissions" title="Permanent link">&para;</a></h4>
-<p>Ensure critical files have correct permissions:</p>
-<ul>
-<li>Test ID: <code>FILE-7524</code></li>
-<li>Operator: equals</li>
-<li>Value: <code>640</code></li>
-<li>Severity: Warning</li>
-</ul>
-<h4 id="ssh-configuration">SSH Configuration<a class="headerlink" href="#ssh-configuration" title="Permanent link">&para;</a></h4>
-<p>Require SSH key authentication:</p>
-<ul>
-<li>Test ID: <code>SSH-7408</code></li>
-<li>Operator: equals</li>
-<li>Value: <code>yes</code></li>
-<li>Severity: Error</li>
-</ul>
-<h4 id="system-updates">System Updates<a class="headerlink" href="#system-updates" title="Permanent link">&para;</a></h4>
-<p>Ensure system is up to date:</p>
-<ul>
-<li>Test ID: <code>PKGS-7390</code></li>
-<li>Operator: less than</li>
-<li>Value: <code>7</code> (days since last update)</li>
-<li>Severity: Warning</li>
-</ul>
+<h4 id="operating-system-check">Operating System Check<a class="headerlink" href="#operating-system-check" title="Permanent link">&para;</a></h4>
+<p>Ensure device is running Linux:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>os = &quot;Linux&quot;
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Verifies that the operating system is Linux.</p>
+<h4 id="hardening-index-threshold">Hardening Index Threshold<a class="headerlink" href="#hardening-index-threshold" title="Permanent link">&para;</a></h4>
+<p>Require minimum hardening score:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>hardening_index &gt;= 70
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Ensures the system has a hardening index of at least 70.</p>
+<h4 id="no-vulnerable-packages">No Vulnerable Packages<a class="headerlink" href="#no-vulnerable-packages" title="Permanent link">&para;</a></h4>
+<p>Ensure no vulnerable packages are found:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>vulnerable_packages_found = 0
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Checks that no vulnerable packages were detected in the system.</p>
+<h4 id="firewall-active">Firewall Active<a class="headerlink" href="#firewall-active" title="Permanent link">&para;</a></h4>
+<p>Require firewall to be active:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>firewall_active = 1
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Verifies that the firewall is active and running.</p>
+<h4 id="specific-os-distribution">Specific OS Distribution<a class="headerlink" href="#specific-os-distribution" title="Permanent link">&para;</a></h4>
+<p>Require Ubuntu 22.04:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>os_name = &quot;Ubuntu&quot;
+</span></code></pre></div></p>
+<p><strong>And:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>os_version = &quot;22.04&quot;
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Ensures the system is running Ubuntu 22.04 LTS.</p>
+<h4 id="automation-tool-check">Automation Tool Check<a class="headerlink" href="#automation-tool-check" title="Permanent link">&para;</a></h4>
+<p>Check if Ansible is running:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>automation_tool_running contains &quot;ansible&quot;
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Verifies that Ansible automation tool is present.</p>
+<h4 id="ssh-service-running">SSH Service Running<a class="headerlink" href="#ssh-service-running" title="Permanent link">&para;</a></h4>
+<p>Require SSH daemon to be running:</p>
+<p><strong>Query:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>openssh_daemon_running = 1
+</span></code></pre></div></p>
+<p><strong>Description:</strong> Ensures OpenSSH daemon is active for remote access.</p>
 <h3 id="compliance-tracking">Compliance Tracking<a class="headerlink" href="#compliance-tracking" title="Permanent link">&para;</a></h3>
 <h4 id="viewing-compliance">Viewing Compliance<a class="headerlink" href="#viewing-compliance" title="Permanent link">&para;</a></h4>
 <ol>
@@ -1644,7 +1752,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 13, 2025 21:24:55 UTC">November 13, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 14, 2025 21:45:08 UTC">November 14, 2025</span>
   </span>
 
     
