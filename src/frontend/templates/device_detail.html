@@ -11,6 +11,11 @@
         <!-- Rule selection side-panel -->
         {% include 'policy/ruleset_selection_sidebar.html' %}
         
+        <!-- Ruleset and Rule edit sidebars -->
+        {% include 'policy/ruleset_edit_sidebar.html' %}
+        {% include 'policy/rule_edit_sidebar.html' %}
+        {% include 'policy/rule_selection_sidebar.html' %}
+        
         <!-- Device details Screen -->
         <div id="serverDetails">
             <!--<h2 class="text-2xl font-bold mb-6">{{ report.hostname }}</h2>-->
@@ -324,5 +329,13 @@
         });
     </script>
     {{ evaluated_rulesets|json_script:"evaluated-rulesets-data" }}
+    
+    <script>
+        // Pass data to JavaScript for sidebars
+        const rulesets = {{ rulesets_json|safe }};
+        const rules = {{ rules_json|safe }};
+    </script>
+    <script src="{% static 'js/policies.js' %}"></script>
+    <script src="{% static 'js/rules.js' %}"></script>
 {% endblock %}
 

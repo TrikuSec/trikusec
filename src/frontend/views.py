@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q, F, Count
+from django.core.paginator import Paginator
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance
@@ -99,13 +100,46 @@ def device_detail(request, device_id):
     device.compliant = compliant
 
     # Get all rulesets (used to select the rulesets for the device from the side-panel)
-    policy_rulesets = PolicyRuleset.objects.all()
+    policy_rulesets = PolicyRuleset.objects.prefetch_related('rules').all()
+    
+    # Get all rules for JavaScript
+    all_rules = PolicyRule.objects.all()
+    
+    # Serialize rulesets for JavaScript
+    rulesets_data = []
+    for ruleset in policy_rulesets:
+        ruleset_data = {
+            'id': ruleset.id,
+            'name': ruleset.name,
+            'description': ruleset.description,
+            'created_at': ruleset.created_at.isoformat(),
+            'updated_at': ruleset.updated_at.isoformat(),
+            'rules': list(ruleset.rules.values('id', 'name', 'enabled', 'description', 'rule_query')),
+        }
+        rulesets_data.append(ruleset_data)
+    
+    # Serialize all rules for JavaScript
+    rules_data = []
+    for rule in all_rules:
+        rule_data = {
+            'id': rule.id,
+            'name': rule.name,
+            'description': rule.description,
+            'rule_query': rule.rule_query,
+            'enabled': rule.enabled,
+            'created_at': rule.created_at.isoformat(),
+            'updated_at': rule.updated_at.isoformat(),
+        }
+        rules_data.append(rule_data)
 
     return render(request, 'device_detail.html', {
         'device': device,
         'report': report,
         'evaluated_rulesets': evaluated_rulesets,
-        'rulesets': policy_rulesets
+        'rulesets': policy_rulesets,
+        'rules': all_rules,  # For rule selection sidebar template
+        'rulesets_json': json.dumps(rulesets_data),
+        'rules_json': json.dumps(rules_data),
     })
 
 
@@ -202,80 +236,255 @@ def download_lynis_custom_profile(request):
                     content_type='text/plain')
 
 @login_required
-def ruleset_list(request):
-    """Policy list view: show all policy rulesets"""
-    policy_rulesets = PolicyRuleset.objects.prefetch_related('rules').all()
-    policy_rules = PolicyRule.objects.values()
-    if not policy_rulesets:
-        return HttpResponse('No policy rulesets found', status=404)
+def policy_list(request):
+    """Unified policy list view: show all policy rulesets and rules with pagination"""
+    # Pagination for rulesets (10 per page)
+    ruleset_page = request.GET.get('ruleset_page', 1)
+    rulesets = PolicyRuleset.objects.prefetch_related('rules', 'devices').all().order_by('-updated_at')
+    ruleset_paginator = Paginator(rulesets, 10)
+    rulesets_page_obj = ruleset_paginator.get_page(ruleset_page)
     
+    # Pagination for rules (10 per page)
+    rule_page = request.GET.get('rule_page', 1)
+    rules = PolicyRule.objects.all().order_by('-updated_at')
+    rule_paginator = Paginator(rules, 10)
+    rules_page_obj = rule_paginator.get_page(rule_page)
+    
+    # Serialize rulesets for JavaScript
     rulesets_data = []
-    for ruleset in policy_rulesets:
-        # Get the rule count for the ruleset
+    for ruleset in rulesets:  # Use all rulesets for JavaScript, not just paginated
         ruleset_data = {
             'id': ruleset.id,
             'name': ruleset.name,
             'description': ruleset.description,
-            'created_at': ruleset.created_at,
-            'updated_at': ruleset.updated_at,
-            'rules': list(ruleset.rules.values()),
-            'devices': list(ruleset.devices.values()),
-            'rules_count': ruleset.rules.count(),
-            'devices_count': ruleset.devices.count()
+            'created_at': ruleset.created_at.isoformat(),
+            'updated_at': ruleset.updated_at.isoformat(),
+            'rules': list(ruleset.rules.values('id', 'name', 'enabled', 'description', 'rule_query')),
         }
         rulesets_data.append(ruleset_data)
     
+    # Serialize rules for JavaScript
+    rules_data = []
+    for rule in rules:  # Use all rules for JavaScript, not just paginated
+        rule_data = {
+            'id': rule.id,
+            'name': rule.name,
+            'description': rule.description,
+            'rule_query': rule.rule_query,
+            'enabled': rule.enabled,
+            'created_at': rule.created_at.isoformat(),
+            'updated_at': rule.updated_at.isoformat(),
+        }
+        rules_data.append(rule_data)
+    
     context = {
-        'rulesets': rulesets_data,
-        'rules': list(policy_rules),
-        'rules_count': len(policy_rules)
+        'rulesets': rulesets_page_obj,
+        'rulesets_json': json.dumps(rulesets_data),
+        'rules': rules_page_obj,
+        'rules_json': json.dumps(rules_data),
     }
     
-    return render(request, 'policy/ruleset_list.html', context)
+    return render(request, 'policy/policy_list.html', context)
 
 @login_required
+@csrf_protect
 def ruleset_create(request):
+    """Create a new policy ruleset (AJAX + fallback)"""
     if request.method == 'POST':
+        # Get rules data before processing
+        # Rules can come as a list (from rule selection form) or comma-separated string (from hidden field)
+        rules_data = request.POST.get('rules', '')
+        
+        # Create form without 'rules' field - we handle it separately
+        # Use only the fields we want to validate: name and description
         form = PolicyRulesetForm(request.POST)
+        # Remove 'rules' from form fields to avoid validation errors
+        if 'rules' in form.fields:
+            form.fields.pop('rules')
         if form.is_valid():
-            form.save()
-            return redirect('ruleset_list')
-    else:
-        form = PolicyRulesetForm()
+            ruleset = form.save()
+            
+            # Handle rules assignment (can be list or comma-separated string)
+            selected_rule_ids = []
+            
+            # First try getlist (for rule selection form submission)
+            selected_rule_ids = request.POST.getlist('rules')
+            
+            # If not found, try comma-separated string from hidden field
+            if not selected_rule_ids and rules_data:
+                selected_rule_ids = [rules_data]
+            
+            # Process selected_rule_ids: split comma-separated strings and convert to integers
+            processed_rule_ids = []
+            for rule_id in selected_rule_ids:
+                if ',' in str(rule_id):
+                    # Split comma-separated string
+                    processed_rule_ids.extend([rid.strip() for rid in str(rule_id).split(',') if rid.strip()])
+                else:
+                    processed_rule_ids.append(str(rule_id).strip())
+            
+            # Convert to integers and filter out invalid values
+            try:
+                rule_ids_int = [int(rid) for rid in processed_rule_ids if rid and rid.isdigit()]
+            except (ValueError, AttributeError):
+                rule_ids_int = []
+            
+            if rule_ids_int:
+                selected_rules = PolicyRule.objects.filter(id__in=rule_ids_int)
+                ruleset.rules.set(selected_rules)
+                ruleset.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'ruleset_id': ruleset.id,
+                    'message': 'Ruleset created successfully'
+                })
+            
+            # Traditional request: redirect
+            return redirect('ruleset_detail', ruleset_id=ruleset.id)
+        else:
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
     
-    return render(request, 'policy/ruleset_form.html', {'form': form})
+    # Fallback for GET or non-AJAX POST
+    return redirect('policy_list')
 
 @login_required
 def ruleset_detail(request, ruleset_id):
+    """Ruleset detail view: show ruleset info, rules, and devices"""
     ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
-    if request.method == 'POST':
-        form = PolicyRulesetForm(request.POST, instance=ruleset)
-        if form.is_valid():
-            form.save()
-            return redirect('ruleset_detail', ruleset_id=ruleset.id)
-    else:
-        form = PolicyRulesetForm(instance=ruleset)
-    return render(request, 'policy/ruleset_form.html', {'form': form, 'ruleset': ruleset})
+    
+    # Get rules in this ruleset
+    rules = ruleset.rules.all().order_by('name')
+    
+    # Get devices using this ruleset
+    devices = ruleset.devices.all().order_by('hostname')
+    
+    # Get all rules for rule selection sidebar
+    all_rules = PolicyRule.objects.all().order_by('name')
+    
+    # Serialize ruleset for JavaScript
+    ruleset_data = {
+        'id': ruleset.id,
+        'name': ruleset.name,
+        'description': ruleset.description,
+        'created_at': ruleset.created_at.isoformat(),
+        'updated_at': ruleset.updated_at.isoformat(),
+        'rules': list(ruleset.rules.values('id', 'name', 'enabled', 'description', 'rule_query')),
+    }
+    
+    # Serialize all rules for JavaScript
+    rules_data = []
+    for rule in all_rules:
+        rule_data = {
+            'id': rule.id,
+            'name': rule.name,
+            'description': rule.description,
+            'rule_query': rule.rule_query,
+            'enabled': rule.enabled,
+        }
+        rules_data.append(rule_data)
+    
+    context = {
+        'ruleset': ruleset,
+        'rules': rules,
+        'devices': devices,
+        'ruleset_json': json.dumps(ruleset_data),
+        'rules_json': json.dumps(rules_data),
+    }
+    
+    return render(request, 'policy/ruleset_detail.html', context)
 
 
 @csrf_protect
 @login_required
 def ruleset_update(request, ruleset_id):
-    """Update the rules of a policy ruleset"""
+    """Update a policy ruleset (AJAX + fallback)"""
+    ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
+    
     if request.method == 'POST':
+        # Check if this is a rule selection form submission (only has rules, no name/description)
         selected_rule_ids = request.POST.getlist('rules')
-        if not ruleset_id:
-            return HttpResponse('No ruleset ID provided', status=400)
+        has_name = 'name' in request.POST
+        has_description = 'description' in request.POST
         
-        # Get the PolicyRuleset object
-        ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
-        # Get the PolicyRule objects for the selected rules
-        selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
-        if selected_rules:
+        # If it's only rule selection (no name/description), update rules and return
+        if selected_rule_ids and not has_name and not has_description:
+            # Update rules assignment
+            selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
             ruleset.rules.set(selected_rules)
-        ruleset.save()
-        return redirect('ruleset_list')
-    return HttpResponse('Invalid request method', status=405)
+            ruleset.save()
+            return redirect('policy_list')
+        
+        # Otherwise, update ruleset details (from edit sidebar)
+        # Get rules data before processing
+        # Rules can come as a list (from rule selection form) or comma-separated string (from hidden field)
+        rules_data = request.POST.get('rules', '')
+        
+        # Create form without 'rules' field - we handle it separately
+        form = PolicyRulesetForm(request.POST, instance=ruleset)
+        # Remove 'rules' from form fields to avoid validation errors
+        if 'rules' in form.fields:
+            form.fields.pop('rules')
+        if form.is_valid():
+            form.save()
+            
+            # Handle rules assignment from edit form (can be list or comma-separated string)
+            selected_rule_ids = []
+            
+            # First try getlist (for rule selection form submission)
+            selected_rule_ids = request.POST.getlist('rules')
+            
+            # If not found, try comma-separated string from hidden field
+            if not selected_rule_ids and rules_data:
+                selected_rule_ids = [rules_data]
+            
+            # Process selected_rule_ids: split comma-separated strings and convert to integers
+            processed_rule_ids = []
+            for rule_id in selected_rule_ids:
+                if ',' in str(rule_id):
+                    # Split comma-separated string
+                    processed_rule_ids.extend([rid.strip() for rid in str(rule_id).split(',') if rid.strip()])
+                else:
+                    processed_rule_ids.append(str(rule_id).strip())
+            
+            # Convert to integers and filter out invalid values
+            try:
+                rule_ids_int = [int(rid) for rid in processed_rule_ids if rid and rid.isdigit()]
+            except (ValueError, AttributeError):
+                rule_ids_int = []
+            
+            if rule_ids_int:
+                selected_rules = PolicyRule.objects.filter(id__in=rule_ids_int)
+                ruleset.rules.set(selected_rules)
+                ruleset.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'ruleset_id': ruleset.id,
+                    'message': 'Ruleset updated successfully'
+                })
+            
+            # Traditional request: redirect
+            return redirect('ruleset_detail', ruleset_id=ruleset.id)
+        else:
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+    
+    # Fallback for GET or non-AJAX POST
+    return redirect('policy_list')
 
 @login_required
 def ruleset_add(request):
@@ -283,11 +492,46 @@ def ruleset_add(request):
     return render(request, 'policy/ruleset_form.html')
 
 @login_required
+@csrf_protect
 def ruleset_delete(request, ruleset_id):
-    """Policy delete view: delete a policy ruleset"""
-    policy_ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
-    policy_ruleset.delete()
-    return redirect('ruleset_list')
+    """Delete a policy ruleset (AJAX + fallback)"""
+    if request.method == 'POST':
+        policy_ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
+        policy_ruleset.delete()
+        
+        # AJAX request: return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Ruleset deleted successfully'
+            })
+        
+        # Traditional request: redirect
+        return redirect('policy_list')
+    
+    # GET request: return 405 Method Not Allowed
+    return HttpResponse('Method not allowed', status=405)
+
+@login_required
+@csrf_protect
+def rule_delete(request, rule_id):
+    """Delete a policy rule (AJAX + fallback)"""
+    if request.method == 'POST':
+        rule = get_object_or_404(PolicyRule, id=rule_id)
+        rule.delete()
+        
+        # AJAX request: return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Rule deleted successfully'
+            })
+        
+        # Traditional request: redirect
+        return redirect('policy_list')
+    
+    # GET request: return 405 Method Not Allowed
+    return HttpResponse('Method not allowed', status=405)
 
 @login_required
 def rule_list(request):
@@ -313,32 +557,66 @@ def rule_detail(request, rule_id):
     return render(request, 'policy/rule_detail.html', {'form': form, 'rule': rule})
 
 @login_required
+@csrf_protect
 def rule_update(request, rule_id):
-    """Rule update view: update a policy rule"""
+    """Rule update view: update a policy rule (AJAX + fallback)"""
     policy_rule = get_object_or_404(PolicyRule, id=rule_id)
+    
     if request.method == 'POST':
-        logging.debug('Request POST: %s', request.POST)
         form = PolicyRuleForm(request.POST, instance=policy_rule)
         if form.is_valid():
-            policy_rule.save()
-            # Redirect to the referer page
-            return safe_redirect(request, 'rule_list')
+            form.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'rule_id': policy_rule.id,
+                    'message': 'Rule updated successfully'
+                })
+            
+            # Traditional request: redirect to referer or rule list
+            return safe_redirect(request, 'policy_list')
     else:
-        form = PolicyRuleForm(instance=policy_rule)
-    return render(request, 'policy/rule_detail.html', {'rule': policy_rule})
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+    
+    # Fallback for GET or non-AJAX POST
+    return redirect('policy_list')
 
 @login_required
+@csrf_protect
 def rule_create(request):
-    """Rule create view: create a new policy rule"""
+    """Rule create view: create a new policy rule (AJAX + fallback)"""
     if request.method == 'POST':
         form = PolicyRuleForm(request.POST)
         if form.is_valid():
-            form.save()
-            # Redirect to the referer page
-            return safe_redirect(request, 'rule_list')
+            rule = form.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'rule_id': rule.id,
+                    'message': 'Rule created successfully'
+                })
+            
+            # Traditional request: redirect to referer or rule list
+            return safe_redirect(request, 'policy_list')
     else:
-        form = PolicyRuleForm()
-    return render(request, 'policy/rule_detail.html', {'form': form})
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+    
+    # Fallback for GET or non-AJAX POST
+    return redirect('policy_list')
 
 @login_required
 def rule_add(request):

@@ -32,6 +32,8 @@ class PolicyRulesetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         read_only = kwargs.pop('read_only', False)
         super().__init__(*args, **kwargs)
+        # Make description optional (it's optional in the UI)
+        self.fields['description'].required = False
         if read_only:
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'

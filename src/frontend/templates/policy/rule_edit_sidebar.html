@@ -1,6 +1,6 @@
-<div id="rule-edit-panel" class="hidden fixed right-0 top-0 h-full w-1/4 bg-white shadow-md">
+<div id="rule-edit-panel" class="hidden fixed right-0 top-0 h-full w-1/4 bg-white shadow-md z-50">
     <div class="flex justify-between items-center p-4 border-b bg-gray-200">
-        <h2 class="text-xl font-bold">Edit Rule</h2>
+        <h2 class="text-xl font-bold" id="rule-edit-title">Edit Rule</h2>
         <button class="rule-edit-panel-button text-gray-600">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -21,8 +21,10 @@
             </label>
             </div>
             <div class="p-4 mb-4">
-                <label for="rule_name" class="block text-sm font-medium text-gray-700">Rule Name</label>
-                <input type="text" id="rule_name" name="name" class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
+                <label for="rule_name" class="block text-sm font-medium text-gray-700">
+                    Rule Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="rule_name" name="name" class="mt-1 p-2 block w-full border border-gray-300 rounded-md" required />
             </div>
             <div class="p-4 mb-4">
                 <label for="rule_description" class="block text-sm font-medium text-gray-700">Description</label>
@@ -30,13 +32,22 @@
             </div>
             <!-- Rule query -->
              <div class="p-4 mb-4">
-                <label for="rule_query" class="block text-sm font-medium text-gray-700">Rule query</label>
-                <textarea id="rule_query" name="rule_query" class="mt-1 p-2 block w-full border border-gray-300 rounded-md"></textarea>
+                <label for="rule_query" class="block text-sm font-medium text-gray-700">
+                    Rule query <span class="text-red-500">*</span>
+                </label>
+                <textarea id="rule_query" name="rule_query" rows="3" class="mt-1 p-2 block w-full border border-gray-300 rounded-md font-mono text-sm" required></textarea>
+                <p class="mt-1 text-sm text-gray-500">Query expression to evaluate against device reports</p>
             </div>
+            
+            <!-- Error messages container -->
+            <div id="rule-form-errors" class="hidden p-4 mb-4 mx-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                <ul id="rule-error-list"></ul>
+            </div>
+            
             <!-- Apply and cancel buttons (in a row, down at the bottom of the panel) -->
             <div class="absolute flex space-x-2 w-full bottom-0 p-4 bg-gray-200">
-                <button type="submit" class="w-1/2 bg-blue-500 text-white px-4 py-2 rounded">Apply</button>
-                <button type="button" class="rule-edit-panel-button w-1/2 bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                <button type="submit" class="w-1/2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+                <button type="button" class="rule-edit-panel-button w-1/2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
             </div>
         </form>
     </div>

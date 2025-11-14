@@ -10,7 +10,7 @@
     <!-- search bar and create button -->
     <div class="p-4 bg-gray-200 flex justify-between">
       <input type="text" id="ruleset-search-input" class="w-4/5 border border-gray-300 p-2 rounded-lg" placeholder="Search rulesets" onKeyUp="searchRulesetByName(this.value)" autocomplete="off" />
-      <button class="rule-edit-panel-button bg-gray-500 text-white px-2 py-2 rounded" aria-label="Create new ruleset">+ Ruleset</button>
+      <button type="button" onclick="openRulesetEditFromSelection(null)" class="bg-gray-500 text-white px-2 py-2 rounded" aria-label="Create new ruleset">+ Ruleset</button>
     </div>
     <div class="flex-grow overflow-hidden">
       <form id="ruleset-selection-form" method="post" action="{% url 'device_update' device_id=device.id %}" class="h-full flex flex-col">
@@ -24,14 +24,14 @@
                    {% if ruleset in device.rulesets.all %} checked {% endif %}>
             <label for="ruleset-{{ ruleset.id }}" class="flex-1 flex justify-between items-center py-1 px-4 bg-white rounded cursor-pointer hover:bg-gray-200 peer-checked:bg-amber-100 peer-checked:hover:bg-yellow-600/50 font-light">
               {{ ruleset.name }}
-              <a href="#" class="group rule-edit-panel-button relative rounded-full p-1 bg-transparent" data-ruleset-id="{{ ruleset.id }}">
+              <button type="button" onclick="openRulesetEditFromSelection({{ ruleset.id }})" class="group relative rounded-full p-1 bg-transparent" data-ruleset-id="{{ ruleset.id }}">
                 <!-- Overlay layer -->
                 <div class="opacity-0 group-hover:opacity-100 absolute inset-0 group-hover/icon:visible bg-black/10 rounded-full"></div>
                 <!-- SVG icon -->
                 <svg class="group/icon size-4 align-middle invisible group-hover/rule:visible relative z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                 </svg>
-              </a>
+              </button>
             </label>
           </div>
           {% endfor %}
