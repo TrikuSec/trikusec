@@ -33,3 +33,5 @@ if not os.environ.get('DATABASE_URL'):
         }
     }
 
+DATABASES = apply_test_db_override(DATABASES)
+

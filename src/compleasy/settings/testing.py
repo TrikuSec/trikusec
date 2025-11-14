@@ -22,3 +22,5 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.MD5PasswordHasher',
 ]
 
+DATABASES = apply_test_db_override(DATABASES)
+

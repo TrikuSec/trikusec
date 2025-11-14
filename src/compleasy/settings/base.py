@@ -143,6 +143,19 @@ else:
         }
     }
 
+
+def apply_test_db_override(databases):
+    """Allow tests to share a database file with a running server when needed."""
+    test_db_name = os.environ.get('DJANGO_TEST_DB_NAME')
+    if test_db_name:
+        databases['default']['TEST'] = {
+            'NAME': test_db_name,
+        }
+    return databases
+
+
+DATABASES = apply_test_db_override(DATABASES)
+
 # Cache configuration for rate limiting
 CACHES = {
     'default': {

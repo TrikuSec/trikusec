@@ -44,6 +44,7 @@ class ReportUploadForm(forms.Form):
     
     data = forms.CharField(
         widget=forms.Textarea,
+        strip=False,
         error_messages={'required': 'Report data is required'}
     )
     

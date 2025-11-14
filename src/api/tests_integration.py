@@ -19,7 +19,7 @@ from api.models import LicenseKey, Device, FullReport, DiffReport
 
 
 @pytest.mark.integration
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestLynisIntegration:
     """Integration tests for Lynis workflow."""
 
