@@ -60,6 +60,28 @@ services:
     profiles:
       - test
 
+  test-e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: compleasy-test-e2e
+    volumes:
+      - ./src:/app
+      - ./pytest.ini:/app/pytest.ini
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-test-secret-key-for-testing}
+      - DJANGO_ENV=testing
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=*
+      - DJANGO_ALLOW_ASYNC_UNSAFE=True
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    working_dir: /app
+    command: ["pytest", "-v", "-m", "e2e"]
+    profiles:
+      - test
+    depends_on:
+      - compleasy
+
   lynis-client:
     build:
       context: .

@@ -396,6 +396,30 @@ Run tests excluding integration tests:
 docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m "not integration" -v
 ```
 
+#### E2E Tests (Playwright)
+
+Run end-to-end tests in headless browser:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e
+```
+
+Run specific e2e test:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e \
+  pytest frontend/tests_e2e.py::test_create_ruleset_with_rules -v
+```
+
+Generate HTML test report:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e \
+  pytest -v -m e2e --html=e2e-report.html --self-contained-html
+```
+
+See [E2E Testing Documentation](docs/development/e2e-testing.md) for more details.
+
 Access the test container shell for debugging:
 
 ```bash

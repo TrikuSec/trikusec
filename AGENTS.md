@@ -201,6 +201,46 @@ The license system supports both **per-device licenses** and **shared licenses**
 - Integration tests are marked with `@pytest.mark.integration`
 - Always test critical Lynis API endpoints before committing
 
+### E2E Testing (Playwright)
+
+**E2E tests verify frontend functionality in a real browser environment.**
+
+- **Location**: `src/frontend/tests_e2e.py` (E2E tests) and `src/frontend/conftest_e2e.py` (E2E fixtures)
+- **Marker**: Tests are marked with `@pytest.mark.e2e`
+- **Service**: Use `test-e2e` service in `docker-compose.dev.yml`
+- **Dependencies**: Playwright and pytest-playwright are installed in `Dockerfile.test`
+
+**Running E2E tests:**
+
+```bash
+# Run all E2E tests
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e
+
+# Run specific test
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e \
+  pytest frontend/tests_e2e.py::TestRulesetCRUD::test_create_ruleset_basic -v
+```
+
+**Guidelines for AI agents:**
+
+- **Run e2e tests after any frontend changes**: When modifying templates, JavaScript, or views that affect user interactions
+- **Update selectors if UI structure changes**: If you change HTML structure, IDs, or CSS classes, update test selectors
+- **Add new e2e test for new user-facing features**: When adding new UI features, add corresponding E2E tests
+- **Keep tests focused on user interactions**: Test what users see and do, not implementation details
+- **Use stable selectors**: Prefer IDs, data attributes, or text content over CSS classes
+- **Wait for elements**: Always wait for elements to be visible/ready before interacting
+- **Test complete user flows**: E2E tests should verify complete workflows, not just individual actions
+
+**Common patterns:**
+
+- Use `authenticated_browser` fixture for logged-in sessions
+- Use `test_policy_data` fixture for sample rules and rulesets
+- Wait for sidebars: `sidebar.wait_for(state="visible", timeout=5000)`
+- Handle dialogs: `page.once("dialog", lambda dialog: dialog.accept())`
+- Check visibility: `assert page.locator('text=Expected').is_visible()`
+
+See [E2E Testing Documentation](docs/development/e2e-testing.md) for detailed information.
+
 ### Database
 
 - Currently using SQLite (will be migrated to PostgreSQL for production)
