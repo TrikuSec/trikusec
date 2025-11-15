@@ -12,9 +12,9 @@ from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm
 import os
 import json
 import logging
+import re
 from urllib.parse import urlparse
 from django.urls import reverse
-import re
 
 def safe_redirect(request, fallback_url_name='device_list', **kwargs):
     referer = request.META.get('HTTP_REFERER')
@@ -696,7 +696,6 @@ def rule_evaluate_for_device(request, device_id, rule_id):
     field_values = {}
     if not evaluation_passed:
         # Only extract field values when the rule fails (to help debug)
-        import re
         # Extract field names from common JMESPath patterns:
         # - Simple field access: field_name
         # - Comparisons: field_name ==, field_name >, etc.
