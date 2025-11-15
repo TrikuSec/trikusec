@@ -96,22 +96,26 @@ function displayRuleBasicInfo(rule) {
         descriptionDiv.textContent = rule.description || '-';
     }
     
-    const statusDiv = document.getElementById('rule-view-status');
-    if (statusDiv) {
-        statusDiv.textContent = rule.enabled ? 'Enabled' : 'Disabled';
-        // Reset classes and add appropriate ones
-        statusDiv.className = 'mt-1 p-2 border rounded-md';
-        if (rule.enabled) {
-            statusDiv.classList.add('bg-green-50', 'border-green-200', 'text-green-800');
-        } else {
-            statusDiv.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-600');
-        }
-    }
+    // Show/hide disabled label and query evaluation section
+    const disabledLabel = document.getElementById('rule-view-disabled-label');
+    const queryEvaluationSection = document.getElementById('rule-view-query-evaluation');
     
-    // Display rule query if available
-    const queryDiv = document.getElementById('rule-view-query');
-    if (queryDiv && rule.rule_query) {
-        queryDiv.textContent = rule.rule_query;
+    if (rule.enabled) {
+        // Rule is enabled - hide disabled label, show query evaluation
+        if (disabledLabel) {
+            disabledLabel.classList.add('hidden');
+        }
+        if (queryEvaluationSection) {
+            queryEvaluationSection.classList.remove('hidden');
+        }
+    } else {
+        // Rule is disabled - show disabled label, hide query evaluation
+        if (disabledLabel) {
+            disabledLabel.classList.remove('hidden');
+        }
+        if (queryEvaluationSection) {
+            queryEvaluationSection.classList.add('hidden');
+        }
     }
 }
 
@@ -129,28 +133,15 @@ function displayRuleEvaluation(data) {
         queryDiv.textContent = rule.rule_query || '-';
     }
     
-    const fieldDiv = document.getElementById('rule-view-field');
-    if (fieldDiv) {
-        fieldDiv.textContent = queryComponents.field || '-';
-    }
-    
-    const operatorDiv = document.getElementById('rule-view-operator');
-    if (operatorDiv) {
-        operatorDiv.textContent = queryComponents.operator || '-';
-    }
-    
-    const expectedDiv = document.getElementById('rule-view-expected');
-    if (expectedDiv) {
-        expectedDiv.textContent = queryComponents.expected_value || '-';
-    }
-    
-    // Display actual value
+    // Display report value in format: field_name = value
     const actualDiv = document.getElementById('rule-view-actual');
     if (actualDiv) {
         if (!evaluation.key_found) {
-            actualDiv.innerHTML = '<span class="text-red-600 font-semibold">Key not found in report</span>';
+            actualDiv.textContent = 'Key not found in report';
         } else {
-            actualDiv.textContent = evaluation.actual_value || '-';
+            const field = queryComponents.field || '';
+            const value = evaluation.actual_value || '-';
+            actualDiv.textContent = `${field} = ${value}`;
         }
     }
     
