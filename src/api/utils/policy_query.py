@@ -5,7 +5,8 @@ from django.apps import apps
 from api.utils.lynis_report import LynisReport
 
 # Define the components of the query
-word = Word(alphas + '_')
+# Field names can contain letters, numbers, underscores, and hyphens (e.g., PKGS-7390)
+word = Word(alphas + '_' + nums + '-')
 operator = oneOf("= != > < >= <= contains")
 integer = Word(nums)
 quoted_string = quotedString
@@ -16,11 +17,20 @@ condition = word + Optional(Suppress(' ')) + operator + Optional(Suppress(' ')) 
 def parse_query(query):
     """Parse the query string into its components."""
     try:
+        # Strip whitespace and normalize the query
+        # Replace smart quotes and other quote variants with standard quotes
+        query = query.strip()
+        # Replace various quote types with standard double quotes
+        query = query.replace('"', '"').replace('"', '"')  # Smart double quotes
+        query = query.replace(''', "'").replace(''', "'")  # Smart single quotes
+        
         parsed = condition.parseString(query)
         logging.debug('Parsed query components: %s', parsed)
         return parsed
     except ParseException as e:
-        logging.error('ParseException: %s', e)
+        logging.error('ParseException for query "%s": %s', query, e)
+        logging.error('ParseException location: %s', e.loc)
+        logging.error('ParseException line: %s', e.lineno)
         return None
 
 def evaluate_query(report, query):

@@ -51,29 +51,40 @@ function loadRuleEvaluation(deviceId, ruleId) {
         },
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
+        // Try to parse JSON even if response is not ok
+        return response.json().then(data => {
+            if (!response.ok) {
+                // If response has an error message, use it
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+            }
+            return data;
+        });
     })
     .then(data => {
         if (data.success) {
             displayRuleEvaluation(data);
         } else {
+            // Even on error, try to display rule info if available
+            if (data.rule) {
+                displayRuleBasicInfo(data.rule);
+            }
+            // Show error in a more visible way - update the result field and show error message
+            const resultDiv = document.getElementById('rule-view-result');
+            if (resultDiv) {
+                resultDiv.textContent = 'Error';
+                resultDiv.className = 'mt-1 p-2 border rounded-md font-semibold text-center';
+                resultDiv.classList.add('bg-red-100', 'border-red-400', 'text-red-800');
+            }
             showRuleEvaluationError(data.error || 'Failed to load rule evaluation');
         }
     })
     .catch(error => {
         console.error('Error loading rule evaluation:', error);
-        showRuleEvaluationError('An error occurred while loading rule evaluation.');
+        showRuleEvaluationError(error.message || 'An error occurred while loading rule evaluation.');
     });
 }
 
-function displayRuleEvaluation(data) {
-    const rule = data.rule;
-    const queryComponents = data.query_components;
-    const evaluation = data.evaluation;
-    
+function displayRuleBasicInfo(rule) {
     // Display rule basic info
     const nameDiv = document.getElementById('rule-view-name');
     if (nameDiv) {
@@ -96,6 +107,21 @@ function displayRuleEvaluation(data) {
             statusDiv.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-600');
         }
     }
+    
+    // Display rule query if available
+    const queryDiv = document.getElementById('rule-view-query');
+    if (queryDiv && rule.rule_query) {
+        queryDiv.textContent = rule.rule_query;
+    }
+}
+
+function displayRuleEvaluation(data) {
+    const rule = data.rule;
+    const queryComponents = data.query_components;
+    const evaluation = data.evaluation;
+    
+    // Display rule basic info
+    displayRuleBasicInfo(rule);
     
     // Display query evaluation
     const queryDiv = document.getElementById('rule-view-query');

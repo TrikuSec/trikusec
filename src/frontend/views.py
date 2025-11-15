@@ -635,29 +635,50 @@ def rule_evaluate_for_device(request, device_id, rule_id):
     # Get last report for the device
     full_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
     
+    # Always include rule info in response, even on errors
+    rule_info = {
+        'id': rule.id,
+        'name': rule.name,
+        'description': rule.description,
+        'rule_query': rule.rule_query,
+        'enabled': rule.enabled
+    }
+    
     if not full_report:
         return JsonResponse({
             'success': False,
-            'error': 'No report found for the device'
+            'error': 'No report found for the device',
+            'rule': rule_info
         }, status=404)
     
     # Parse the report
-    lynis_report = LynisReport(full_report.full_report)
-    parsed_report = lynis_report.get_parsed_report()
+    try:
+        lynis_report = LynisReport(full_report.full_report)
+        parsed_report = lynis_report.get_parsed_report()
+    except Exception as e:
+        logging.error(f'Error parsing report for device {device_id}: {e}', exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to parse the report: {str(e)}',
+            'rule': rule_info
+        }, status=500)
     
     if not parsed_report:
         return JsonResponse({
             'success': False,
-            'error': 'Failed to parse the report'
+            'error': 'Failed to parse the report',
+            'rule': rule_info
         }, status=500)
     
     # Parse the query to extract components
     parsed_query = parse_query(rule.rule_query)
     
     if not parsed_query or len(parsed_query) < 3:
+        logging.error(f'Failed to parse query: "{rule.rule_query}". Parsed result: {parsed_query}')
         return JsonResponse({
             'success': False,
-            'error': 'Invalid query format'
+            'error': f'Invalid query format: "{rule.rule_query}". Please check the syntax.',
+            'rule': rule_info
         }, status=400)
     
     # Extract query components
@@ -675,8 +696,21 @@ def rule_evaluate_for_device(request, device_id, rule_id):
     actual_value = parsed_report.get(field)
     key_found = actual_value is not None
     
-    # Evaluate the rule
-    evaluation_result = rule.evaluate(parsed_report)
+    # Debug: log available fields if key not found
+    if not key_found:
+        available_fields = list(parsed_report.keys())
+        logging.debug(f'Field "{field}" not found in report. Available fields: {available_fields[:20]}...')  # Log first 20 fields
+    
+    # Evaluate the rule with error handling
+    try:
+        evaluation_result = rule.evaluate(parsed_report)
+    except Exception as e:
+        logging.error(f'Error evaluating rule {rule.id} for device {device_id}: {e}', exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': f'Error evaluating rule: {str(e)}',
+            'rule': rule_info
+        }, status=500)
     
     # Format actual value for display
     if actual_value is None:
@@ -686,15 +720,14 @@ def rule_evaluate_for_device(request, device_id, rule_id):
     else:
         actual_value_display = str(actual_value)
     
+    # Handle None evaluation result (evaluation failed)
+    evaluation_passed = evaluation_result is True
+    if evaluation_result is None:
+        logging.warning(f'Rule evaluation returned None for rule {rule.id}, field: {field}, operator: {operator}')
+    
     return JsonResponse({
         'success': True,
-        'rule': {
-            'id': rule.id,
-            'name': rule.name,
-            'description': rule.description,
-            'rule_query': rule.rule_query,
-            'enabled': rule.enabled
-        },
+        'rule': rule_info,
         'query_components': {
             'field': field,
             'operator': operator,
@@ -704,7 +737,7 @@ def rule_evaluate_for_device(request, device_id, rule_id):
             'key_found': key_found,
             'actual_value': actual_value_display,
             'result': evaluation_result,
-            'passed': evaluation_result is True
+            'passed': evaluation_passed
         }
     })
 
