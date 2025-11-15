@@ -1544,25 +1544,35 @@
 <h3 id="rule-query-syntax">Rule Query Syntax<a class="headerlink" href="#rule-query-syntax" title="Permanent link">&para;</a></h3>
 <p>Rule queries use <a href="https://jmespath.org/">JMESPath</a> expressions to evaluate device reports. JMESPath is a query language for JSON that provides powerful and safe expression evaluation.</p>
 <h4 id="basic-syntax">Basic Syntax<a class="headerlink" href="#basic-syntax" title="Permanent link">&para;</a></h4>
-<p><strong>Field Access</strong>: Access fields from the Lynis report using their names
-- Examples: <code>os</code>, <code>hardening_index</code>, <code>firewall_active</code>, <code>vulnerable_packages_found</code>
-- Field names are case-sensitive</p>
-<p><strong>Comparison Operators</strong>:
-- <code>==</code> - Equals
-- <code>!=</code> - Not equals
-- <code>&gt;</code> - Greater than
-- <code>&gt;=</code> - Greater than or equal
-- <code>&lt;</code> - Less than
-- <code>&lt;=</code> - Less than or equal</p>
-<p><strong>Literals</strong>:
-- <strong>Strings</strong>: Use single quotes, e.g., <code>'Linux'</code>, <code>'Ubuntu'</code>
-- <strong>Numbers</strong>: Use backticks for numeric literals, e.g., <code>`70`</code>, <code>`0`</code>, <code>`1`</code></p>
-<p><strong>Functions</strong>:
-- <code>contains(field, 'value')</code> - Check if string or list contains value</p>
-<p><strong>Boolean Logic</strong> (NEW!):
-- <code>&amp;&amp;</code> - AND operator
-- <code>||</code> - OR operator
-- <code>!</code> - NOT operator</p>
+<p><strong>Field Access</strong>: Access fields from the Lynis report using their names</p>
+<ul>
+<li>Examples: <code>os</code>, <code>hardening_index</code>, <code>firewall_active</code>, <code>vulnerable_packages_found</code></li>
+<li>Field names are case-sensitive</li>
+</ul>
+<p><strong>Comparison Operators</strong>:</p>
+<ul>
+<li><code>==</code> - Equals</li>
+<li><code>!=</code> - Not equals</li>
+<li><code>&gt;</code> - Greater than</li>
+<li><code>&gt;=</code> - Greater than or equal</li>
+<li><code>&lt;</code> - Less than</li>
+<li><code>&lt;=</code> - Less than or equal</li>
+</ul>
+<p><strong>Literals</strong>:</p>
+<ul>
+<li><strong>Strings</strong>: Use single quotes, e.g., <code>'Linux'</code>, <code>'Ubuntu'</code></li>
+<li><strong>Numbers</strong>: Use backticks for numeric literals, e.g., <code>`70`</code>, <code>`0`</code>, <code>`1`</code></li>
+</ul>
+<p><strong>Functions</strong>:</p>
+<ul>
+<li><code>contains(field, 'value')</code> - Check if string or list contains value</li>
+</ul>
+<p><strong>Boolean Logic</strong> (NEW!):</p>
+<ul>
+<li><code>&amp;&amp;</code> - AND operator</li>
+<li><code>||</code> - OR operator</li>
+<li><code>!</code> - NOT operator</li>
+</ul>
 <h4 id="query-examples">Query Examples<a class="headerlink" href="#query-examples" title="Permanent link">&para;</a></h4>
 <p><strong>String equality:</strong>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>os == &#39;Linux&#39;
@@ -1595,29 +1605,39 @@
 </div>
 <h4 id="available-report-fields">Available Report Fields<a class="headerlink" href="#available-report-fields" title="Permanent link">&para;</a></h4>
 <p>Common fields available in Lynis reports include:</p>
-<p><strong>System Information:</strong>
-- <code>os</code> - Operating system (e.g., "Linux")
-- <code>os_name</code> - OS distribution name (e.g., "Ubuntu")
-- <code>os_version</code> - OS version (e.g., "22.04")
-- <code>hostname</code> - System hostname
-- <code>lynis_version</code> - Lynis version used</p>
-<p><strong>Security Metrics:</strong>
-- <code>hardening_index</code> - Overall hardening score (0-100)
-- <code>vulnerable_packages_found</code> - Number of vulnerable packages (0 or 1)
-- <code>firewall_active</code> - Firewall status (0 or 1)
-- <code>firewall_installed</code> - Firewall installed (0 or 1)
-- <code>ssh_daemon_running</code> - SSH daemon status (0 or 1)
-- <code>openssh_daemon_running</code> - OpenSSH daemon status (0 or 1)</p>
-<p><strong>Package Management:</strong>
-- <code>installed_packages</code> - Number of installed packages
-- <code>vulnerable_package</code> - List of vulnerable packages (use <code>contains()</code> function)</p>
-<p><strong>Network:</strong>
-- <code>ipv6_mode</code> - IPv6 mode (e.g., "auto")
-- <code>dhcp_client_running</code> - DHCP client status (0 or 1)</p>
-<p><strong>Services:</strong>
-- <code>automation_tool_running</code> - Automation tool name (if any)
-- <code>ntp_daemon_running</code> - NTP daemon status (0 or 1)
-- <code>linux_auditd_running</code> - Audit daemon status (0 or 1)</p>
+<p><strong>System Information:</strong></p>
+<ul>
+<li><code>os</code> - Operating system (e.g., "Linux")</li>
+<li><code>os_name</code> - OS distribution name (e.g., "Ubuntu")</li>
+<li><code>os_version</code> - OS version (e.g., "22.04")</li>
+<li><code>hostname</code> - System hostname</li>
+<li><code>lynis_version</code> - Lynis version used</li>
+</ul>
+<p><strong>Security Metrics:</strong></p>
+<ul>
+<li><code>hardening_index</code> - Overall hardening score (0-100)</li>
+<li><code>vulnerable_packages_found</code> - Number of vulnerable packages (0 or 1)</li>
+<li><code>firewall_active</code> - Firewall status (0 or 1)</li>
+<li><code>firewall_installed</code> - Firewall installed (0 or 1)</li>
+<li><code>ssh_daemon_running</code> - SSH daemon status (0 or 1)</li>
+<li><code>openssh_daemon_running</code> - OpenSSH daemon status (0 or 1)</li>
+</ul>
+<p><strong>Package Management:</strong></p>
+<ul>
+<li><code>installed_packages</code> - Number of installed packages</li>
+<li><code>vulnerable_package</code> - List of vulnerable packages (use <code>contains()</code> function)</li>
+</ul>
+<p><strong>Network:</strong></p>
+<ul>
+<li><code>ipv6_mode</code> - IPv6 mode (e.g., "auto")</li>
+<li><code>dhcp_client_running</code> - DHCP client status (0 or 1)</li>
+</ul>
+<p><strong>Services:</strong></p>
+<ul>
+<li><code>automation_tool_running</code> - Automation tool name (if any)</li>
+<li><code>ntp_daemon_running</code> - NTP daemon status (0 or 1)</li>
+<li><code>linux_auditd_running</code> - Audit daemon status (0 or 1)</li>
+</ul>
 <div class="admonition tip">
 <p class="admonition-title">Finding Available Fields</p>
 <p>To see all available fields for a device and discover new fields for rule queries:</p>
@@ -1762,7 +1782,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 15, 2025 21:39:03 UTC">November 15, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 15, 2025 21:46:44 UTC">November 15, 2025</span>
   </span>
 
     
