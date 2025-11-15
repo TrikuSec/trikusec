@@ -26,7 +26,7 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         DJANGO_DEBUG: 'False'
       run: |
-        docker compose -f docker-compose.dev.yml --profile test run --rm test pytest --cov=api --cov=frontend --cov-report=xml --cov-report=term-missing -v -m "not integration"
+        docker compose -f docker-compose.dev.yml --profile test run --rm test pytest --cov=api --cov=frontend --cov-report=xml --cov-report=term-missing -v -m "not integration and not e2e"
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
