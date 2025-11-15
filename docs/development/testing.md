@@ -10,7 +10,9 @@ All tests use pytest (not Django's unittest):
 - `src/api/tests_integration.py` - Integration tests
 - `src/api/tests_middleware.py` - Middleware tests
 - `src/api/tests_policy_security.py` - Policy security tests
+- `src/frontend/tests_e2e.py` - End-to-end tests (Playwright)
 - `src/conftest.py` - Shared pytest fixtures
+- `src/frontend/conftest.py` - E2E test fixtures
 
 ## Running Tests
 
@@ -23,14 +25,26 @@ docker compose -f docker-compose.dev.yml --profile test run --rm test
 ### Unit Tests Only
 
 ```bash
-docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m "not integration" -v
+docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m "not integration and not e2e" -v
 ```
+
+**Note:** E2E tests are automatically skipped if Playwright is not available. The `-m "not e2e"` marker explicitly excludes them for clarity.
 
 ### Integration Tests Only
 
 ```bash
 docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m integration -v
 ```
+
+### E2E Tests Only
+
+E2E tests require Playwright and must be run in the `test-e2e` service:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e pytest -m e2e -v
+```
+
+See [E2E Testing Documentation](e2e-testing.md) for detailed information.
 
 ### Specific Test File
 
@@ -76,6 +90,17 @@ Test custom middleware:
 - Rate limiting
 - Security headers
 - Error handling
+
+### E2E Tests
+
+Test complete user workflows in a real browser:
+
+- Frontend interactions
+- Form submissions
+- Sidebar state management
+- User flows
+
+See [E2E Testing Documentation](e2e-testing.md) for details.
 
 ## Test Fixtures
 
@@ -128,6 +153,11 @@ The test container automatically:
 Tests run automatically on:
 - Push to `main` or `develop` branches
 - Pull requests
+
+CI runs three separate test jobs:
+1. **Unit Tests** - Fast unit tests (excludes integration and E2E tests)
+2. **Integration Tests** - End-to-end API workflows with Lynis client
+3. **E2E Tests** - Browser-based frontend tests with Playwright
 
 See `.github/workflows/test.yml` for CI configuration.
 
