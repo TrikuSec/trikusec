@@ -1534,26 +1534,34 @@
 <li><code>src/api/tests_integration.py</code> - Integration tests</li>
 <li><code>src/api/tests_middleware.py</code> - Middleware tests</li>
 <li><code>src/api/tests_policy_security.py</code> - Policy security tests</li>
+<li><code>src/frontend/tests_e2e.py</code> - End-to-end tests (Playwright)</li>
 <li><code>src/conftest.py</code> - Shared pytest fixtures</li>
+<li><code>src/frontend/conftest.py</code> - E2E test fixtures</li>
 </ul>
 <h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h3>
 <h4 id="all-tests">All Tests<a class="headerlink" href="#all-tests" title="Permanent link">&para;</a></h4>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span>
 </span></code></pre></div>
 <h4 id="unit-tests-only">Unit Tests Only<a class="headerlink" href="#unit-tests-only" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span><span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration and not e2e&quot;</span><span class="w"> </span>-v
 </span></code></pre></div>
+<p><strong>Note:</strong> E2E tests are automatically skipped if Playwright is not available. The <code>-m "not e2e"</code> marker explicitly excludes them for clarity.</p>
 <h4 id="integration-tests-only">Integration Tests Only<a class="headerlink" href="#integration-tests-only" title="Permanent link">&para;</a></h4>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>integration<span class="w"> </span>-v
 </span></code></pre></div>
+<h4 id="e2e-tests-only">E2E Tests Only<a class="headerlink" href="#e2e-tests-only" title="Permanent link">&para;</a></h4>
+<p>E2E tests require Playwright and must be run in the <code>test-e2e</code> service:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>test-e2e<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>e2e<span class="w"> </span>-v
+</span></code></pre></div>
+<p>See <a href="../e2e-testing/">E2E Testing Documentation</a> for detailed information.</p>
 <h4 id="specific-test-file">Specific Test File<a class="headerlink" href="#specific-test-file" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>api/tests.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>api/tests.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h4 id="specific-test">Specific Test<a class="headerlink" href="#specific-test" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>api/tests.py::TestUploadReport::test_upload_report_valid_license_new_device<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>api/tests.py::TestUploadReport::test_upload_report_valid_license_new_device<span class="w"> </span>-v
 </span></code></pre></div>
 <h4 id="with-coverage">With Coverage<a class="headerlink" href="#with-coverage" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>api<span class="w"> </span>--cov<span class="o">=</span>frontend<span class="w"> </span>--cov-report<span class="o">=</span>html<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>--profile<span class="w"> </span><span class="nb">test</span><span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>api<span class="w"> </span>--cov<span class="o">=</span>frontend<span class="w"> </span>--cov-report<span class="o">=</span>html<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
 </span></code></pre></div>
 <h3 id="test-types">Test Types<a class="headerlink" href="#test-types" title="Permanent link">&para;</a></h3>
 <h4 id="unit-tests">Unit Tests<a class="headerlink" href="#unit-tests" title="Permanent link">&para;</a></h4>
@@ -1578,6 +1586,15 @@
 <li>Security headers</li>
 <li>Error handling</li>
 </ul>
+<h4 id="e2e-tests">E2E Tests<a class="headerlink" href="#e2e-tests" title="Permanent link">&para;</a></h4>
+<p>Test complete user workflows in a real browser:</p>
+<ul>
+<li>Frontend interactions</li>
+<li>Form submissions</li>
+<li>Sidebar state management</li>
+<li>User flows</li>
+</ul>
+<p>See <a href="../e2e-testing/">E2E Testing Documentation</a> for details.</p>
 <h3 id="test-fixtures">Test Fixtures<a class="headerlink" href="#test-fixtures" title="Permanent link">&para;</a></h3>
 <p>Fixtures are defined in <code>src/conftest.py</code>:</p>
 <ul>
@@ -1587,27 +1604,27 @@
 </ul>
 <h3 id="writing-tests">Writing Tests<a class="headerlink" href="#writing-tests" title="Permanent link">&para;</a></h3>
 <h4 id="example-unit-test">Example Unit Test<a class="headerlink" href="#example-unit-test" title="Permanent link">&para;</a></h4>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">api.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">upload_report</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_upload_report_valid_license</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">license_key</span><span class="p">):</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/api/lynis/upload/&#39;</span><span class="p">,</span> <span class="p">{</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="s1">&#39;licensekey&#39;</span><span class="p">:</span> <span class="n">license_key</span><span class="o">.</span><span class="n">licensekey</span><span class="p">,</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>        <span class="s1">&#39;hostid&#39;</span><span class="p">:</span> <span class="s1">&#39;test-host&#39;</span><span class="p">,</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="s1">&#39;base64-encoded-data&#39;</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="p">})</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">api.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">upload_report</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_upload_report_valid_license</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">license_key</span><span class="p">):</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/api/lynis/upload/&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="s1">&#39;licensekey&#39;</span><span class="p">:</span> <span class="n">license_key</span><span class="o">.</span><span class="n">licensekey</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="s1">&#39;hostid&#39;</span><span class="p">:</span> <span class="s1">&#39;test-host&#39;</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="s1">&#39;base64-encoded-data&#39;</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="p">})</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
 </span></code></pre></div>
 <h4 id="example-integration-test">Example Integration Test<a class="headerlink" href="#example-integration-test" title="Permanent link">&para;</a></h4>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_lynis_workflow</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">license_key</span><span class="p">):</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="c1"># Upload report</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/api/lynis/upload/&#39;</span><span class="p">,</span> <span class="p">{</span><span class="o">...</span><span class="p">})</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="c1"># Check device created</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">device</span> <span class="o">=</span> <span class="n">Device</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hostid</span><span class="o">=</span><span class="s1">&#39;test-host&#39;</span><span class="p">)</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="k">assert</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_lynis_workflow</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">license_key</span><span class="p">):</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="c1"># Upload report</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/api/lynis/upload/&#39;</span><span class="p">,</span> <span class="p">{</span><span class="o">...</span><span class="p">})</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="c1"># Check device created</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">device</span> <span class="o">=</span> <span class="n">Device</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hostid</span><span class="o">=</span><span class="s1">&#39;test-host&#39;</span><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="k">assert</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </span></code></pre></div>
 <h3 id="test-database">Test Database<a class="headerlink" href="#test-database" title="Permanent link">&para;</a></h3>
 <p>The test container automatically:
@@ -1618,6 +1635,10 @@
 <p>Tests run automatically on:
 - Push to <code>main</code> or <code>develop</code> branches
 - Pull requests</p>
+<p>CI runs three separate test jobs:
+1. <strong>Unit Tests</strong> - Fast unit tests (excludes integration and E2E tests)
+2. <strong>Integration Tests</strong> - End-to-end API workflows with Lynis client
+3. <strong>E2E Tests</strong> - Browser-based frontend tests with Playwright</p>
 <p>See <code>.github/workflows/test.yml</code> for CI configuration.</p>
 <h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1667,7 +1688,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 13, 2025 21:24:55 UTC">November 13, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 15, 2025 14:12:48 UTC">November 15, 2025</span>
   </span>
 
     
