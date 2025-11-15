@@ -442,4 +442,61 @@ class TestSidebarStateManagement:
         
         # Verify ruleset panel is visible again
         assert ruleset_sidebar.is_visible()
+    
+    def test_rule_selection_pencil_icon_opens_edit_panel(self, authenticated_browser, live_server_url, test_policy_data):
+        """Clicking pencil icon in rule selection sidebar opens rule edit panel and hides selection panel."""
+        page = authenticated_browser
+        
+        # Navigate to policies
+        page.goto(f"{live_server_url}/policies/")
+        page.wait_for_load_state("networkidle")
+        
+        # Open ruleset edit panel
+        page.click('button:has-text("New Ruleset")')
+        ruleset_sidebar = page.locator('#ruleset-edit-panel')
+        ruleset_sidebar.wait_for(state="visible", timeout=5000)
+        
+        # Click "Select Rules" to open rule selection
+        page.click('button:has-text("Select Rules")')
+        
+        # Wait for rule selection panel
+        rule_selection_panel = page.locator('#rule-selection-panel')
+        rule_selection_panel.wait_for(state="visible", timeout=5000)
+        
+        # Wait for rules to be rendered
+        rules_container = page.locator('#rules')
+        rules_container.wait_for(state="visible", timeout=5000)
+        
+        # Get a rule from test data
+        rule = test_policy_data['rules'][0]
+        
+        # Find the rule label and hover over it to make pencil icon visible
+        rule_label = page.locator(f'label[for="rule-{rule.id}"]')
+        rule_label.wait_for(state="visible", timeout=5000)
+        rule_label.hover()
+        
+        # Wait a bit for the hover state to apply
+        page.wait_for_timeout(300)
+        
+        # Find and click the pencil icon (edit button) for this rule
+        # The pencil icon is inside the label, with data-rule-id attribute
+        pencil_icon = rule_label.locator(f'a[data-rule-id="{rule.id}"]')
+        pencil_icon.wait_for(state="visible", timeout=5000)
+        pencil_icon.click()
+        
+        # Wait for rule selection panel to hide
+        rule_selection_panel.wait_for(state="hidden", timeout=5000)
+        
+        # Wait for rule edit panel to open
+        rule_edit_panel = page.locator('#rule-edit-panel')
+        rule_edit_panel.wait_for(state="visible", timeout=5000)
+        
+        # Verify rule edit panel is visible and rule selection panel is hidden
+        assert rule_edit_panel.is_visible()
+        assert rule_selection_panel.is_hidden()
+        
+        # Verify the rule form is populated with the correct rule data
+        rule_name_input = page.locator('#rule_name')
+        rule_name_input.wait_for(state="visible", timeout=5000)
+        assert rule_name_input.input_value() == rule.name
 

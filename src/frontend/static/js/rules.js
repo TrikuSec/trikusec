@@ -23,6 +23,19 @@ function toggleRuleEditPanel(ruleId) {
         loadRuleDetails();
     }
 }
+
+// Open rule edit panel from selection panel (hides selection panel)
+function openRuleEditFromSelection(ruleId) {
+    const selectionPanel = document.getElementById('rule-selection-panel');
+    if (selectionPanel && !selectionPanel.classList.contains('hidden')) {
+        // Mark that selection panel was open
+        selectionPanel.dataset.wasOpen = 'true';
+        selectionPanel.classList.add('hidden');
+    }
+    
+    // Open the edit panel
+    toggleRuleEditPanel(ruleId);
+}
 function loadRuleDetails(ruleId) {
     // Empty data if ruleId is not provided (i.e. when creating a new rule)
     if (!ruleId) {
@@ -154,8 +167,15 @@ function hideRuleFormErrors() {
 // Close rule edit panel (used by cancel/close buttons)
 function closeRuleEditPanel() {
     const panel = document.getElementById('rule-edit-panel');
-    if (panel) {
+    if (panel && !panel.classList.contains('hidden')) {
         panel.classList.add('hidden');
+        
+        // Check if selection panel was open before
+        const selectionPanel = document.getElementById('rule-selection-panel');
+        if (selectionPanel && selectionPanel.dataset.wasOpen === 'true') {
+            selectionPanel.classList.remove('hidden');
+            selectionPanel.dataset.wasOpen = 'false';
+        }
     }
 }
 
@@ -223,13 +243,27 @@ function attachRuleEditPanelListeners() {
     }
     
     // Buttons in rule selection sidebar that should open rule edit panel
-    document.querySelectorAll('#rule-selection-panel .rule-edit-panel-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const ruleId = button.dataset.ruleId || null;
-            toggleRuleEditPanel(ruleId);
+    // Use event delegation on the panel for better Firefox compatibility
+    const ruleSelectionPanel = document.getElementById('rule-selection-panel');
+    if (ruleSelectionPanel) {
+        ruleSelectionPanel.addEventListener('click', function(e) {
+            // Check if the clicked element or its parent has the rule-edit-panel-button class
+            const button = e.target.closest('.rule-edit-panel-button');
+            if (button) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Also stop immediate propagation for Firefox
+                const ruleId = button.dataset.ruleId || null;
+                // Only hide selection panel if we have a ruleId (editing existing rule)
+                // For create button (no ruleId), just open edit panel
+                if (ruleId) {
+                    openRuleEditFromSelection(ruleId);
+                } else {
+                    toggleRuleEditPanel(null);
+                }
+            }
         });
-    });
+    }
 }
 
 // Attach listeners when DOM is ready
