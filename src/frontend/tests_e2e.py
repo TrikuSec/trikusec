@@ -239,8 +239,8 @@ class TestRuleCRUD:
         page.goto(f"{live_server_url}/policies/")
         page.wait_for_load_state("domcontentloaded")
         
-        # Scroll to Rules section - use more specific selector (text-2xl to avoid sidebars)
-        rules_section = page.locator('h2.text-2xl:has-text("Rules")')
+        # Scroll to Rules section - use exact text match to avoid matching "Rulesets"
+        rules_section = page.get_by_role("heading", name="Rules", exact=True)
         rules_section.scroll_into_view_if_needed()
         page.wait_for_timeout(500)
         
@@ -269,8 +269,10 @@ class TestRuleCRUD:
         page.wait_for_load_state("domcontentloaded")
         page.wait_for_timeout(500)  # Small wait for rendering
         
-        # Verify update
-        assert page.locator('text=Updated Rule Name E2E').is_visible()
+        # Verify update (use more specific selector to avoid strict mode violation)
+        updated_rule_link = page.locator('a:has-text("Updated Rule Name E2E")').first
+        updated_rule_link.wait_for(state="visible", timeout=5000)
+        assert updated_rule_link.is_visible()
     
     def test_delete_rule_with_confirmation(self, authenticated_browser, live_server_url):
         """Delete a rule with confirmation dialog."""
