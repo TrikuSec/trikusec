@@ -796,6 +796,9 @@ def activity(request):
                 for key in diff_analysis[change_type]:
                     logging.debug('Added/removed Key: %s', key)
                     values = diff_analysis[change_type][key]
+                    # Normalize to list: if it's a string, wrap it in a list
+                    if not isinstance(values, list):
+                        values = [values]
                     # For every value in the list of values, append a new activity
 
                     for value in values:
