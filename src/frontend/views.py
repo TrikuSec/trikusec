@@ -203,7 +203,11 @@ def device_export_pdf(request, device_id):
     report = LynisReport(full_report.full_report)
     report = report.get_parsed_report()
     
-    if not report:
+    if not report or not isinstance(report, dict):
+        return HttpResponse('Failed to parse the report', status=500)
+    
+    # Check if report has required fields (hostname is needed for filename)
+    if 'hostname' not in report:
         return HttpResponse('Failed to parse the report', status=500)
     
     # Use utility function to check compliance and get detailed ruleset evaluation
