@@ -245,3 +245,8 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 RATELIMIT_ENABLE = os.environ.get('RATELIMIT_ENABLE', 'True').lower() in ('true', '1', 'yes')
 RATELIMIT_USE_CACHE = 'default'
 
+# Compleasy configuration
+COMPLEASY_URL = os.environ.get('COMPLEASY_URL', 'https://localhost:443')
+# Lynis API URL - falls back to COMPLEASY_URL if not set
+COMPLEASY_LYNIS_API_URL = os.environ.get('COMPLEASY_LYNIS_API_URL', COMPLEASY_URL)
+

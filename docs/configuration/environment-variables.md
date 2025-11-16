@@ -144,11 +144,31 @@ RATELIMIT_ENABLE=False  # Disabled
 
 ### COMPLEASY_URL
 
-Compleasy server URL (used for generating links).
+Compleasy admin UI server URL (used for generating admin interface links).
 
 ```bash
-COMPLEASY_URL=https://yourserver.com
+COMPLEASY_URL=https://localhost:443
 ```
+
+This is the endpoint used for accessing the web management interface. It should point to your nginx reverse proxy or direct Django server for admin access.
+
+### COMPLEASY_LYNIS_API_URL
+
+Compleasy Lynis API server URL (used for device enrollment and report uploads).
+
+```bash
+COMPLEASY_LYNIS_API_URL=https://localhost:8443
+```
+
+This is the endpoint used by monitored servers for:
+- Downloading enrollment scripts
+- Uploading audit reports
+- License validation
+
+If not set, falls back to `COMPLEASY_URL` for backward compatibility.
+
+!!! tip "Security Best Practice"
+    Use separate endpoints for admin UI and Lynis API to improve security. This allows you to configure different firewall rules for each endpoint. See [Security Configuration](../configuration/security.md#api-endpoint-separation-architecture) for details.
 
 ## Example .env File
 
@@ -178,6 +198,7 @@ CSRF_COOKIE_SECURE=True
 RATELIMIT_ENABLE=True
 
 # Server
-COMPLEASY_URL=https://yourdomain.com
+COMPLEASY_URL=https://yourdomain.com:443
+COMPLEASY_LYNIS_API_URL=https://yourdomain.com:8443
 ```
 

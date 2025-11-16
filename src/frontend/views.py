@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q, F, Count
 from django.core.paginator import Paginator
+from django.conf import settings
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance
@@ -38,15 +39,15 @@ def index(request):
 @login_required
 def onboarding(request):
     """Onboarding view: show when no devices are found to help the user to enroll a new device"""
-    # Derive current server base URL from the incoming request (scheme + host[:port])
-    compleasy_url = request.build_absolute_uri('/').rstrip('/')
+    # Use Lynis API URL for enrollment commands
+    lynis_api_url = settings.COMPLEASY_LYNIS_API_URL
     #TODO: allow license management. By now, we just get the last license key from the user
     user_license = LicenseKey.objects.filter(created_by=request.user).last()
     if not user_license:
         return HttpResponse('No license key found', status=404)
     
     user_licensekey = user_license.licensekey
-    return render(request, 'onboarding.html', {'compleasy_url': compleasy_url, 'licensekey': user_licensekey})
+    return render(request, 'onboarding.html', {'compleasy_url': lynis_api_url, 'licensekey': user_licensekey})
 
 @login_required
 def device_list(request):
@@ -275,9 +276,9 @@ def enroll_sh(request):
     if not LicenseKey.objects.filter(licensekey=licensekey).exists():
         return HttpResponse('Invalid license key', status=401)
 
-    # Derive the server base URL from the incoming request
-    compleasy_url = request.build_absolute_uri('/').rstrip('/')
-    return render(request, 'enroll.html', {'compleasy_url': compleasy_url, 'licensekey': licensekey})
+    # Use Lynis API URL for enrollment script
+    lynis_api_url = settings.COMPLEASY_LYNIS_API_URL
+    return render(request, 'enroll.html', {'compleasy_url': lynis_api_url, 'licensekey': licensekey})
 
 def download_lynis_custom_profile(request):
     """Generate a custom Lynis profile with the provided license key"""
@@ -298,9 +299,9 @@ def download_lynis_custom_profile(request):
     if not LicenseKey.objects.filter(licensekey=licensekey).exists():
         return HttpResponse('Invalid license key', status=401)
     
-    # Build server address based on current request (without protocol)
-    base_url = request.build_absolute_uri('/').rstrip('/')
-    server_address_without_proto = base_url.split('://', 1)[1]
+    # Build server address based on Lynis API URL (without protocol)
+    lynis_api_url = settings.COMPLEASY_LYNIS_API_URL
+    server_address_without_proto = lynis_api_url.split('://', 1)[1]
     compleasy_upload_server = f'{server_address_without_proto}/api/lynis'
     return render(request, 'lynis_custom_profile.html',
                     {
@@ -1059,7 +1060,8 @@ def license_delete(request, license_id):
 @login_required
 def enroll_device(request):
     """Enroll device view: create new license or select existing, show enrollment instructions"""
-    compleasy_url = request.build_absolute_uri('/').rstrip('/')
+    # Use Lynis API URL for enrollment commands
+    lynis_api_url = settings.COMPLEASY_LYNIS_API_URL
     
     if request.method == 'POST':
         # User chose to create new license or use existing
@@ -1084,7 +1086,7 @@ def enroll_device(request):
                 license.save()
                 return render(request, 'license/enroll_device.html', {
                     'license': license,
-                    'compleasy_url': compleasy_url,
+                    'compleasy_url': lynis_api_url,
                     'enrollment_complete': True
                 })
         elif action == 'use_existing':
@@ -1103,12 +1105,12 @@ def enroll_device(request):
                     return render(request, 'license/enroll_device.html', {
                         'form': form,
                         'available_licenses': available_licenses,
-                        'compleasy_url': compleasy_url,
+                        'compleasy_url': lynis_api_url,
                         'error': 'Selected license has reached maximum device limit'
                     })
                 return render(request, 'license/enroll_device.html', {
                     'license': license,
-                    'compleasy_url': compleasy_url,
+                    'compleasy_url': lynis_api_url,
                     'enrollment_complete': True
                 })
             except LicenseKey.DoesNotExist:
@@ -1117,7 +1119,7 @@ def enroll_device(request):
                 return render(request, 'license/enroll_device.html', {
                     'form': form,
                     'available_licenses': available_licenses,
-                    'compleasy_url': compleasy_url,
+                    'compleasy_url': lynis_api_url,
                     'error': 'License not found'
                 })
     else:
@@ -1132,7 +1134,7 @@ def enroll_device(request):
                 if license.has_capacity():
                     return render(request, 'license/enroll_device.html', {
                         'license': license,
-                        'compleasy_url': compleasy_url,
+                        'compleasy_url': lynis_api_url,
                         'enrollment_complete': True
                     })
                 # If license doesn't have capacity, show form with selected license (disabled)
@@ -1148,7 +1150,7 @@ def enroll_device(request):
                         'form': form,
                         'available_licenses': available_licenses,
                         'selected_license': license,  # License without capacity
-                        'compleasy_url': compleasy_url,
+                        'compleasy_url': lynis_api_url,
                         'error': 'Selected license has reached maximum device limit'
                     })
             except LicenseKey.DoesNotExist:
@@ -1167,5 +1169,5 @@ def enroll_device(request):
         return render(request, 'license/enroll_device.html', {
             'form': form,
             'available_licenses': available_licenses,
-            'compleasy_url': compleasy_url
+            'compleasy_url': lynis_api_url
         })

@@ -10,7 +10,8 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
-      - COMPLEASY_URL=https://compleasy:443
+      - COMPLEASY_URL=${COMPLEASY_URL:-http://compleasy:8000}
+      - COMPLEASY_LYNIS_API_URL=${COMPLEASY_LYNIS_API_URL:-https://nginx-dev:443}
       - COMPLEASY_ADMIN_USERNAME=admin
       - COMPLEASY_ADMIN_PASSWORD=compleasy
       - COMPLEASY_LICENSE_KEY=${COMPLEASY_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
@@ -29,7 +30,7 @@ services:
     image: nginx:latest
     container_name: nginx-dev
     ports:
-      - 443:443
+      - 8001:443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/generate-certs.sh:/docker-entrypoint.d/40-generate-cert.sh

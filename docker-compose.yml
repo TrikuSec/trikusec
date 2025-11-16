@@ -8,7 +8,8 @@ services:
       - SECRET_KEY=${SECRET_KEY:-"CHANGE_ME_IN_PRODUCTION"}
       - DJANGO_ENV=production
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
-      - COMPLEASY_URL=https://localhost:3000
+      - COMPLEASY_URL=${COMPLEASY_URL:-https://localhost:443}
+      - COMPLEASY_LYNIS_API_URL=${COMPLEASY_LYNIS_API_URL:-https://localhost:8443}
       - COMPLEASY_ADMIN_USERNAME=admin
       # SECURITY WARNING: Change admin credentials in production!
       # Set COMPLEASY_ADMIN_PASSWORD in .env file

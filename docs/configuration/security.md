@@ -128,10 +128,57 @@ Ensure strong passwords:
 
 ## Network Security
 
+### API Endpoint Separation Architecture
+
+Compleasy uses a **dual-endpoint architecture** to improve security by separating admin UI access from Lynis API access:
+
+- **Admin UI Endpoint** (`COMPLEASY_URL`, default: `https://localhost:443`): 
+  - Used for accessing the web management interface
+  - Requires authentication (login required)
+  - Should only be accessible to sysadmins
+  - Typically accessed on port 443 via nginx reverse proxy
+
+- **Lynis API Endpoint** (`COMPLEASY_LYNIS_API_URL`, default: `https://localhost:8443`):
+  - Used by monitored servers for enrollment and report uploads
+  - No authentication UI exposed (API-only endpoints)
+  - Should be accessible from your server network
+  - Typically accessed on a separate port (e.g., 8443) via nginx
+
+#### Security Benefits
+
+This separation provides important security advantages:
+
+1. **Compromised Server Isolation**: If a monitored server is compromised, the attacker cannot access the admin UI or authentication forms, even if they can upload reports to the API.
+
+2. **Firewall Rule Granularity**: Sysadmins can configure different firewall rules:
+   - **Admin UI**: Restrict access to corporate IPs, VPN networks, or specific admin workstations
+   - **Lynis API**: Allow access from server networks, data centers, or cloud provider IP ranges
+
+3. **Attack Surface Reduction**: The admin interface is not exposed to the same network as monitored servers, reducing the risk of credential theft or session hijacking.
+
+#### Example Firewall Configuration
+
+```bash
+# Allow admin UI access only from corporate network
+iptables -A INPUT -p tcp --dport 443 -s 10.0.0.0/8 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j DROP
+
+# Allow Lynis API access from server network
+iptables -A INPUT -p tcp --dport 8443 -s 192.168.1.0/24 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8443 -j DROP
+```
+
+#### Configuration
+
+Set `COMPLEASY_LYNIS_API_URL` to your Lynis API endpoint. If not set, it falls back to `COMPLEASY_URL` for backward compatibility.
+
+See [Environment Variables](../configuration/environment-variables.md) for configuration details.
+
 ### Firewall Configuration
 
 Only expose necessary ports:
-- `3000` (or your configured port) for HTTP/HTTPS
+- `443` (or your configured port) for Admin UI HTTP/HTTPS
+- `8443` (or your configured port) for Lynis API HTTP/HTTPS
 - Database port only to application server (if external)
 
 ### Reverse Proxy

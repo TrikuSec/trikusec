@@ -409,9 +409,18 @@ def item_create(request):
 ### Optional
 
 - `DJANGO_ALLOWED_HOSTS` - Allowed hosts (default: `['*']` for development)
-- `COMPLEASY_URL` - Compleasy server URL
+- `COMPLEASY_URL` - Compleasy admin UI server URL (default: `https://localhost:443`)
+- `COMPLEASY_LYNIS_API_URL` - Compleasy Lynis API server URL for device enrollment and report uploads (default: `https://localhost:8443`, falls back to `COMPLEASY_URL` if not set)
 - `COMPLEASY_ADMIN_USERNAME` - Admin username (default: `admin`)
 - `COMPLEASY_ADMIN_PASSWORD` - Admin password (default: `compleasy`)
+
+#### Dual-Endpoint Architecture
+
+Compleasy uses separate endpoints for admin UI and Lynis API to improve security:
+- **Admin UI** (`COMPLEASY_URL`): Web interface for sysadmins, requires authentication
+- **Lynis API** (`COMPLEASY_LYNIS_API_URL`): API endpoints for device enrollment and report uploads
+
+This separation allows different firewall rules for each endpoint, preventing compromised servers from accessing the admin interface. See [Security Documentation](../docs/configuration/security.md#api-endpoint-separation-architecture) for details.
 
 ## Common Tasks
 
