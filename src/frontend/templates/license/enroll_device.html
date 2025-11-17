@@ -7,293 +7,70 @@
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold mb-6">Enroll New Device</h1>
 
-    {% if enrollment_complete and license %}
-        <!-- Enrollment complete - show instructions -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
-            <h2 class="text-2xl font-bold mb-4 text-green-600">✓ License Created Successfully!</h2>
-            <p class="mb-4">Your new license key has been generated. Use the instructions below to enroll your device.</p>
-            
-            <div class="mb-4">
-                <h3 class="text-xl font-semibold mb-2">License Information</h3>
-                <dl class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Name</dt>
-                        <dd class="mt-1">{{ license.name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">License Key</dt>
-                        <dd class="mt-1 font-mono">
-                            <span id="license-key-display">{{ license.licensekey|slice:":8" }}...</span>
-                            <button onclick="toggleLicenseKey('{{ license.licensekey }}')" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">Show</button>
-                            <button onclick="copyLicenseKey('{{ license.licensekey }}', this)" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">Copy</button>
-                        </dd>
-                    </div>
-                </dl>
-            </div>
-
-            <h3 class="text-xl font-semibold mb-2">Quick Install</h3>
-            <p class="mb-2">Run this command on your server to enroll it:</p>
-            <div class="bg-gray-100 p-4 rounded-md mb-4 relative">
-                <pre class="text-sm overflow-x-auto"><code id="enroll-command">wget -qO- --no-check-certificate {{ trikusec_url }}/download/enroll.sh?licensekey={{ license.licensekey }} | bash</code></pre>
-                <button onclick="copyEnrollCommand()" class="copy-button absolute top-2 right-2 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">Copy</button>
-            </div>
-
-            <div class="mt-6">
-                <a href="{% url 'license_detail' license_id=license.id %}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-2">View License</a>
-                <a href="{% url 'device_list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">Back to Devices</a>
-            </div>
-        </div>
-    {% else %}
-        <!-- Enrollment form -->
-        {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold">Error:</strong> {{ error }}
-        </div>
-        {% endif %}
-
-        {% if selected_license %}
-        <!-- Show selected license with no capacity -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Selected License</h2>
-            <div class="mb-6 p-4 border-2 border-red-300 rounded-lg bg-red-50">
-                <h3 class="text-lg font-semibold mb-2 text-red-800">{{ selected_license.name }}</h3>
-                <p class="text-sm text-red-600 mb-4">This license has reached its maximum device limit and cannot enroll new devices.</p>
-                
-                <dl class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">License Key</dt>
-                        <dd class="mt-1 font-mono text-sm">{{ selected_license.licensekey|slice:":8" }}...</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Devices</dt>
-                        <dd class="mt-1">
-                            {% if selected_license.max_devices %}
-                                {{ selected_license.device_count }}/{{ selected_license.max_devices }} (Full)
-                            {% else %}
-                                {{ selected_license.device_count }}/∞
-                            {% endif %}
-                        </dd>
-                    </div>
-                </dl>
-                
-                <button type="button" disabled class="bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed opacity-50">
-                    Enroll Device (No Available Capacity)
-                </button>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Step Indicator -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-6">
-            <div class="flex items-center justify-center">
-                <div class="flex items-center">
-                    <div class="flex items-center">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white font-bold">
-                            1
-                        </div>
-                        <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-900">License Key</div>
-                            <div class="text-xs text-gray-500">Step 1 of 2</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center mx-8">
-                        <div class="w-16 h-0.5 bg-gray-300"></div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-bold">
-                            2
-                        </div>
-                        <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-500">Enrollment Instructions</div>
-                            <div class="text-xs text-gray-400">Step 2 of 2</div>
-                        </div>
-                    </div>
+    <div class="grid gap-6 lg:grid-cols-2">
+        <section class="bg-white shadow-md rounded-lg p-6">
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Quick install</h2>
+                    <p class="text-gray-500 mt-1">Run a single command on your device to enroll it automatically.</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
-            <div class="border-b border-gray-200">
-                <nav class="flex -mb-px" aria-label="Tabs">
-                    <button onclick="switchTab('generate')" id="tab-generate" class="tab-button flex-1 py-4 px-6 text-center border-b-2 border-blue-500 font-medium text-sm text-blue-600">
-                        License Key Generation
-                    </button>
-                    <button onclick="switchTab('assign')" id="tab-assign" class="tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                        Assign an Existing License Key
-                    </button>
-                </nav>
+                <span class="bg-blue-100 text-blue-600 uppercase text-xs font-semibold tracking-wide px-3 py-1 rounded-full">Recommended</span>
             </div>
 
-            <div class="p-6">
-                <!-- Tab 1: License Key Generation (default) -->
-                <div id="tab-content-generate" class="tab-content">
-                    <p class="text-sm text-gray-600 mb-4">Generate a unique license key specifically for this device (recommended for per-device management).</p>
-                    
-                    <form method="POST" class="mt-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="create_new">
-                        
-                        <div class="mb-4">
-                            <label for="{{ form.name.id_for_label }}" class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                                Device Name <span class="text-red-500">*</span>
-                            </label>
-                            <div class="mt-1">
-                                {{ form.name }}
-                                <p class="mt-1 text-sm text-gray-500">e.g., "web-01.example.com" or "Production DB Server"</p>
-                            </div>
-                        </div>
+            <!-- License Key Selection Section (Shared Partial) -->
+            {% include 'license/license_selection_section.html' %}
 
-                        <!-- Collapsible Expiration Date -->
-                        <div class="mb-4">
-                            <button type="button" onclick="toggleExpirationDate()" class="text-sm text-gray-600 hover:text-gray-800 flex items-center">
-                                <svg id="expiration-arrow" class="w-4 h-4 mr-1 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                                <span>Advanced: Set expiration date</span>
-                            </button>
-                            <div id="expiration-date-section" class="hidden mt-2">
-                                <label for="{{ form.expires_at.id_for_label }}" class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                                    Expires At (optional)
-                                </label>
-                                <div class="mt-1">
-                                    {{ form.expires_at }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="max_devices" value="1">
-                        <input type="hidden" name="is_active" value="true">
-                        
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                            Create License & Show Instructions
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Tab 2: Assign Existing License -->
-                <div id="tab-content-assign" class="tab-content hidden">
-                    {% if available_licenses %}
-                        <p class="text-sm text-gray-600 mb-4">Select an existing license that has available capacity.</p>
-                        
-                        <form method="POST" class="mt-4">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="use_existing">
-                            
-                            <div class="mb-4">
-                                <label for="license_id" class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                                    Select License
-                                </label>
-                                <select name="license_id" id="license_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800">
-                                    {% for lic in available_licenses %}
-                                    <option value="{{ lic.id }}">
-                                        {{ lic.name }} 
-                                        ({% if lic.max_devices %}{{ lic.device_count }}/{{ lic.max_devices }}{% else %}{{ lic.device_count }}/∞{% endif %} devices)
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                                Use License & Show Instructions
-                            </button>
-                        </form>
-                    {% else %}
-                        <p class="text-sm text-gray-600 mb-4">No licenses with available capacity found. Please create a new license key.</p>
-                    {% endif %}
-                </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <a href="{% url 'device_list' %}" class="inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded shadow transition">
+                    Go to devices dashboard
+                </a>
             </div>
-        </div>
-    {% endif %}
+        </section>
+
+        <section class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Manual install & docs</h3>
+            <p class="text-gray-600 mb-4">
+                Need more control? Follow the manual enrollment workflow and automation examples covered in our documentation.
+            </p>
+            <ul class="space-y-3 text-sm text-gray-600 mb-6">
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-0.5">
+                        <i class="fas fa-terminal"></i>
+                    </span>
+                    Follow the steps in the documentation and run each command yourself for manual enrollment.
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-0.5">
+                        <i class="fas fa-shield-alt"></i>
+                    </span>
+                    Configure outbound access to `{{ trikusec_url }}` over TLS for report uploads.
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-0.5">
+                        <i class="fas fa-book"></i>
+                    </span>
+                    You can also explore automation examples for Ansible, etc.
+                </li>
+            </ul>
+            <a href="https://trikusec.github.io/trikusec/installation/client-setup/" class="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition">
+                View installation guide
+                <i class="fas fa-arrow-right ml-2 text-sm"></i>
+            </a>
+        </section>
+    </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script src="{% static 'js/licenses.js' %}"></script>
+<script src="{% static 'js/license_selection.js' %}"></script>
 <script>
-    let keyVisible = false;
-    function toggleLicenseKey(fullKey) {
-        const display = document.getElementById('license-key-display');
-        const button = event.target;
-        if (keyVisible) {
-            display.textContent = fullKey.substring(0, 8) + '...';
-            button.textContent = 'Show';
-            keyVisible = false;
-        } else {
-            display.textContent = fullKey;
-            button.textContent = 'Hide';
-            keyVisible = true;
-        }
-    }
-
-    function copyLicenseKey(key, button) {
-        const el = document.createElement('textarea');
-        el.value = key;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 2000);
-    }
-
-    function copyEnrollCommand() {
-        const command = document.getElementById('enroll-command').textContent;
-        const el = document.createElement('textarea');
-        el.value = command;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-        button.classList.add('bg-green-500', 'hover:bg-green-600');
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-green-500', 'hover:bg-green-600');
-            button.classList.add('bg-blue-500', 'hover:bg-blue-600');
-        }, 2000);
-    }
-
-    // Tab switching
-    function switchTab(tabName) {
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.add('hidden');
-        });
-        
-        // Remove active state from all tabs
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.classList.remove('border-blue-500', 'text-blue-600');
-            button.classList.add('border-transparent', 'text-gray-500');
-        });
-        
-        // Show selected tab content
-        document.getElementById('tab-content-' + tabName).classList.remove('hidden');
-        
-        // Activate selected tab
-        const activeTab = document.getElementById('tab-' + tabName);
-        activeTab.classList.remove('border-transparent', 'text-gray-500');
-        activeTab.classList.add('border-blue-500', 'text-blue-600');
-    }
-
-    // Toggle expiration date section
-    function toggleExpirationDate() {
-        const section = document.getElementById('expiration-date-section');
-        const arrow = document.getElementById('expiration-arrow');
-        
-        if (section.classList.contains('hidden')) {
-            section.classList.remove('hidden');
-            arrow.classList.add('rotate-180');
-        } else {
-            section.classList.add('hidden');
-            arrow.classList.remove('rotate-180');
-        }
-    }
+    // Initialize license selection with page-specific configuration
+    const licenseSelection = initLicenseSelection({
+        trikusecUrl: '{{ trikusec_url }}',
+        defaultLicenseKey: '{{ licensekey }}',
+        autogeneratedLicenseNames: {{ autogenerated_license_names|safe }}
+    });
 </script>
 {% endblock %}
 

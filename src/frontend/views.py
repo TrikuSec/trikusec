@@ -1119,115 +1119,25 @@ def license_delete(request, license_id):
 
 @login_required
 def enroll_device(request):
-    """Enroll device view: create new license or select existing, show enrollment instructions"""
+    """Enroll device view: show license selection interface"""
+    import json
     # Use Lynis API URL for enrollment commands
     lynis_api_url = settings.TRIKUSEC_LYNIS_API_URL
     
-    if request.method == 'POST':
-        # User chose to create new license or use existing
-        action = request.POST.get('action')
-        
-        if action == 'create_new':
-            # Create new unique license for this device
-            form = LicenseKeyForm(request.POST)
-            if form.is_valid():
-                license = form.save(commit=False)
-                license.created_by = request.user
-                license.licensekey = generate_license_key()
-                # Set max_devices to 1 for per-device licenses if not specified
-                if license.max_devices is None:
-                    license.max_devices = 1
-                # Get or create default organization
-                default_org, _ = Organization.objects.get_or_create(
-                    slug='default',
-                    defaults={'name': 'Default Organization', 'is_active': True}
-                )
-                license.organization = default_org
-                license.save()
-                return render(request, 'license/enroll_device.html', {
-                    'license': license,
-                    'trikusec_url': lynis_api_url,
-                    'enrollment_complete': True
-                })
-        elif action == 'use_existing':
-            # Use existing license
-            license_id = request.POST.get('license_id')
-            try:
-                license = LicenseKey.objects.get(id=license_id)
-                # Check if license has capacity
-                if not license.has_capacity():
-                    form = LicenseKeyForm()
-                    available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
-                        device_count=Count('device')
-                    ).filter(
-                        Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
-                    )
-                    return render(request, 'license/enroll_device.html', {
-                        'form': form,
-                        'available_licenses': available_licenses,
-                        'trikusec_url': lynis_api_url,
-                        'error': 'Selected license has reached maximum device limit'
-                    })
-                return render(request, 'license/enroll_device.html', {
-                    'license': license,
-                    'trikusec_url': lynis_api_url,
-                    'enrollment_complete': True
-                })
-            except LicenseKey.DoesNotExist:
-                form = LicenseKeyForm()
-                available_licenses = LicenseKey.objects.filter(is_active=True)
-                return render(request, 'license/enroll_device.html', {
-                    'form': form,
-                    'available_licenses': available_licenses,
-                    'trikusec_url': lynis_api_url,
-                    'error': 'License not found'
-                })
-    else:
-        # GET request - show enrollment form
-        license_id = request.GET.get('license_id')
-        
-        # If license_id is provided, check if we can skip directly to enrollment
-        if license_id:
-            try:
-                license = LicenseKey.objects.get(id=license_id)
-                # If license has capacity, skip directly to enrollment
-                if license.has_capacity():
-                    return render(request, 'license/enroll_device.html', {
-                        'license': license,
-                        'trikusec_url': lynis_api_url,
-                        'enrollment_complete': True
-                    })
-                # If license doesn't have capacity, show form with selected license (disabled)
-                else:
-                    form = LicenseKeyForm()
-                    # Get all licenses with available capacity for the dropdown
-                    available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
-                        device_count=Count('device')
-                    ).filter(
-                        Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
-                    )
-                    return render(request, 'license/enroll_device.html', {
-                        'form': form,
-                        'available_licenses': available_licenses,
-                        'selected_license': license,  # License without capacity
-                        'trikusec_url': lynis_api_url,
-                        'error': 'Selected license has reached maximum device limit'
-                    })
-            except LicenseKey.DoesNotExist:
-                # License not found, show normal form
-                pass
-        
-        # Normal flow - show enrollment form
-        form = LicenseKeyForm()
-        # Get licenses with available capacity
-        available_licenses = LicenseKey.objects.filter(is_active=True).annotate(
-            device_count=Count('device')
-        ).filter(
-            Q(max_devices__isnull=True) | Q(max_devices__gt=F('device_count'))
-        )
-        
-        return render(request, 'license/enroll_device.html', {
-            'form': form,
-            'available_licenses': available_licenses,
-            'trikusec_url': lynis_api_url
-        })
+    # Get user's default license key (last created license)
+    user_license = LicenseKey.objects.filter(created_by=request.user).last()
+    if not user_license:
+        return HttpResponse('No license key found', status=404)
+    
+    user_licensekey = user_license.licensekey
+    
+    # Get all autogenerated license names to calculate next number
+    autogenerated_licenses = LicenseKey.objects.filter(
+        name__startswith='Autogenerated license-key'
+    ).values_list('name', flat=True)
+    
+    return render(request, 'license/enroll_device.html', {
+        'trikusec_url': lynis_api_url,
+        'licensekey': user_licensekey,
+        'autogenerated_license_names': json.dumps(list(autogenerated_licenses))
+    })
