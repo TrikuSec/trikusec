@@ -166,16 +166,25 @@ function initLicenseSelection(config) {
                 })
                 .then(data => {
                     if (data.success) {
-                        // Update the command with the newly created license key
-                        if (data.licensekey) {
-                            updateEnrollCommand(data.licensekey);
-                        }
+                        // Check if we're on the enroll page and this is a create operation
+                        const isEnrollPage = window.location.pathname === '/enroll/';
+                        const isCreateOperation = form.action.includes('/create/');
                         
-                        // Close the panel without resetting the radio button
-                        // (since save was successful, keep "Generate specific license key" selected)
-                        const panel = document.getElementById('license-edit-panel');
-                        if (panel) {
-                            panel.classList.add('hidden');
+                        if (isEnrollPage && isCreateOperation && data.license_id) {
+                            // Redirect to enroll page with the newly created license_id
+                            window.location.href = `/enroll/?license_id=${data.license_id}`;
+                        } else {
+                            // Update the command with the newly created license key (fallback for other pages)
+                            if (data.licensekey) {
+                                updateEnrollCommand(data.licensekey);
+                            }
+                            
+                            // Close the panel without resetting the radio button
+                            // (since save was successful, keep "Generate specific license key" selected)
+                            const panel = document.getElementById('license-edit-panel');
+                            if (panel) {
+                                panel.classList.add('hidden');
+                            }
                         }
                     } else {
                         // Show errors
