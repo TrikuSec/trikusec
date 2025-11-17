@@ -18,6 +18,7 @@
   --md-code-hl-function-color: #f472b6;
   --md-code-hl-variable-color: #facc15;
   --md-code-hl-comment-color: #9ca3af;
+  --md-code-hl-punctuation-color: #e5e7eb;
 }
 
 /* Dark mode (slate scheme) - use same colors for consistency */
@@ -35,6 +36,7 @@
   --md-code-hl-function-color: #f9a8d4;
   --md-code-hl-variable-color: #fde68a;
   --md-code-hl-comment-color: #cbd5f5;
+  --md-code-hl-punctuation-color: #f1f5f9;
 }
 
 /* Header background - uses CSS variable, no need for !important */
@@ -106,6 +108,12 @@
 .md-typeset .highlight .c1,
 .md-typeset .highlight .cs {
   color: var(--md-code-hl-comment-color);
+}
+
+.md-typeset .highlight .p,
+.md-typeset .highlight .o,
+.md-typeset .highlight .w {
+  color: var(--md-code-hl-punctuation-color);
 }
 
 .md-typeset .highlight .md-clipboard {
