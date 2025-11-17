@@ -2,6 +2,7 @@ import pytest
 import json
 from django.test import Client
 from django.urls import reverse
+from django.contrib.auth.models import User
 from api.models import Device, FullReport
 
 
@@ -248,3 +249,107 @@ class TestDeviceExportPDF:
         # Should return 500 if report parsing fails
         assert response.status_code == 500
         assert response.content == b'Failed to parse the report'
+
+
+@pytest.mark.django_db
+class TestUserProfileView:
+    """Tests for the profile management view."""
+
+    def test_profile_page_renders(self, test_user):
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('profile'))
+
+        assert response.status_code == 200
+        assert b'Your Profile' in response.content
+        assert b'Profile information' in response.content
+        assert b'Password' in response.content
+        assert b"Your password can\xe2\x80\x99t be too similar" not in response.content
+
+    def test_profile_information_update(self, test_user):
+        client = Client()
+        client.force_login(test_user)
+
+        payload = {
+            'form_type': 'profile',
+            'username': test_user.username,
+            'first_name': 'Alice',
+            'last_name': 'Admin',
+            'email': 'alice.admin@example.com',
+        }
+
+        response = client.post(reverse('profile'), data=payload, follow=True)
+
+        assert response.status_code == 200
+        test_user.refresh_from_db()
+        assert test_user.first_name == 'Alice'
+        assert test_user.last_name == 'Admin'
+        assert test_user.email == 'alice.admin@example.com'
+
+    def test_profile_email_uniqueness_validation(self, test_user):
+        other_user = User.objects.create_user(
+            username='existing_user',
+            email='taken@example.com',
+            password='Secretpass123'
+        )
+        client = Client()
+        client.force_login(test_user)
+
+        payload = {
+            'form_type': 'profile',
+            'username': test_user.username,
+            'first_name': 'Bob',
+            'last_name': 'Builder',
+            'email': other_user.email,
+        }
+
+        response = client.post(reverse('profile'), data=payload)
+
+        assert response.status_code == 200
+        assert b'This email address is already being used by another account.' in response.content
+
+    def test_password_change_flow(self, test_user):
+        test_user.set_password('OldP@ssw0rd!')
+        test_user.save()
+
+        client = Client()
+        assert client.login(username=test_user.username, password='OldP@ssw0rd!')
+
+        payload = {
+            'form_type': 'password',
+            'old_password': 'OldP@ssw0rd!',
+            'new_password1': 'N3wP@ssw0rd!',
+            'new_password2': 'N3wP@ssw0rd!',
+        }
+
+        response = client.post(reverse('profile'), data=payload, follow=True)
+
+        assert response.status_code == 200
+        test_user.refresh_from_db()
+        assert test_user.check_password('N3wP@ssw0rd!')
+
+        client.logout()
+        assert client.login(username=test_user.username, password='N3wP@ssw0rd!')
+        assert not client.login(username=test_user.username, password='OldP@ssw0rd!')
+
+    def test_password_change_allows_name_similarity(self, test_user):
+        test_user.first_name = 'Alice'
+        test_user.set_password('OldP@ssw0rd!')
+        test_user.save()
+
+        client = Client()
+        assert client.login(username=test_user.username, password='OldP@ssw0rd!')
+
+        payload = {
+            'form_type': 'password',
+            'old_password': 'OldP@ssw0rd!',
+            'new_password1': 'Alice1234!',
+            'new_password2': 'Alice1234!',
+        }
+
+        response = client.post(reverse('profile'), data=payload, follow=True)
+
+        assert response.status_code == 200
+        test_user.refresh_from_db()
+        assert test_user.check_password('Alice1234!')

@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from api.models import Device, PolicyRuleset, PolicyRule, LicenseKey
 
 class DeviceForm(forms.ModelForm):
@@ -90,3 +91,47 @@ class LicenseKeyForm(forms.ModelForm):
         # Make max_devices optional (null means unlimited)
         self.fields['max_devices'].required = False
         self.fields['expires_at'].required = False
+
+
+class UserProfileForm(forms.ModelForm):
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            'placeholder': 'name@example.com',
+        })
+    )
+
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'first_name', 'last_name', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed',
+                'readonly': True,
+            }),
+            'first_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'First name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'Last name',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].disabled = True
+        self.fields['username'].help_text = 'Usernames cannot be changed.'
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email:
+            return email
+
+        User = get_user_model()
+        exists = User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists()
+        if exists:
+            raise forms.ValidationError('This email address is already being used by another account.')
+        return email

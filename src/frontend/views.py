@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q, F, Count
 from django.core.paginator import Paginator
@@ -9,7 +12,7 @@ from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, P
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance
 from api.utils.license_utils import generate_license_key
-from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm
+from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm, UserProfileForm
 import os
 import json
 import logging
@@ -35,6 +38,51 @@ def safe_redirect(request, fallback_url_name='device_list', **kwargs):
 def index(request):
     """Index view: redirect to the device list"""
     return redirect('device_list')
+
+
+@login_required
+@csrf_protect
+def profile(request):
+    """Allow authenticated users to manage their profile and password."""
+    def _style_password_form(form):
+        for field in form.fields.values():
+            field.widget.attrs.update({
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            })
+        if 'new_password1' in form.fields:
+            form.fields['new_password1'].help_text = ''
+
+    profile_form = UserProfileForm(instance=request.user)
+    password_form = PasswordChangeForm(request.user)
+    _style_password_form(password_form)
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', 'profile')
+
+        if form_type == 'password':
+            password_form = PasswordChangeForm(request.user, request.POST)
+            _style_password_form(password_form)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password updated successfully.')
+                return redirect('profile')
+            messages.error(request, 'Please correct the errors below to update your password.')
+        else:
+            profile_form = UserProfileForm(request.POST, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Profile information updated successfully.')
+                return redirect('profile')
+            messages.error(request, 'Please correct the errors below to update your profile.')
+            # Re-style password form after profile submission to preserve widgets
+            password_form = PasswordChangeForm(request.user)
+            _style_password_form(password_form)
+
+    return render(request, 'profile/profile.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
 
 @login_required
 def onboarding(request):
