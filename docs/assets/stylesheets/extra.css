@@ -183,6 +183,34 @@
   background-color: #ffffff;
 }
 
+[data-md-color-scheme="slate"] .md-main__inner {
+  background-color: #0b1120;
+}
+
+[data-md-color-scheme="slate"] .md-content {
+  background-color: #111827;
+}
+
+[data-md-color-scheme="slate"] .md-nav--primary,
+[data-md-color-scheme="slate"] .md-nav__title,
+[data-md-color-scheme="slate"] .md-nav__item {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link,
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__link--active {
+  color: #f3f4f6;
+}
+
+[data-md-color-scheme="slate"] .md-sidebar__scrollwrap {
+  background-color: #0f172a;
+}
+
+[data-md-color-scheme="slate"] .md-typeset {
+  color: #f3f4f6;
+}
+
 /* Buttons */
 .md-typeset .md-button {
   background-color: #1f2937;
