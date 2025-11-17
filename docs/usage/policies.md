@@ -22,6 +22,8 @@ Individual rules that define specific requirements using query expressions:
 - **Description** - Purpose and explanation of the rule
 - **Enabled** - Whether the rule is active
 - **Alert** - Whether to generate alerts when rule fails
+- **Created By** - User who created the rule (read-only)
+- **System Rules** - Pre-installed rules marked as "System" cannot be edited or deleted
 
 ### Policy Rule Sets
 
@@ -30,6 +32,8 @@ Collections of rules that can be applied to devices:
 - **Name** - Descriptive name for the rule set
 - **Description** - Purpose and scope
 - **Rules** - List of policy rules
+- **Created By** - User who created the ruleset (read-only)
+- **System Rulesets** - Pre-installed rulesets marked as "System" cannot be edited or deleted
 
 ## Rule Query Syntax
 Rule queries use [JMESPath](https://jmespath.org/) expressions to evaluate device reports. JMESPath is a query language for JSON that provides powerful and safe expression evaluation.
@@ -150,6 +154,16 @@ Common fields available in Lynis reports include:
     3. Access the **full report** which shows all available fields from the Lynis audit
     
     The full report displays all key-value pairs from the device's latest audit, making it easy to identify field names and their values for creating specific rule queries. Fields are extracted directly from the Lynis report data.
+
+## System Rules and Rulesets
+
+TrikuSec includes pre-installed system rules and a **"Default baseline"** ruleset that provides essential security checks:
+
+- **High Hardening Index** - Requires hardening index > 70
+- **No Vulnerable Packages** - Ensures no vulnerable packages detected
+- **Recent Audit** - Requires audit within last 7 days
+
+System rules and rulesets are marked with "System" as the creator and cannot be edited or deleted. You can use them in your custom rulesets or create your own rules.
 
 ## Creating Policies
 

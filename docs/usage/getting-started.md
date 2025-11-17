@@ -33,6 +33,13 @@ License keys are required for clients to upload reports.
 
 See [Client Setup](../installation/client-setup.md) for detailed instructions.
 
+### 4. Review Default Baseline Ruleset
+
+TrikuSec includes a **"Default baseline"** ruleset with essential security checks. You can:
+- View it in **Policies** → **Rulesets**
+- Assign it to devices for immediate compliance monitoring
+- Use it as a starting point for custom policies
+
 ## Dashboard Overview
 
 The main dashboard shows:
