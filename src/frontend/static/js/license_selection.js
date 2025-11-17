@@ -34,6 +34,7 @@ function initLicenseSelection(config) {
     // Use selected license key if provided, otherwise use default
     let currentLicenseKey = selectedLicenseKey || defaultLicenseKey;
     let enrollCommand = `wget -qO- --no-check-certificate ${trikusecUrl}/download/enroll.sh?licensekey=${currentLicenseKey} | bash`;
+    let manualInstallConfig = `license-key=${currentLicenseKey}\nupload-server=${trikusecUrl}/api/lynis`;
     
     // Function to update the enroll command
     function updateEnrollCommand(licenseKey) {
@@ -43,9 +44,20 @@ function initLicenseSelection(config) {
         if (commandElement) {
             commandElement.textContent = enrollCommand;
         }
+        // Update manual install config
+        updateManualInstallConfig(licenseKey);
         // Call callback if provided
         if (updateEnrollCommandCallback) {
             updateEnrollCommandCallback(enrollCommand);
+        }
+    }
+    
+    // Function to update the manual install config
+    function updateManualInstallConfig(licenseKey) {
+        manualInstallConfig = `license-key=${licenseKey}\nupload-server=${trikusecUrl}/api/lynis`;
+        const configElement = document.getElementById('manual-install-config');
+        if (configElement) {
+            configElement.textContent = manualInstallConfig;
         }
     }
     
@@ -57,9 +69,10 @@ function initLicenseSelection(config) {
     }
     
     // Function to copy to clipboard
-    function copyToClipboard(button) {
+    function copyToClipboard(button, text) {
+        const textToCopy = text || enrollCommand;
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(enrollCommand).then(() => {
+            navigator.clipboard.writeText(textToCopy).then(() => {
                 setButtonState(button, 'Copied', ['bg-gray-600', 'hover:bg-gray-700'], ['bg-blue-500', 'hover:bg-blue-600']);
                 setTimeout(() => {
                     setButtonState(button, 'Copy', ['bg-blue-500', 'hover:bg-blue-600'], ['bg-gray-600', 'hover:bg-gray-700']);
@@ -69,7 +82,7 @@ function initLicenseSelection(config) {
         }
         
         const textarea = document.createElement('textarea');
-        textarea.value = enrollCommand;
+        textarea.value = textToCopy;
         textarea.setAttribute('readonly', '');
         textarea.style.position = 'absolute';
         textarea.style.left = '-9999px';
@@ -280,9 +293,21 @@ function initLicenseSelection(config) {
     
     // Set up event listeners
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize manual install config on page load
+        updateManualInstallConfig(currentLicenseKey);
+        
         const copyButton = document.getElementById('copy-command-btn');
         if (copyButton) {
             copyButton.addEventListener('click', () => copyToClipboard(copyButton));
+        }
+        
+        const copyManualConfigButton = document.getElementById('copy-manual-config-btn');
+        if (copyManualConfigButton) {
+            copyManualConfigButton.addEventListener('click', () => {
+                const configElement = document.getElementById('manual-install-config');
+                const configText = configElement ? configElement.textContent : manualInstallConfig;
+                copyToClipboard(copyManualConfigButton, configText);
+            });
         }
         
         // Add event listeners for license option radio buttons
