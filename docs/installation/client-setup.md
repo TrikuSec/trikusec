@@ -52,7 +52,7 @@ test_skip_always=CRYP-7902
 
 Replace:
 - `YOUR_LICENSE_KEY` with your actual license key
-- `yourserver:3000` with your TrikuSec server address
+- `yourserver:3000` with your TrikuSec Lynis API server address (use `TRIKUSEC_LYNIS_API_URL` value)
 
 ### 4. Run Audit
 
