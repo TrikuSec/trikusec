@@ -28,8 +28,8 @@
                             <th class="py-3 px-6 text-left">Description</th>
                             <th class="py-3 px-6 text-left">Rules</th>
                             <th class="py-3 px-6 text-left">Devices</th>
-                            <th class="py-3 px-6 text-left">Last Updated</th>
-                            <th class="py-3 px-6 text-left">Actions</th>
+                            <th class="py-3 px-6 text-left w-48">Last Updated</th>
+                            <th class="py-3 px-6 text-left w-32">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-600 text-sm font-light">
@@ -56,10 +56,10 @@
                             <td class="py-3 px-6 text-left">
                                 {{ ruleset.devices.count }}
                             </td>
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-6 text-left w-48">
                                 {{ ruleset.updated_at|timesince }} ago
                             </td>
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-6 text-left w-32">
                                 <div class="flex items-center space-x-2">
                                     <a href="{% url 'ruleset_detail' ruleset_id=ruleset.id %}" class="text-gray-600 hover:text-gray-800" title="View">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -145,8 +145,8 @@
                             <th class="py-3 px-6 text-left">Name</th>
                             <th class="py-3 px-6 text-left">Description</th>
                             <th class="py-3 px-6 text-left">Rule Query</th>
-                            <th class="py-3 px-6 text-left">Last Updated</th>
-                            <th class="py-3 px-6 text-center">Actions</th>
+                            <th class="py-3 px-6 text-left w-48">Last Updated</th>
+                            <th class="py-3 px-6 text-center w-32">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-600 text-sm font-light">
@@ -174,10 +174,10 @@
                             <td class="py-3 px-6 text-left">
                                 <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ rule.rule_query|truncatechars:50 }}</code>
                             </td>
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-6 text-left w-48">
                                 {{ rule.updated_at|timesince }} ago
                             </td>
-                            <td class="py-3 px-6 text-center">
+                            <td class="py-3 px-6 text-center w-32">
                                 <div class="flex items-center justify-center space-x-2">
                                     <button onclick="toggleRuleEditPanel({{ rule.id }})" class="text-gray-600 hover:text-gray-800" title="Edit">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
