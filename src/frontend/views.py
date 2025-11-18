@@ -332,6 +332,22 @@ def device_report(request, device_id):
     parsed_report = '\n'.join([f'{key}={value}' for key, value in parsed_report.items()])
     return HttpResponse(parsed_report, content_type='text/plain')
 
+
+@login_required
+def device_report_json(request, device_id):
+    """Device report view: show the parsed report as a JSON dictionary"""
+    device = get_object_or_404(Device, id=device_id)
+    report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+    if not report:
+        return HttpResponse('No report found for the device', status=404)
+    parsed_report = LynisReport(report.full_report).get_parsed_report()
+
+    if not isinstance(parsed_report, dict) or not parsed_report:
+        return HttpResponse('Failed to parse the report', status=500)
+
+    json_payload = json.dumps(parsed_report, indent=2, sort_keys=True)
+    return HttpResponse(json_payload, content_type='application/json')
+
 @login_required
 def device_report_changelog(request, device_id):
     """Device report changelog view: show all the changelogs of a device"""

@@ -252,6 +252,46 @@ class TestDeviceExportPDF:
 
 
 @pytest.mark.django_db
+class TestDeviceReportViews:
+    """Tests for device report download endpoints."""
+
+    def test_device_report_raw_text(self, test_user, test_device, sample_lynis_report):
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report=sample_lynis_report
+        )
+
+        url = reverse('device_report', kwargs={'device_id': test_device.id})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'text/plain'
+        body = response.content.decode()
+        assert 'hostname=test-server' in body
+        assert 'hardening_index=65' in body
+
+    def test_device_report_json_dictionary(self, test_user, test_device, sample_lynis_report):
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report=sample_lynis_report
+        )
+
+        url = reverse('device_report_json', kwargs={'device_id': test_device.id})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/json'
+        data = json.loads(response.content)
+        assert data['hostname'] == 'test-server'
+        assert data['hardening_index'] == 65
+
+@pytest.mark.django_db
 class TestUserProfileView:
     """Tests for the profile management view."""
 
