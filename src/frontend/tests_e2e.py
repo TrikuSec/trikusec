@@ -551,24 +551,38 @@ class TestSidebarStateManagement:
         # We can verify by checking that the rule name hasn't changed
         rule = PolicyRule.objects.get(id=system_rule.id)
         assert rule.name == 'System Rule E2E'  # Should not have changed
+        assert rule.description == 'A system rule'
+        assert rule.rule_query == 'system_query'
+        
+        # Verify error message is displayed in the sidebar
+        error_container = page.locator('#rule-form-errors')
+        error_container.wait_for(state="visible", timeout=5000)
+        assert "System rules cannot be edited" in error_container.text_content()
+        
+        # Form fields should still show the system rule's existing values
+        rule_name_field = page.locator('#rule_name')
+        rule_name_field.wait_for(state="visible", timeout=5000)
+        assert rule_name_field.input_value() == 'System Rule E2E'
         
         rule_description_field = page.locator('#rule_description')
         assert rule_description_field.is_visible(), "Rule description field should be visible"
-        assert rule_description_field.input_value() == "", "Rule description field should be empty"
+        assert rule_description_field.input_value() == "A system rule"
         
         rule_query_field = page.locator('#rule_query')
         assert rule_query_field.is_visible(), "Rule query field should be visible"
-        assert rule_query_field.input_value() == "", "Rule query field should be empty"
+        assert rule_query_field.input_value() == "system_query"
         
-        # Verify the form action is set to create
+        # Verify the form remains in edit mode for the system rule
         rule_form = page.locator('#rule-edit-form')
         form_action = rule_form.get_attribute('action')
-        assert form_action == '/rule/create/', f"Expected form action to be '/rule/create/', got '{form_action}'"
+        assert form_action.endswith(f"/rule/{system_rule.id}/edit/"), (
+            f"Expected form action to remain in edit mode, got '{form_action}'"
+        )
         
-        # Verify enabled checkbox is unchecked (default for new rules)
+        # Enabled state should match the system rule's state (True by default)
         enabled_checkbox = page.locator('#rule_enabled')
         assert enabled_checkbox.is_visible(), "Enabled checkbox should be visible"
-        assert not enabled_checkbox.is_checked(), "Enabled checkbox should be unchecked for new rule"
+        assert enabled_checkbox.is_checked(), "System rule should remain enabled"
     
     def test_rule_selection_pencil_icon_opens_edit_panel(self, authenticated_browser, live_server_url, test_policy_data):
         """Clicking pencil icon in rule selection sidebar opens rule edit panel and hides selection panel."""
