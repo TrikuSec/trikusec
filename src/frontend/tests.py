@@ -450,3 +450,83 @@ class TestRuleDetailView:
         # Should redirect to login page
         assert response.status_code == 302
         assert '/login' in response.url
+
+
+@pytest.mark.django_db
+class TestPolicyRuleFormValidation:
+    """Tests for PolicyRuleForm JMESPath query validation."""
+
+    def test_valid_jmespath_query(self, test_user):
+        """Test that valid JMESPath queries pass validation."""
+        from frontend.forms import PolicyRuleForm
+        
+        valid_queries = [
+            "os == 'Linux'",
+            "hardening_index > `70`",
+            "vulnerable_packages_found == `0`",
+            "os == 'Linux' && hardening_index > `70`",
+            "os == 'Linux' || os == 'Unix'",
+            "contains(automation_tool_running, 'ansible')",
+            "days_since_audit < `7`",
+        ]
+        
+        for query in valid_queries:
+            form = PolicyRuleForm(data={
+                'name': 'Test Rule',
+                'description': 'Test description',
+                'rule_query': query,
+                'enabled': True,
+            })
+            assert form.is_valid(), f"Query '{query}' should be valid: {form.errors}"
+
+    def test_invalid_jmespath_query(self, test_user):
+        """Test that invalid JMESPath queries fail validation."""
+        from frontend.forms import PolicyRuleForm
+        
+        invalid_queries = [
+            "invalid syntax here",
+            "hardening_index >",  # Missing value
+            "hardening_index > `",  # Incomplete backtick literal
+            "contains(",  # Incomplete function call
+            "os == 'Linux' &&",  # Incomplete expression (trailing operator)
+        ]
+        
+        for query in invalid_queries:
+            form = PolicyRuleForm(data={
+                'name': 'Test Rule',
+                'description': 'Test description',
+                'rule_query': query,
+                'enabled': True,
+            })
+            assert not form.is_valid(), f"Query '{query}' should be invalid"
+            assert 'rule_query' in form.errors, f"Form should have rule_query error for '{query}'"
+            assert 'Invalid JMESPath query syntax' in str(form.errors['rule_query'])
+
+    def test_empty_query(self, test_user):
+        """Test that empty query is handled correctly."""
+        from frontend.forms import PolicyRuleForm
+        
+        form = PolicyRuleForm(data={
+            'name': 'Test Rule',
+            'description': 'Test description',
+            'rule_query': '',
+            'enabled': True,
+        })
+        # Empty query should fail model validation (required field), not form validation
+        # But our clean method should handle it gracefully
+        assert not form.is_valid()  # Will fail because rule_query is required
+        assert 'rule_query' in form.errors
+
+    def test_whitespace_stripping(self, test_user):
+        """Test that whitespace is stripped from queries."""
+        from frontend.forms import PolicyRuleForm
+        
+        form = PolicyRuleForm(data={
+            'name': 'Test Rule',
+            'description': 'Test description',
+            'rule_query': '  os == \'Linux\'  ',  # With whitespace
+            'enabled': True,
+        })
+        assert form.is_valid(), f"Form should be valid: {form.errors}"
+        # The cleaned value should have whitespace stripped
+        assert form.cleaned_data['rule_query'] == "os == 'Linux'"

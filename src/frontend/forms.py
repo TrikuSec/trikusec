@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from api.models import Device, PolicyRuleset, PolicyRule, LicenseKey
+import jmespath
 
 class DeviceForm(forms.ModelForm):
     class Meta:
@@ -61,6 +62,32 @@ class PolicyRuleForm(forms.ModelForm):
                 'placeholder': "e.g., os == 'Linux' && hardening_index > `70`",
             }),
         }
+    
+    def clean_rule_query(self):
+        """Validate that the rule_query is a valid JMESPath expression."""
+        rule_query = self.cleaned_data.get('rule_query')
+        if not rule_query:
+            return rule_query
+        
+        # Strip whitespace
+        rule_query = rule_query.strip()
+        
+        # Validate JMESPath syntax by attempting to compile it
+        try:
+            jmespath.compile(rule_query)
+        except jmespath.exceptions.JMESPathError as e:
+            raise forms.ValidationError(
+                f'Invalid JMESPath query syntax: {str(e)}. '
+                'Please check your query expression. Examples: '
+                'os == \'Linux\', hardening_index > `70`, '
+                'vulnerable_packages_found == `0`'
+            )
+        except Exception as e:
+            raise forms.ValidationError(
+                f'Error validating JMESPath query: {str(e)}'
+            )
+        
+        return rule_query
 
 
 class LicenseKeyForm(forms.ModelForm):

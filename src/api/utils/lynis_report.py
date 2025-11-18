@@ -129,6 +129,9 @@ class LynisReport:
                         parsed_keys[base_key] = []
                     parsed_keys[base_key].append(value)
                 else:
+                    # Convert numeric strings to integers for proper JMESPath comparisons
+                    if isinstance(value, str) and value.isdigit():
+                        value = int(value)
                     parsed_keys[key] = value
             
             return parsed_keys
@@ -263,6 +266,9 @@ class LynisReport:
                     parsed_keys[base_key] = []
                 parsed_keys[base_key].append(value)
             else:
+                # Convert numeric strings to integers for proper JMESPath comparisons
+                if isinstance(value, str) and value.isdigit():
+                    value = int(value)
                 parsed_keys[key] = value
         
         return parsed_keys

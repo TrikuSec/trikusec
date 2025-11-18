@@ -17,10 +17,7 @@ automation_tool_running=ansible
 """
         lynis_report = LynisReport(report_data)
         parsed = lynis_report.get_parsed_report()
-        # Convert numeric string fields to integers for proper comparison
-        # In real reports, these are strings, but for testing we convert them
-        if 'hardening_index' in parsed and parsed['hardening_index'].isdigit():
-            parsed['hardening_index'] = int(parsed['hardening_index'])
+        # Numeric fields are now automatically converted to integers by the parser
         return parsed
     
     def test_sql_injection_attempts(self, sample_report):
