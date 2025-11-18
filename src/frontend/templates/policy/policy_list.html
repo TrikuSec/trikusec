@@ -6,290 +6,350 @@
 {% block title %}Policies{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6">Policies</h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Policies</h1>
 
-        <!-- Rulesets Section -->
-        <div class="mb-12">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">Rulesets</h2>
-                <button onclick="toggleRulesetEditPanel(null)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    New Ruleset
-                </button>
-            </div>
-
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">Name</th>
-                            <th class="py-3 px-6 text-left">Description</th>
-                            <th class="py-3 px-6 text-left">Rules</th>
-                            <th class="py-3 px-6 text-left">Devices</th>
-                            <th class="py-3 px-6 text-left">Created By</th>
-                            <th class="py-3 px-6 text-left w-48">Last Updated</th>
-                            <th class="py-3 px-6 text-left w-32">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-600 text-sm font-light">
-                        {% for ruleset in rulesets %}
-                        <tr class="border-b border-gray-200 hover:bg-gray-100">
-                            <td class="py-3 px-6 text-left">
-                                <a href="{% url 'ruleset_detail' ruleset_id=ruleset.id %}" class="font-medium text-gray-800 hover:text-gray-900">
-                                    {{ ruleset.name }}
-                                </a>
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                {{ ruleset.description|truncatewords:15 }}
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                <div class="flex items-center">
-                                    <span class="text-gray-900">{{ ruleset.rules.count }}</span>
-                                    {% if not ruleset.is_system %}
-                                    <button onclick="toggleRuleSelectionPanel({{ ruleset.id }})" class="ml-2 text-gray-600 hover:text-gray-800" title="Manage Rules">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
-                                        </svg>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                {{ ruleset.devices.count }}
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                {% if ruleset.is_system %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        System
-                                    </span>
-                                {% else %}
-                                    {{ ruleset|creator_name }}
-                                {% endif %}
-                            </td>
-                            <td class="py-3 px-6 text-left w-48">
-                                {{ ruleset.updated_at|timesince_simple }} ago
-                            </td>
-                            <td class="py-3 px-6 text-left w-32">
-                                <div class="flex items-center space-x-2">
-                                    <a href="{% url 'ruleset_detail' ruleset_id=ruleset.id %}" class="text-gray-600 hover:text-gray-800" title="View">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                    </a>
-                                    {% if not ruleset.is_system %}
-                                    <button onclick="toggleRulesetEditPanel({{ ruleset.id }})" class="text-gray-600 hover:text-gray-800" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
-                                        </svg>
-                                    </button>
-                                    {% endif %}
-                                    {% if ruleset.id in rulesets_linked_to_devices %}
-                                    <button disabled class="text-gray-400 cursor-not-allowed" title="Cannot delete: Ruleset is linked to one or more devices">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                    {% else %}
-                                    <button onclick="deleteRuleset({{ ruleset.id }}, '{{ ruleset.name|escapejs }}')" class="text-red-600 hover:text-red-800" title="Delete">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="py-3 px-6 text-center">
-                                No rulesets found. <button onclick="toggleRulesetEditPanel(null)" class="text-blue-600 hover:text-blue-800 underline">Create one</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                
-                <!-- Pagination for rulesets -->
-                {% if rulesets.has_other_pages %}
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                    <nav class="flex items-center justify-between">
-                        <div class="flex-1 flex justify-between sm:hidden">
-                            {% if rulesets.has_previous %}
-                                <a href="?ruleset_page={{ rulesets.previous_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
-                            {% endif %}
-                            {% if rulesets.has_next %}
-                                <a href="?ruleset_page={{ rulesets.next_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
-                            {% endif %}
-                        </div>
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Page <span class="font-medium">{{ rulesets.number }}</span> of <span class="font-medium">{{ rulesets.paginator.num_pages }}</span>
-                                </p>
-                            </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    {% if rulesets.has_previous %}
-                                        <a href="?ruleset_page={{ rulesets.previous_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</a>
-                                    {% endif %}
-                                    {% if rulesets.has_next %}
-                                        <a href="?ruleset_page={{ rulesets.next_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</a>
-                                    {% endif %}
-                                </nav>
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-                {% endif %}
-            </div>
+    <!-- Rulesets Section -->
+    <div class="mb-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold">Rulesets</h2>
+            <button onclick="toggleRulesetEditPanel(null)"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                New Ruleset
+            </button>
         </div>
 
-        <!-- Rules Section -->
-        <div class="mb-12">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">Rules</h2>
-                <button onclick="toggleRuleEditPanel(null)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    New Rule
-                </button>
-            </div>
-
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-center w-20">Enabled</th>
-                            <th class="py-3 px-6 text-left">Name</th>
-                            <th class="py-3 px-6 text-left">Description</th>
-                            <th class="py-3 px-6 text-left">Rule Query</th>
-                            <th class="py-3 px-6 text-left">Created By</th>
-                            <th class="py-3 px-6 text-left w-48">Last Updated</th>
-                            <th class="py-3 px-6 text-center w-32">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-600 text-sm font-light">
-                        {% for rule in rules %}
-                        <tr class="border-b border-gray-200 hover:bg-gray-100">
-                            <td class="py-3 px-6 text-center">
-                                {% if rule.enabled %}
-                                    <svg class="w-5 h-5 text-green-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Name</th>
+                        <th class="py-3 px-6 text-left">Description</th>
+                        <th class="py-3 px-6 text-left">Rules</th>
+                        <th class="py-3 px-6 text-left">Devices</th>
+                        <th class="py-3 px-6 text-left">Created By</th>
+                        <th class="py-3 px-6 text-left w-48">Last Updated</th>
+                        <th class="py-3 px-6 text-left w-32">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light">
+                    {% for ruleset in rulesets %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6 text-left">
+                            <a href="{% url 'ruleset_detail' ruleset_id=ruleset.id %}"
+                                class="font-medium text-gray-800 hover:text-gray-900">
+                                {{ ruleset.name }}
+                            </a>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {{ ruleset.description|truncatewords:15 }}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <div class="flex items-center">
+                                <span class="text-gray-900">{{ ruleset.rules.count }}</span>
+                                {% if not ruleset.is_system %}
+                                <button onclick="toggleRuleSelectionPanel({{ ruleset.id }})"
+                                    class="ml-2 text-gray-600 hover:text-gray-800" title="Select rules">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                                     </svg>
-                                {% else %}
-                                    <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
+                                </button>
                                 {% endif %}
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                <a href="{% url 'rule_detail' rule_id=rule.id %}" class="font-medium text-gray-800 hover:text-gray-900">
-                                    {{ rule.name }}
+                            </div>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {{ ruleset.devices.count }}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {% if ruleset.is_system %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                System
+                            </span>
+                            {% else %}
+                            {{ ruleset|creator_name }}
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left w-48">
+                            {{ ruleset.updated_at|timesince_simple }} ago
+                        </td>
+                        <td class="py-3 px-6 text-left w-32">
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'ruleset_detail' ruleset_id=ruleset.id %}"
+                                    class="text-gray-600 hover:text-gray-800" title="View">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
                                 </a>
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                {{ rule.description|truncatewords:15 }}
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ rule.rule_query|truncatechars:50 }}</code>
-                            </td>
-                            <td class="py-3 px-6 text-left">
-                                {% if rule.is_system %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        System
-                                    </span>
-                                {% else %}
-                                    {{ rule|creator_name }}
+                                {% if not ruleset.is_system %}
+                                <button onclick="toggleRulesetEditPanel({{ ruleset.id }})"
+                                    class="text-gray-600 hover:text-gray-800" title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10">
+                                        </path>
+                                    </svg>
+                                </button>
                                 {% endif %}
-                            </td>
-                            <td class="py-3 px-6 text-left w-48">
-                                {{ rule.updated_at|timesince_simple }} ago
-                            </td>
-                            <td class="py-3 px-6 text-center w-32">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <button onclick="toggleRuleEditPanel({{ rule.id }})" class="text-gray-600 hover:text-gray-800" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
-                                        </svg>
-                                    </button>
-                                    {% if rule.id in rules_linked_to_rulesets %}
-                                    <button disabled class="text-gray-400 cursor-not-allowed" title="Cannot delete: Rule is linked to one or more rulesets">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                    {% else %}
-                                    <button onclick="deleteRule({{ rule.id }}, '{{ rule.name|escapejs }}')" class="text-red-600 hover:text-red-800" title="Delete">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="py-3 px-6 text-center">
-                                No rules found. <button onclick="toggleRuleEditPanel(null)" class="text-blue-600 hover:text-blue-800 underline">Create one</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                
-                <!-- Pagination for rules -->
-                {% if rules.has_other_pages %}
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                    <nav class="flex items-center justify-between">
-                        <div class="flex-1 flex justify-between sm:hidden">
-                            {% if rules.has_previous %}
-                                <a href="?rule_page={{ rules.previous_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
-                            {% endif %}
-                            {% if rules.has_next %}
-                                <a href="?rule_page={{ rules.next_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
-                            {% endif %}
-                        </div>
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Page <span class="font-medium">{{ rules.number }}</span> of <span class="font-medium">{{ rules.paginator.num_pages }}</span>
-                                </p>
+                                {% if ruleset.id in rulesets_linked_to_devices %}
+                                <button disabled class="text-gray-400 cursor-not-allowed"
+                                    title="Cannot delete: Ruleset is linked to one or more devices">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button onclick="deleteRuleset({{ ruleset.id }}, '{{ ruleset.name|escapejs }}')"
+                                    class="text-red-600 hover:text-red-800" title="Delete">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                                {% endif %}
                             </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    {% if rules.has_previous %}
-                                        <a href="?rule_page={{ rules.previous_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</a>
-                                    {% endif %}
-                                    {% if rules.has_next %}
-                                        <a href="?rule_page={{ rules.next_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</a>
-                                    {% endif %}
-                                </nav>
-                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-3 px-6 text-center">
+                            No rulesets found. <button onclick="toggleRulesetEditPanel(null)"
+                                class="text-blue-600 hover:text-blue-800 underline">Create one</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination for rulesets -->
+            {% if rulesets.has_other_pages %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <nav class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if rulesets.has_previous %}
+                        <a href="?ruleset_page={{ rulesets.previous_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}"
+                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+                        {% endif %}
+                        {% if rulesets.has_next %}
+                        <a href="?ruleset_page={{ rulesets.next_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}"
+                            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Page <span class="font-medium">{{ rulesets.number }}</span> of <span
+                                    class="font-medium">{{ rulesets.paginator.num_pages }}</span>
+                            </p>
                         </div>
-                    </nav>
-                </div>
-                {% endif %}
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                aria-label="Pagination">
+                                {% if rulesets.has_previous %}
+                                <a href="?ruleset_page={{ rulesets.previous_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</a>
+                                {% endif %}
+                                {% if rulesets.has_next %}
+                                <a href="?ruleset_page={{ rulesets.next_page_number }}{% if request.GET.rule_page %}&rule_page={{ request.GET.rule_page }}{% endif %}"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </nav>
             </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Include sidebars -->
-    {% include 'policy/ruleset_edit_sidebar.html' %}
-    {% include 'policy/rule_edit_sidebar.html' %}
-    {% include 'policy/rule_selection_sidebar.html' %}
+    <!-- Rules Section -->
+    <div class="mb-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold">Rules</h2>
+            <button onclick="toggleRuleEditPanel(null)"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                New Rule
+            </button>
+        </div>
 
-    <script>
-        // Pass data to JavaScript
-        const rulesets = {{ rulesets_json|safe }};
-        const rules = {{ rules_json|safe }};
-    </script>
-    <script src="{% static 'js/policies.js' %}"></script>
-    <script src="{% static 'js/rules.js' %}"></script>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-center w-20">Enabled</th>
+                        <th class="py-3 px-6 text-left">Name</th>
+                        <th class="py-3 px-6 text-left">Description</th>
+                        <th class="py-3 px-6 text-left">Rule Query</th>
+                        <th class="py-3 px-6 text-left">Created By</th>
+                        <th class="py-3 px-6 text-left w-48">Last Updated</th>
+                        <th class="py-3 px-6 text-center w-32">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light">
+                    {% for rule in rules %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6 text-center">
+                            {% if rule.enabled %}
+                            <svg class="w-5 h-5 text-green-600 mx-auto" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {% else %}
+                            <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <a href="{% url 'rule_detail' rule_id=rule.id %}"
+                                class="font-medium text-gray-800 hover:text-gray-900">
+                                {{ rule.name }}
+                            </a>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {{ rule.description|truncatewords:15 }}
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <code
+                                class="text-xs bg-gray-100 px-2 py-1 rounded">{{ rule.rule_query|truncatechars:50 }}</code>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            {% if rule.is_system %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                System
+                            </span>
+                            {% else %}
+                            {{ rule|creator_name }}
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left w-48">
+                            {{ rule.updated_at|timesince_simple }} ago
+                        </td>
+                        <td class="py-3 px-6 text-center w-32">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button onclick="toggleRuleEditPanel({{ rule.id }})"
+                                    class="text-gray-600 hover:text-gray-800" title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10">
+                                        </path>
+                                    </svg>
+                                </button>
+                                {% if rule.id in rules_linked_to_rulesets %}
+                                <button disabled class="text-gray-400 cursor-not-allowed"
+                                    title="Cannot delete: Rule is linked to one or more rulesets">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button onclick="deleteRule({{ rule.id }}, '{{ rule.name|escapejs }}')"
+                                    class="text-red-600 hover:text-red-800" title="Delete">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-3 px-6 text-center">
+                            No rules found. <button onclick="toggleRuleEditPanel(null)"
+                                class="text-blue-600 hover:text-blue-800 underline">Create one</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination for rules -->
+            {% if rules.has_other_pages %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <nav class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if rules.has_previous %}
+                        <a href="?rule_page={{ rules.previous_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}"
+                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+                        {% endif %}
+                        {% if rules.has_next %}
+                        <a href="?rule_page={{ rules.next_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}"
+                            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Page <span class="font-medium">{{ rules.number }}</span> of <span class="font-medium">{{
+                                    rules.paginator.num_pages }}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                aria-label="Pagination">
+                                {% if rules.has_previous %}
+                                <a href="?rule_page={{ rules.previous_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</a>
+                                {% endif %}
+                                {% if rules.has_next %}
+                                <a href="?rule_page={{ rules.next_page_number }}{% if request.GET.ruleset_page %}&ruleset_page={{ request.GET.ruleset_page }}{% endif %}"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Include sidebars -->
+{% include 'policy/ruleset_edit_sidebar.html' %}
+{% include 'policy/rule_edit_sidebar.html' %}
+{% include 'policy/rule_selection_sidebar.html' %}
+
+<script>
+    // Pass data to JavaScript
+    const rulesets = {{ rulesets_json| safe }};
+    const rules = {{ rules_json| safe }};
+</script>
+<script src="{% static 'js/policies.js' %}"></script>
+<script src="{% static 'js/rules.js' %}"></script>
 {% endblock %}
-
