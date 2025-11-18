@@ -800,13 +800,16 @@ def rule_update(request, rule_id):
             
             # Traditional request: redirect to referer or rule list
             return safe_redirect(request, 'policy_list')
-    else:
+        else:
             # AJAX request: return errors
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
                     'errors': form.errors
                 }, status=400)
+            
+            messages.error(request, 'Please correct the errors below to update this rule.')
+            return safe_redirect(request, 'policy_list')
     
     # Fallback for GET or non-AJAX POST
     return redirect('policy_list')
@@ -833,13 +836,16 @@ def rule_create(request):
             
             # Traditional request: redirect to referer or rule list
             return safe_redirect(request, 'policy_list')
-    else:
+        else:
             # AJAX request: return errors
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
                     'errors': form.errors
                 }, status=400)
+            
+            messages.error(request, 'Please correct the errors below to create a rule.')
+            return safe_redirect(request, 'policy_list')
     
     # Fallback for GET or non-AJAX POST
     return redirect('policy_list')
