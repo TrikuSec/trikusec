@@ -997,11 +997,10 @@ def rule_evaluate_for_device(request, device_id, rule_id):
 def activity(request):
     """Activity view: show the activity of the devices (from DiffReport)"""
 
-    # TODO: adapt activities to the template's needs
-
     # My activity list with the devices and the changelog (added lines, removed lines and changed lines)
     activities = []
     max_activities = 50
+    preview_limit = 3
 
     # Get all diff reports (from most recent to oldest)
     diff_reports = DiffReport.objects.all().order_by('-created_at')
@@ -1078,8 +1077,49 @@ def activity(request):
 
         # Order activities by date (most recent first) and type (added, removed, changed)
         activities = sorted(activities, key=lambda x: (x['created_at'], x['type']), reverse=True)
-        
-    return render(request, 'activity.html', {'activities': activities})
+    
+    grouped_activities = []
+    if activities:
+        from collections import OrderedDict, defaultdict
+
+        grouped_map = OrderedDict()
+        for activity in activities:
+            device = activity['device']
+            change_type = activity.get('type', 'other')
+            if change_type not in ['added', 'removed', 'changed']:
+                change_type = 'other'
+
+            device_group = grouped_map.setdefault(device.id, {
+                'device': device,
+                'hostname': device.hostname,
+                'last_activity': activity['created_at'],
+                'activities_by_type': defaultdict(list),
+            })
+
+            if activity['created_at'] > device_group['last_activity']:
+                device_group['last_activity'] = activity['created_at']
+
+            device_group['activities_by_type'][change_type].append(activity)
+
+        grouped_activities = sorted(grouped_map.values(), key=lambda entry: entry['last_activity'], reverse=True)
+        for entry in grouped_activities:
+            type_blocks = []
+            for change_type in ['changed', 'added', 'removed', 'other']:
+                change_list = entry['activities_by_type'].get(change_type, [])
+                if change_list:
+                    type_blocks.append({
+                        'type': change_type,
+                        'count': len(change_list),
+                        'activities': change_list,
+                        'hidden_count': max(len(change_list) - preview_limit, 0),
+                    })
+            entry['type_blocks'] = type_blocks
+
+    return render(request, 'activity.html', {
+        'activities': activities,
+        'grouped_activities': grouped_activities,
+        'preview_limit': preview_limit,
+    })
 
 
 @login_required

@@ -5,7 +5,7 @@
 {% block head %}
     {{ block.super }}
     <style>
-        .activity-table .activity-pill {
+        .activity-pill {
             display: inline-flex;
             align-items: center;
             font-size: 0.75rem;
@@ -51,25 +51,28 @@
             word-break: break-word;
         }
 
-        .now-cell {
+        .now-card {
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
             transition: background-color 150ms ease;
         }
 
-        .now-cell--up {
+        .now-card--up {
             background-color: #ecfdf5;
             color: #065f46;
         }
 
-        .now-cell--down {
+        .now-card--down {
             background-color: #fef2f2;
             color: #991b1b;
         }
 
-        .now-cell--added {
+        .now-card--added {
             background-color: #e0f2fe;
         }
 
-        .now-cell--removed {
+        .now-card--removed {
             background-color: #fef2f2;
         }
 
@@ -78,8 +81,80 @@
             margin-right: 0.25rem;
         }
 
-        .activity-row:hover {
+        .activity-host-card {
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-host-header {
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            background-color: #ffffff;
+        }
+
+        .activity-host-header:hover {
             background-color: #f9fafb;
+        }
+
+        .activity-host-panel {
+            border-top: 1px solid #e5e7eb;
+            padding: 1.25rem;
+        }
+
+        .activity-type-section + .activity-type-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .activity-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .activity-type-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .activity-type-title small {
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .activity-entry {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background-color: #fdfdfd;
+        }
+
+        .activity-entry + .activity-entry {
+            margin-top: 0.75rem;
+        }
+
+        .activity-entry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .activity-entry-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
         }
     </style>
 {% endblock %}
@@ -87,101 +162,157 @@
 {% block title %}Activity{% endblock %}
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">TrikuSec</a></h1>
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold"><a href="{% url 'index' %}">TrikuSec</a></h1>
+        {% if grouped_activities %}
+        <p class="text-sm text-gray-500">Showing latest {{ grouped_activities|length }} devices with changes</p>
+        {% endif %}
+    </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full leading-normal activity-table">
-                <thead>
-                    <tr>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Hostname
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            When
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Before
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Now
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for activity in activities %}
-                    {% with activity_type=activity.type|default:'other' %}
-                    <tr class="activity-row">
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                            <div class="flex items-center space-x-2">
-                                <p class="text-gray-900 whitespace-no-wrap">{{ activity.device.hostname }}</p>
-                                <span class="activity-pill activity-pill--{{ activity_type }}">
-                                    {{ activity_type|capfirst }}
-                                </span>
+    {% if not grouped_activities %}
+        <div class="bg-white border border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <p class="text-gray-600">No recent activity detected.</p>
+        </div>
+    {% else %}
+    <div id="activity-accordion" class="space-y-4">
+        {% for host in grouped_activities %}
+        <div class="activity-host-card" data-host-card>
+            <button class="activity-host-header" data-host-toggle="host-panel-{{ host.device.id }}">
+                <div>
+                    <p class="text-lg font-semibold text-gray-900">{{ host.hostname }}</p>
+                    <p class="text-sm text-gray-500">Last update {{ host.last_activity|timesince }} ago</p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {% for block in host.type_blocks %}
+                        <span class="activity-pill activity-pill--{{ block.type }}">
+                            {{ block.type|capfirst }} · {{ block.count }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-gray-500 transition-transform" data-chevron viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 8l4 4 4-4" />
+                </svg>
+            </button>
+            <div class="activity-host-panel hidden" id="host-panel-{{ host.device.id }}">
+                {% for block in host.type_blocks %}
+                <div class="activity-type-section">
+                    <div class="activity-type-header">
+                        <div class="activity-type-title">
+                            <span class="activity-pill activity-pill--{{ block.type }}">{{ block.type|capfirst }}</span>
+                            <small>{{ block.count }} change{% if block.count != 1 %}s{% endif %}</small>
+                        </div>
+                        {% if block.hidden_count > 0 %}
+                        <button type="button"
+                                class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                                data-show-more="type-{{ host.device.id }}-{{ block.type }}"
+                                data-hidden-count="{{ block.hidden_count }}">
+                            See {{ block.hidden_count }} more
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div id="type-{{ host.device.id }}-{{ block.type }}">
+                        {% for activity in block.activities %}
+                        <div class="activity-entry {% if forloop.counter > preview_limit %}hidden extra-entry{% endif %}">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-semibold text-gray-900">{{ activity.key }}</div>
+                                <div class="text-xs text-gray-500">{{ activity.created_at|timesince }} ago</div>
                             </div>
-                        </td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                            <p class="text-gray-900 whitespace-no-wrap">{{ activity.created_at|timesince }} ago</p>
-                        </td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                            {% if activity_type == 'changed' %}
-                            <p class="text-gray-900 whitespace-no-wrap">
-                                <span class="activity-key">{{ activity.key }}:</span>
-                                <span class="activity-value">{{ activity.old_value }}</span>
-                            </p>
-                            {% elif activity_type == 'removed' %}
-                            <p class="text-gray-900 whitespace-no-wrap">
-                                <span class="activity-key">{{ activity.key }}:</span>
-                                <span class="activity-value">{{ activity.value }}</span>
-                            </p>
-                            {% else %}
-                            <p class="activity-cell-muted whitespace-no-wrap">Not previously reported</p>
-                            {% endif %}
-                        </td>
-                        {% if activity_type == 'changed' %}
-                            {% with direction=activity.old_value|value_direction:activity.new_value %}
-                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm now-cell
-                                {% if direction == 'up' %} now-cell--up{% elif direction == 'down' %} now-cell--down{% endif %}">
-                                <p class="whitespace-normal">
-                                    <span class="activity-key">{{ activity.key }}:</span>
-                                    <span class="activity-value">
+
+                            {% if block.type == 'changed' %}
+                            <div class="activity-entry-grid">
+                                <div>
+                                    <p class="activity-entry-label">Before</p>
+                                    <p class="activity-value">{{ activity.old_value }}</p>
+                                </div>
+                                {% with direction=activity.old_value|value_direction:activity.new_value %}
+                                <div class="now-card {% if direction == 'up' %}now-card--up{% elif direction == 'down' %}now-card--down{% endif %}">
+                                    <p class="activity-entry-label text-gray-600">Now</p>
+                                    <p class="activity-value">
                                         {% if direction == 'up' %}
-                                            <span class="activity-delta">+</span>
+                                        <span class="activity-delta">+</span>
                                         {% elif direction == 'down' %}
-                                            <span class="activity-delta">-</span>
+                                        <span class="activity-delta">-</span>
                                         {% endif %}
                                         {{ activity.new_value }}
-                                    </span>
-                                </p>
-                            </td>
-                            {% endwith %}
-                        {% elif activity_type == 'added' %}
-                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm now-cell now-cell--added">
-                                <p class="whitespace-normal">
-                                    <span class="activity-key">{{ activity.key }}:</span>
-                                    <span class="activity-value">{{ activity.value }}</span>
-                                </p>
-                            </td>
-                        {% elif activity_type == 'removed' %}
-                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm now-cell now-cell--removed">
-                                <p class="activity-cell-muted whitespace-no-wrap">Removed</p>
-                            </td>
-                        {% else %}
-                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                <p class="activity-cell-muted whitespace-no-wrap">No data</p>
-                            </td>
-                        {% endif %}
-                    </tr>
-                    {% endwith %}
-                    {% endfor %}
-                </tbody>
-            </table>
+                                    </p>
+                                </div>
+                                {% endwith %}
+                            </div>
+                            {% elif block.type == 'added' %}
+                            <div class="activity-entry-grid">
+                                <div>
+                                    <p class="activity-entry-label">Before</p>
+                                    <p class="activity-cell-muted">Not previously reported</p>
+                                </div>
+                                <div class="now-card now-card--added">
+                                    <p class="activity-entry-label">Now</p>
+                                    <p class="activity-value">{{ activity.value }}</p>
+                                </div>
+                            </div>
+                            {% elif block.type == 'removed' %}
+                            <div class="activity-entry-grid">
+                                <div>
+                                    <p class="activity-entry-label">Before</p>
+                                    <p class="activity-value">{{ activity.value }}</p>
+                                </div>
+                                <div class="now-card now-card--removed">
+                                    <p class="activity-entry-label">Now</p>
+                                    <p class="activity-cell-muted">Removed</p>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="activity-value">{{ activity.value|default:activity.new_value|default:activity.old_value }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-
+        {% endfor %}
     </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const accordion = document.getElementById('activity-accordion');
+            if (!accordion) {
+                return;
+            }
+
+            accordion.addEventListener('click', function (event) {
+                const hostToggle = event.target.closest('[data-host-toggle]');
+                if (hostToggle) {
+                    const targetId = hostToggle.getAttribute('data-host-toggle');
+                    const panel = document.getElementById(targetId);
+                    if (panel) {
+                        panel.classList.toggle('hidden');
+                        const chevron = hostToggle.querySelector('[data-chevron]');
+                        if (chevron) {
+                            chevron.classList.toggle('rotate-180');
+                        }
+                    }
+                    return;
+                }
+
+                const showMoreBtn = event.target.closest('[data-show-more]');
+                if (showMoreBtn) {
+                    const targetId = showMoreBtn.getAttribute('data-show-more');
+                    const container = document.getElementById(targetId);
+                    if (container) {
+                        const hiddenEntries = container.querySelectorAll('.extra-entry');
+                        hiddenEntries.forEach(function (entry) {
+                            entry.classList.remove('hidden');
+                        });
+                        showMoreBtn.remove();
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock %}
