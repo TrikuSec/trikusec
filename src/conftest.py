@@ -60,6 +60,12 @@ def test_user(db):
 
 
 @pytest.fixture
+def test_organization(db):
+    """Create a test organization."""
+    return OrganizationFactory()
+
+
+@pytest.fixture
 def test_license_key(db, test_user):
     """Create a test license key."""
     # Get or create default organization

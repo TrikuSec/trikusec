@@ -6,7 +6,7 @@ AJAX forms, and state management.
 """
 import pytest
 from django.contrib.auth.models import User
-from api.models import PolicyRule, PolicyRuleset, Device, LicenseKey
+from api.models import PolicyRule, PolicyRuleset, Device, LicenseKey, ActivityIgnorePattern, Organization, ActivityIgnorePattern, Organization
 
 
 @pytest.mark.e2e
@@ -901,3 +901,188 @@ class TestLicenseSelectionWorkflow:
         assert default_license.licensekey in updated_command, "Command should use default license after cancel"
         assert updated_command == initial_command, "Command should be same as initial after cancel"
 
+
+@pytest.mark.e2e
+class TestSilenceRules:
+    """Test silence rules sidebar functionality."""
+    
+    def test_open_close_silence_rules_sidebar(self, authenticated_browser, live_server_url):
+        """Test opening and closing the silence rules sidebar."""
+        page = authenticated_browser
+        
+        # Navigate to activity page
+        page.goto(f"{live_server_url}/activity/")
+        page.wait_for_load_state("networkidle")
+        
+        # Click "Configure Silent Events" button
+        page.click('button:has-text("Configure Silent Events")')
+        
+        # Wait for sidebar to appear
+        sidebar = page.locator('#silence-rules-panel')
+        sidebar.wait_for(state="visible", timeout=5000)
+        assert sidebar.is_visible(), "Silence rules sidebar should be visible"
+        
+        # Click close button
+        close_button = page.locator('.silence-rules-panel-button')
+        close_button.wait_for(state="visible", timeout=5000)
+        close_button.click()
+        
+        # Wait for sidebar to close
+        sidebar.wait_for(state="hidden", timeout=5000)
+        assert not sidebar.is_visible(), "Silence rules sidebar should be hidden"
+    
+    def test_create_silence_rule(self, authenticated_browser, live_server_url):
+        """Test creating a new silence rule."""
+        page = authenticated_browser
+        
+        # Get default organization
+        org = Organization.objects.first()
+        if not org:
+            org = Organization.objects.create(name='Test Org', slug='test-org')
+        
+        # Navigate to activity page
+        page.goto(f"{live_server_url}/activity/")
+        page.wait_for_load_state("networkidle")
+        
+        # Click "Configure Silent Events" button
+        page.click('button:has-text("Configure Silent Events")')
+        
+        # Wait for sidebar
+        sidebar = page.locator('#silence-rules-panel')
+        sidebar.wait_for(state="visible", timeout=5000)
+        
+        # Wait for form to be visible
+        form = page.locator('#silence-rule-form')
+        form.wait_for(state="visible", timeout=5000)
+        
+        # Fill in form
+        page.fill('#silence_key_pattern', 'test_key')
+        page.select_option('#silence_event_type', 'changed')
+        page.fill('#silence_host_pattern', 'web-*')
+        
+        # Submit form
+        submit_button = page.locator('#silence-rule-form button[type="submit"]')
+        submit_button.click()
+        
+        # Wait for page reload (form submission triggers reload via AJAX)
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(1000)
+        
+        # Verify rule was created
+        rule = ActivityIgnorePattern.objects.filter(
+            organization=org,
+            key_pattern='test_key',
+            event_type='changed',
+            host_pattern='web-*'
+        ).first()
+        assert rule is not None, "Silence rule should be created"
+        assert rule.is_active is True, "Rule should be active by default"
+    
+    def test_edit_silence_rule(self, authenticated_browser, live_server_url):
+        """Test editing an existing silence rule."""
+        page = authenticated_browser
+        
+        # Get default organization
+        org = Organization.objects.first()
+        if not org:
+            org = Organization.objects.create(name='Test Org', slug='test-org')
+        
+        # Create a test rule
+        rule = ActivityIgnorePattern.objects.create(
+            organization=org,
+            key_pattern='original_key',
+            event_type='all',
+            host_pattern='*',
+            is_active=True
+        )
+        
+        # Navigate to activity page
+        page.goto(f"{live_server_url}/activity/")
+        page.wait_for_load_state("networkidle")
+        
+        # Click "Configure Silent Events" button
+        page.click('button:has-text("Configure Silent Events")')
+        
+        # Wait for sidebar
+        sidebar = page.locator('#silence-rules-panel')
+        sidebar.wait_for(state="visible", timeout=5000)
+        
+        # Wait for rules list to load
+        page.wait_for_timeout(1000)
+        
+        # Click edit button for the rule
+        edit_button = page.locator(f'[data-edit-rule="{rule.id}"]')
+        edit_button.wait_for(state="visible", timeout=5000)
+        edit_button.click()
+        
+        # Wait for form to be populated
+        page.wait_for_timeout(500)
+        
+        # Verify form is in edit mode
+        form_title = page.locator('#silence-rule-form-title')
+        assert 'Edit' in form_title.text_content(), "Form should be in edit mode"
+        
+        # Update form fields
+        page.fill('#silence_key_pattern', 'updated_key')
+        page.select_option('#silence_event_type', 'added')
+        
+        # Submit form
+        submit_button = page.locator('#silence-rule-form button[type="submit"]')
+        submit_button.click()
+        
+        # Wait for page reload
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(1000)
+        
+        # Verify rule was updated
+        rule.refresh_from_db()
+        assert rule.key_pattern == 'updated_key', "Key pattern should be updated"
+        assert rule.event_type == 'added', "Event type should be updated"
+    
+    def test_delete_silence_rule(self, authenticated_browser, live_server_url):
+        """Test deleting a silence rule."""
+        page = authenticated_browser
+        
+        # Get default organization
+        org = Organization.objects.first()
+        if not org:
+            org = Organization.objects.create(name='Test Org', slug='test-org')
+        
+        # Create a test rule
+        rule = ActivityIgnorePattern.objects.create(
+            organization=org,
+            key_pattern='delete_test_key',
+            event_type='all',
+            host_pattern='*',
+            is_active=True
+        )
+        rule_id = rule.id
+        
+        # Navigate to activity page
+        page.goto(f"{live_server_url}/activity/")
+        page.wait_for_load_state("networkidle")
+        
+        # Click "Configure Silent Events" button
+        page.click('button:has-text("Configure Silent Events")')
+        
+        # Wait for sidebar
+        sidebar = page.locator('#silence-rules-panel')
+        sidebar.wait_for(state="visible", timeout=5000)
+        
+        # Wait for rules list to load
+        page.wait_for_timeout(1000)
+        
+        # Click delete button
+        delete_button = page.locator(f'[data-delete-rule="{rule_id}"]')
+        delete_button.wait_for(state="visible", timeout=5000)
+        
+        # Handle confirmation dialog
+        page.once("dialog", lambda dialog: dialog.accept())
+        delete_button.click()
+        
+        # Wait for page reload
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(1000)
+        
+        # Verify rule was deleted
+        assert not ActivityIgnorePattern.objects.filter(id=rule_id).exists(), "Rule should be deleted"

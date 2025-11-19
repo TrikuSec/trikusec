@@ -84,7 +84,7 @@ def upload_report(request):
                     org = device.licensekey.organization
                     ignore_keys = list(ActivityIgnorePattern.objects.filter(
                         organization=org, is_active=True
-                    ).values_list('pattern', flat=True)) if org else []
+                    ).values_list('key_pattern', flat=True)) if org else []
                     
                     # Generate structured diff
                     diff_data = latest_lynis.compare_reports(report_data, ignore_keys)

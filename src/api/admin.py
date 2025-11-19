@@ -171,15 +171,15 @@ class PolicyRulesetAdmin(admin.ModelAdmin):
 
 @admin.register(ActivityIgnorePattern)
 class ActivityIgnorePatternAdmin(admin.ModelAdmin):
-    list_display = ('pattern', 'organization', 'is_active', 'created_at', 'updated_at')
-    list_filter = ('is_active', 'organization', 'created_at', 'updated_at')
-    search_fields = ('pattern', 'organization__name')
+    list_display = ('key_pattern', 'event_type', 'host_pattern', 'organization', 'is_active', 'created_at', 'updated_at')
+    list_filter = ('is_active', 'event_type', 'organization', 'created_at', 'updated_at')
+    search_fields = ('key_pattern', 'host_pattern', 'organization__name')
     readonly_fields = ('created_at', 'updated_at')
     date_hierarchy = 'created_at'
     
     fieldsets = (
         (None, {
-            'fields': ('organization', 'pattern', 'is_active')
+            'fields': ('organization', 'key_pattern', 'event_type', 'host_pattern', 'is_active')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

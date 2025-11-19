@@ -4,8 +4,9 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
-from api.models import LicenseKey, Device, FullReport, DiffReport
+from api.models import LicenseKey, Device, FullReport, DiffReport, ActivityIgnorePattern, Organization
 from api.utils.lynis_report import LynisReport
+import fnmatch
 
 
 @pytest.mark.django_db
@@ -818,3 +819,279 @@ class TestLynisReportCustomVariables:
         parsed = LynisReport(report_data).get_parsed_report()
 
         assert parsed['days_since_audit'] is None
+
+
+@pytest.mark.django_db
+class TestActivityIgnorePattern:
+    """Tests for ActivityIgnorePattern model and filtering logic."""
+
+    def test_activity_ignore_pattern_creation(self, test_organization):
+        """Test creating an ActivityIgnorePattern with all fields."""
+        pattern = ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='slow_test',
+            event_type='changed',
+            host_pattern='web-*',
+            is_active=True
+        )
+        
+        assert pattern.key_pattern == 'slow_test'
+        assert pattern.event_type == 'changed'
+        assert pattern.host_pattern == 'web-*'
+        assert pattern.is_active is True
+        assert 'slow_test' in str(pattern)
+        assert 'Changed' in str(pattern)
+
+    def test_activity_ignore_pattern_defaults(self, test_organization):
+        """Test ActivityIgnorePattern default values."""
+        pattern = ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='test_key'
+        )
+        
+        assert pattern.event_type == 'all'
+        assert pattern.host_pattern == '*'
+        assert pattern.is_active is True
+
+    def test_activity_ignore_pattern_unique_constraint(self, test_organization):
+        """Test that unique constraint works for organization, key_pattern, event_type, host_pattern."""
+        ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='test_key',
+            event_type='all',
+            host_pattern='*'
+        )
+        
+        # Should not be able to create duplicate
+        with pytest.raises(Exception):  # IntegrityError or similar
+            ActivityIgnorePattern.objects.create(
+                organization=test_organization,
+                key_pattern='test_key',
+                event_type='all',
+                host_pattern='*'
+            )
+
+    def test_pattern_matching_key_pattern(self, test_organization):
+        """Test that key pattern matching works with fnmatch."""
+        # Test exact match
+        assert fnmatch.fnmatch('slow_test', 'slow_test') is True
+        assert fnmatch.fnmatch('slow_test', 'fast_test') is False
+        
+        # Test wildcard match
+        assert fnmatch.fnmatch('slow_test', 'slow_*') is True
+        assert fnmatch.fnmatch('test_key', 'test_*') is True
+        assert fnmatch.fnmatch('other_key', 'test_*') is False
+        
+        # Test wildcard for all
+        assert fnmatch.fnmatch('any_key', '*') is True
+
+    def test_pattern_matching_host_pattern(self, test_organization):
+        """Test that host pattern matching works with fnmatch."""
+        # Test exact match
+        assert fnmatch.fnmatch('web-01', 'web-01') is True
+        assert fnmatch.fnmatch('web-01', 'db-01') is False
+        
+        # Test wildcard match
+        assert fnmatch.fnmatch('web-01', 'web-*') is True
+        assert fnmatch.fnmatch('web-02', 'web-*') is True
+        assert fnmatch.fnmatch('db-01', 'web-*') is False
+        
+        # Test wildcard for all
+        assert fnmatch.fnmatch('any-host', '*') is True
+
+    def test_activity_filtering_logic(self, test_organization, test_license_key):
+        """Test the filtering logic for activities."""
+        # Create a device
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='test-host-1',
+            hostid2='test-host-2',
+            hostname='web-01'
+        )
+        
+        # Create a silence rule
+        rule = ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='slow_test',
+            event_type='all',
+            host_pattern='*',
+            is_active=True
+        )
+        
+        # Test activity that should be filtered
+        activity1 = {
+            'device': device,
+            'key': 'slow_test',
+            'type': 'changed',
+            'created_at': timezone.now()
+        }
+        
+        # Test activity that should NOT be filtered (different key)
+        activity2 = {
+            'device': device,
+            'key': 'other_key',
+            'type': 'changed',
+            'created_at': timezone.now()
+        }
+        
+        # Simulate filtering logic
+        should_filter1 = False
+        should_filter2 = False
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            # Match key pattern
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity1['key'], silence_rule.key_pattern):
+                continue
+            # Match event type
+            if silence_rule.event_type != 'all' and activity1['type'] != silence_rule.event_type:
+                continue
+            # Match host pattern
+            if silence_rule.host_pattern != '*' and device.hostname and not fnmatch.fnmatch(device.hostname, silence_rule.host_pattern):
+                continue
+            should_filter1 = True
+            break
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            # Match key pattern
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity2['key'], silence_rule.key_pattern):
+                continue
+            # Match event type
+            if silence_rule.event_type != 'all' and activity2['type'] != silence_rule.event_type:
+                continue
+            # Match host pattern
+            if silence_rule.host_pattern != '*' and device.hostname and not fnmatch.fnmatch(device.hostname, silence_rule.host_pattern):
+                continue
+            should_filter2 = True
+            break
+        
+        assert should_filter1 is True  # Should be filtered
+        assert should_filter2 is False  # Should NOT be filtered
+
+    def test_activity_filtering_event_type(self, test_organization, test_license_key):
+        """Test that event type filtering works correctly."""
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='test-host-1',
+            hostid2='test-host-2',
+            hostname='web-01'
+        )
+        
+        # Create rule that only filters 'changed' events
+        rule = ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='test_key',
+            event_type='changed',
+            host_pattern='*',
+            is_active=True
+        )
+        
+        # Test 'changed' activity - should be filtered
+        activity_changed = {
+            'device': device,
+            'key': 'test_key',
+            'type': 'changed',
+            'created_at': timezone.now()
+        }
+        
+        # Test 'added' activity - should NOT be filtered
+        activity_added = {
+            'device': device,
+            'key': 'test_key',
+            'type': 'added',
+            'created_at': timezone.now()
+        }
+        
+        # Simulate filtering
+        should_filter_changed = False
+        should_filter_added = False
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity_changed['key'], silence_rule.key_pattern):
+                continue
+            if silence_rule.event_type != 'all' and activity_changed['type'] != silence_rule.event_type:
+                continue
+            if silence_rule.host_pattern != '*' and device.hostname and not fnmatch.fnmatch(device.hostname, silence_rule.host_pattern):
+                continue
+            should_filter_changed = True
+            break
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity_added['key'], silence_rule.key_pattern):
+                continue
+            if silence_rule.event_type != 'all' and activity_added['type'] != silence_rule.event_type:
+                continue
+            if silence_rule.host_pattern != '*' and device.hostname and not fnmatch.fnmatch(device.hostname, silence_rule.host_pattern):
+                continue
+            should_filter_added = True
+            break
+        
+        assert should_filter_changed is True  # Should be filtered
+        assert should_filter_added is False  # Should NOT be filtered
+
+    def test_activity_filtering_host_pattern(self, test_organization, test_license_key):
+        """Test that host pattern filtering works correctly."""
+        device_web = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='test-host-1',
+            hostid2='test-host-2',
+            hostname='web-01'
+        )
+        
+        device_db = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='test-host-3',
+            hostid2='test-host-4',
+            hostname='db-01'
+        )
+        
+        # Create rule that only filters 'web-*' hosts
+        rule = ActivityIgnorePattern.objects.create(
+            organization=test_organization,
+            key_pattern='test_key',
+            event_type='all',
+            host_pattern='web-*',
+            is_active=True
+        )
+        
+        # Test activity from web host - should be filtered
+        activity_web = {
+            'device': device_web,
+            'key': 'test_key',
+            'type': 'changed',
+            'created_at': timezone.now()
+        }
+        
+        # Test activity from db host - should NOT be filtered
+        activity_db = {
+            'device': device_db,
+            'key': 'test_key',
+            'type': 'changed',
+            'created_at': timezone.now()
+        }
+        
+        # Simulate filtering
+        should_filter_web = False
+        should_filter_db = False
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity_web['key'], silence_rule.key_pattern):
+                continue
+            if silence_rule.event_type != 'all' and activity_web['type'] != silence_rule.event_type:
+                continue
+            if silence_rule.host_pattern != '*' and device_web.hostname and not fnmatch.fnmatch(device_web.hostname, silence_rule.host_pattern):
+                continue
+            should_filter_web = True
+            break
+        
+        for silence_rule in ActivityIgnorePattern.objects.filter(organization=test_organization, is_active=True):
+            if silence_rule.key_pattern != '*' and not fnmatch.fnmatch(activity_db['key'], silence_rule.key_pattern):
+                continue
+            if silence_rule.event_type != 'all' and activity_db['type'] != silence_rule.event_type:
+                continue
+            if silence_rule.host_pattern != '*' and device_db.hostname and not fnmatch.fnmatch(device_db.hostname, silence_rule.host_pattern):
+                continue
+            should_filter_db = True
+            break
+        
+        assert should_filter_web is True  # Should be filtered
+        assert should_filter_db is False  # Should NOT be filtered

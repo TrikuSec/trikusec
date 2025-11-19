@@ -9,15 +9,16 @@ from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q, F, Count
 from django.core.paginator import Paginator
 from django.conf import settings
-from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization
+from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance
 from api.utils.license_utils import generate_license_key
-from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm, UserProfileForm
+from .forms import PolicyRulesetForm, PolicyRuleForm, DeviceForm, LicenseKeyForm, UserProfileForm, ActivityIgnorePatternForm
 import os
 import json
 import logging
 import re
+import fnmatch
 from urllib.parse import urlparse
 from django.urls import reverse
 from datetime import datetime
@@ -1057,6 +1058,47 @@ def activity(request):
         # Order activities by date (most recent first) and type (added, removed, changed)
         activities = sorted(activities, key=lambda x: (x['created_at'], x['type']), reverse=True)
     
+    # Filter activities based on silence rules
+    if activities:
+        # Get default organization (single-tenant for now)
+        org = Organization.objects.first()
+        if org:
+            # Get all active silence rules for the organization
+            silence_rules = ActivityIgnorePattern.objects.filter(
+                organization=org, is_active=True
+            )
+            
+            # Filter out activities that match any silence rule
+            filtered_activities = []
+            for activity in activities:
+                device = activity['device']
+                activity_key = activity['key']
+                activity_type = activity.get('type', 'other')
+                
+                # Check if this activity matches any silence rule
+                should_include = True
+                for rule in silence_rules:
+                    # Match key pattern
+                    if rule.key_pattern != '*' and not fnmatch.fnmatch(activity_key, rule.key_pattern):
+                        continue
+                    
+                    # Match event type
+                    if rule.event_type != 'all' and activity_type != rule.event_type:
+                        continue
+                    
+                    # Match host pattern
+                    if rule.host_pattern != '*' and device.hostname and not fnmatch.fnmatch(device.hostname, rule.host_pattern):
+                        continue
+                    
+                    # If we get here, this activity matches the rule - exclude it
+                    should_include = False
+                    break
+                
+                if should_include:
+                    filtered_activities.append(activity)
+            
+            activities = filtered_activities
+    
     grouped_activities = []
     if activities:
         from collections import OrderedDict, defaultdict
@@ -1159,6 +1201,149 @@ def activity(request):
         'grouped_activities': grouped_activities,
         'preview_limit': preview_limit,
     })
+
+
+@login_required
+def silence_rule_list(request):
+    """List all silence rules for the current organization (JSON endpoint)"""
+    org = Organization.objects.first()
+    if not org:
+        return JsonResponse({'rules': []})
+    
+    rules = ActivityIgnorePattern.objects.filter(organization=org).order_by('-created_at')
+    rules_data = [
+        {
+            'id': rule.id,
+            'key_pattern': rule.key_pattern,
+            'event_type': rule.event_type,
+            'host_pattern': rule.host_pattern,
+            'is_active': rule.is_active,
+            'created_at': rule.created_at.isoformat(),
+        }
+        for rule in rules
+    ]
+    
+    return JsonResponse({'rules': rules_data})
+
+
+@login_required
+@csrf_protect
+def silence_rule_create(request):
+    """Create a new silence rule (AJAX + fallback)"""
+    org = Organization.objects.first()
+    if not org:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': ['No organization found']}, status=400)
+        return redirect('activity')
+    
+    if request.method == 'POST':
+        form = ActivityIgnorePatternForm(request.POST)
+        if form.is_valid():
+            rule = form.save(commit=False)
+            rule.organization = org
+            rule.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'rule_id': rule.id,
+                    'message': 'Silence rule created successfully'
+                })
+            
+            # Traditional request: redirect
+            return redirect('activity')
+        else:
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+    
+    # Fallback for GET or non-AJAX POST
+    return redirect('activity')
+
+
+@login_required
+@csrf_protect
+def silence_rule_edit(request, rule_id):
+    """Edit an existing silence rule (AJAX + fallback)"""
+    rule = get_object_or_404(ActivityIgnorePattern, id=rule_id)
+    
+    if request.method == 'POST':
+        form = ActivityIgnorePatternForm(request.POST, instance=rule)
+        if form.is_valid():
+            form.save()
+            
+            # AJAX request: return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'rule_id': rule.id,
+                    'message': 'Silence rule updated successfully'
+                })
+            
+            # Traditional request: redirect
+            return redirect('activity')
+        else:
+            # AJAX request: return errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+    
+    # Fallback for GET or non-AJAX POST
+    return redirect('activity')
+
+
+@login_required
+@csrf_protect
+def silence_rule_delete(request, rule_id):
+    """Delete a silence rule (AJAX + fallback)"""
+    rule = get_object_or_404(ActivityIgnorePattern, id=rule_id)
+    
+    if request.method == 'POST':
+        rule.delete()
+        
+        # AJAX request: return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Silence rule deleted successfully'
+            })
+        
+        # Traditional request: redirect
+        return redirect('activity')
+    
+    # Fallback for GET
+    return redirect('activity')
+
+
+@login_required
+@csrf_protect
+def silence_rule_toggle(request, rule_id):
+    """Toggle the active status of a silence rule (AJAX + fallback)"""
+    rule = get_object_or_404(ActivityIgnorePattern, id=rule_id)
+    
+    if request.method == 'POST':
+        rule.is_active = not rule.is_active
+        rule.save()
+        
+        # AJAX request: return JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'is_active': rule.is_active,
+                'message': f'Silence rule {"activated" if rule.is_active else "deactivated"} successfully'
+            })
+        
+        # Traditional request: redirect
+        return redirect('activity')
+    
+    # Fallback for GET
+    return redirect('activity')
 
 
 @login_required

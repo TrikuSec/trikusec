@@ -77,20 +77,31 @@ class DiffReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ActivityIgnorePattern(models.Model):
+    EVENT_TYPE_CHOICES = [
+        ('all', 'All'),
+        ('added', 'Added'),
+        ('changed', 'Changed'),
+        ('removed', 'Removed'),
+    ]
+    
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    pattern = models.CharField(max_length=255)
+    key_pattern = models.CharField(max_length=255)
+    event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES, default='all')
+    host_pattern = models.CharField(max_length=255, default='*')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = [['organization', 'pattern']]
+        unique_together = [['organization', 'key_pattern', 'event_type', 'host_pattern']]
         indexes = [
             models.Index(fields=['organization', 'is_active']),
+            models.Index(fields=['organization', 'event_type', 'is_active']),
         ]
     
     def __str__(self):
-        return f"{self.organization.name}: {self.pattern}"
+        event_type_label = dict(self.EVENT_TYPE_CHOICES).get(self.event_type, self.event_type)
+        return f"{self.organization.name}: {self.key_pattern} ({event_type_label}, {self.host_pattern})"
 
 class PolicyRule(models.Model):
     name = models.CharField(max_length=255)

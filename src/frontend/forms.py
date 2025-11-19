@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from api.models import Device, PolicyRuleset, PolicyRule, LicenseKey
+from api.models import Device, PolicyRuleset, PolicyRule, LicenseKey, ActivityIgnorePattern
 import jmespath
 
 class DeviceForm(forms.ModelForm):
@@ -162,3 +162,43 @@ class UserProfileForm(forms.ModelForm):
         if exists:
             raise forms.ValidationError('This email address is already being used by another account.')
         return email
+
+
+class ActivityIgnorePatternForm(forms.ModelForm):
+    class Meta:
+        model = ActivityIgnorePattern
+        fields = ['key_pattern', 'event_type', 'host_pattern', 'is_active']
+        widgets = {
+            'key_pattern': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'e.g., slow_test or test_*',
+            }),
+            'event_type': forms.Select(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
+            'host_pattern': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'e.g., * or web-*',
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['key_pattern'].help_text = 'Key name pattern (supports wildcards: *, ?)'
+        self.fields['host_pattern'].help_text = 'Hostname pattern (supports wildcards: *, ?). Use * for all hosts.'
+        self.fields['event_type'].help_text = 'Event type to silence. Select "All" to silence all event types for this key.'
+    
+    def clean_key_pattern(self):
+        key_pattern = self.cleaned_data.get('key_pattern')
+        if not key_pattern or not key_pattern.strip():
+            raise forms.ValidationError('Key pattern cannot be empty.')
+        return key_pattern.strip()
+    
+    def clean_host_pattern(self):
+        host_pattern = self.cleaned_data.get('host_pattern')
+        if not host_pattern or not host_pattern.strip():
+            raise forms.ValidationError('Host pattern cannot be empty. Use * for all hosts.')
+        return host_pattern.strip()
