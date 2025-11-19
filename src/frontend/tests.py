@@ -5,7 +5,8 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from api.models import Device, FullReport
+from api.models import Device, FullReport, DiffReport
+from api.utils.lynis_report import LynisReport
 from frontend.views import DEVICE_LIST_PAGE_SIZE
 
 
@@ -173,6 +174,40 @@ class TestDeviceDelete:
         
         # Verify all reports were deleted
         assert FullReport.objects.filter(device_id=device_id).count() == 0
+
+
+@pytest.mark.django_db
+class TestActivityView:
+    """Tests for the activity timeline view."""
+
+    def test_activity_view_renders_when_many_entries_present(
+        self, test_user, test_device, monkeypatch
+    ):
+        client = Client()
+        client.force_login(test_user)
+
+        # Create at least one diff report to trigger activity generation
+        DiffReport.objects.create(device=test_device, diff_report="dummy diff")
+
+        def fake_analyze(self, ignore_keys):
+            return {
+                'added': {
+                    'nft_version': ['1.0.0', '1.0.1', '1.0.2', '1.0.3']
+                },
+                'removed': {},
+                'changed': []
+            }
+
+        monkeypatch.setattr(LynisReport.Diff, 'analyze', fake_analyze)
+
+        response = client.get(reverse('activity'))
+
+        assert response.status_code == 200
+        grouped = response.context['grouped_activities']
+        assert grouped
+        first_host = grouped[0]
+        added_block = next(block for block in first_host['type_blocks'] if block['type'] == 'added')
+        assert added_block['count'] == 4
 
 
 @pytest.mark.django_db
