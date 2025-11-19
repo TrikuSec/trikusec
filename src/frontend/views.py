@@ -1099,7 +1099,7 @@ def activity(request):
             
             activities = filtered_activities
     
-    grouped_activities = []
+    grouped_activities_list = []
     if activities:
         from collections import OrderedDict, defaultdict
         from django.utils import timezone
@@ -1167,14 +1167,14 @@ def activity(request):
             entry['activities_by_type'][change_type].append(activity)
 
         # Convert to list and sort by timestamp (most recent first)
-        grouped_activities = sorted(
+        grouped_activities_list = sorted(
             grouped_map.values(),
             key=lambda entry: entry['timestamp'],
             reverse=True
         )
         
         # Process each device+time entry
-        for entry in grouped_activities:
+        for entry in grouped_activities_list:
             # Build type blocks for this entry
             type_blocks = []
             for change_type in ['changed', 'added', 'removed', 'other']:
@@ -1195,11 +1195,34 @@ def activity(request):
                 for change_type in ['changed', 'added', 'removed', 'other']
                 if entry['activities_by_type'].get(change_type)
             ]
+        
+    # Paginate grouped activities
+    if grouped_activities_list:
+        paginator = Paginator(grouped_activities_list, DEVICE_LIST_PAGE_SIZE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        query_params = request.GET.copy()
+        query_params.pop('page', None)
+        base_query = query_params.urlencode()
+        
+        grouped_activities = page_obj
+        is_paginated = page_obj.has_other_pages()
+    else:
+        grouped_activities = []
+        page_obj = None
+        paginator = None
+        base_query = ''
+        is_paginated = False
 
     return render(request, 'activity.html', {
         'activities': activities,
         'grouped_activities': grouped_activities,
         'preview_limit': preview_limit,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': is_paginated,
+        'pagination_query': base_query,
     })
 
 
