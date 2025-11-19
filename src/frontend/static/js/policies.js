@@ -353,7 +353,14 @@ function deleteRuleset(rulesetId, rulesetName) {
             'Content-Type': 'application/json',
         },
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Unknown error');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Reload page to show updated list
@@ -364,7 +371,7 @@ function deleteRuleset(rulesetId, rulesetName) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error deleting ruleset. Please try again.');
+        alert('Error deleting ruleset: ' + error.message);
     });
 }
 

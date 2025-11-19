@@ -727,6 +727,18 @@ def ruleset_delete(request, ruleset_id):
     """Delete a policy ruleset (AJAX + fallback)"""
     if request.method == 'POST':
         policy_ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
+        
+        # Check if ruleset is linked to any devices
+        if policy_ruleset.devices.exists():
+            error_msg = 'Cannot delete: Ruleset is linked to one or more devices'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_msg
+                }, status=400)
+            messages.error(request, error_msg)
+            return redirect('policy_list')
+        
         policy_ruleset.delete()
         
         # AJAX request: return JSON
@@ -748,6 +760,18 @@ def rule_delete(request, rule_id):
     """Delete a policy rule (AJAX + fallback)"""
     if request.method == 'POST':
         rule = get_object_or_404(PolicyRule, id=rule_id)
+        
+        # Check if rule is linked to any rulesets
+        if rule.policyruleset_set.exists():
+            error_msg = 'Cannot delete: Rule is linked to one or more rulesets'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_msg
+                }, status=400)
+            messages.error(request, error_msg)
+            return redirect('policy_list')
+        
         rule.delete()
         
         # AJAX request: return JSON

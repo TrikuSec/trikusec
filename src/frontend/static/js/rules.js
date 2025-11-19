@@ -222,7 +222,14 @@ function deleteRule(ruleId, ruleName) {
             'Content-Type': 'application/json',
         },
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Unknown error');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Reload page to show updated list
@@ -233,7 +240,7 @@ function deleteRule(ruleId, ruleName) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error deleting rule. Please try again.');
+        alert('Error deleting rule: ' + error.message);
     });
 }
 
