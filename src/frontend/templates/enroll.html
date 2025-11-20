@@ -90,7 +90,7 @@ fi
 # so we need to set the configuration manually
 echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" >> /etc/lynis/custom.prf
 
-${SUDO} lynis configure settings upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis auditor="TrikuSec"
+${SUDO} lynis configure settings upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis auditor=TrikuSec
 
 # If lynis version is older than 3.0.0, add test_skip_always=CRYP-7902 to the custom profile
 # Extract major version number for comparison
