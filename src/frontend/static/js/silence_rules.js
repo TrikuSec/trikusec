@@ -99,7 +99,16 @@ function openSilenceRuleEditFromList(ruleId) {
     toggleSilenceRuleEditPanel(ruleId);
 }
 
-function toggleSilenceRuleEditPanel(ruleId) {
+function openSilenceRuleFromActivity(defaults = {}) {
+    const listPanel = document.getElementById('silence-rules-panel');
+    if (listPanel && !listPanel.classList.contains('hidden')) {
+        listPanel.dataset.wasOpen = 'true';
+        listPanel.classList.add('hidden');
+    }
+    toggleSilenceRuleEditPanel(null, defaults);
+}
+
+function toggleSilenceRuleEditPanel(ruleId = null, defaults = null) {
     const panel = document.getElementById('silence-rule-edit-panel');
     if (!panel) {
         console.error('Silence rule edit panel not found in DOM');
@@ -123,7 +132,7 @@ function toggleSilenceRuleEditPanel(ruleId) {
     } else {
         form.action = '/activity/silence/create/';
         title.textContent = 'Add Silence Rule';
-        loadSilenceRuleDetails();
+        loadSilenceRuleDetails(null, defaults);
     }
 }
 
@@ -145,13 +154,28 @@ function closeSilenceRuleEditPanel(forceOnly = false) {
     }
 }
 
-function loadSilenceRuleDetails(ruleId) {
+function loadSilenceRuleDetails(ruleId, defaults = null) {
+    const keyInput = document.getElementById('silence_key_pattern');
+    const eventSelect = document.getElementById('silence_event_type');
+    const hostInput = document.getElementById('silence_host_pattern');
+    const activeCheckbox = document.getElementById('silence_is_active');
+    const ruleIdInput = document.getElementById('silence_rule_id');
+
+    if (!keyInput || !eventSelect || !hostInput || !activeCheckbox || !ruleIdInput) {
+        console.error('Silence rule form inputs not found');
+        return;
+    }
+
     if (!ruleId) {
-        document.getElementById('silence_key_pattern').value = '';
-        document.getElementById('silence_event_type').value = 'all';
-        document.getElementById('silence_host_pattern').value = '*';
-        document.getElementById('silence_is_active').checked = true;
-        document.getElementById('silence_rule_id').value = '';
+        const allowedEventTypes = ['all', 'added', 'changed', 'removed'];
+        const defaultEventType = (defaults?.eventType || 'all').toLowerCase();
+        const normalizedEventType = allowedEventTypes.includes(defaultEventType) ? defaultEventType : 'all';
+
+        keyInput.value = defaults?.keyPattern || '';
+        eventSelect.value = normalizedEventType;
+        hostInput.value = defaults?.hostPattern || '*';
+        activeCheckbox.checked = defaults?.isActive === false ? false : true;
+        ruleIdInput.value = '';
         hideFormErrors();
         return;
     }
@@ -163,11 +187,11 @@ function loadSilenceRuleDetails(ruleId) {
         return;
     }
 
-    document.getElementById('silence_key_pattern').value = rule.key_pattern;
-    document.getElementById('silence_event_type').value = rule.event_type;
-    document.getElementById('silence_host_pattern').value = rule.host_pattern;
-    document.getElementById('silence_is_active').checked = rule.is_active;
-    document.getElementById('silence_rule_id').value = ruleId;
+    keyInput.value = rule.key_pattern;
+    eventSelect.value = rule.event_type;
+    hostInput.value = rule.host_pattern;
+    activeCheckbox.checked = rule.is_active;
+    ruleIdInput.value = ruleId;
     hideFormErrors();
 }
 

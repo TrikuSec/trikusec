@@ -6,7 +6,15 @@ AJAX forms, and state management.
 """
 import pytest
 from django.contrib.auth.models import User
-from api.models import PolicyRule, PolicyRuleset, Device, LicenseKey, ActivityIgnorePattern, Organization, ActivityIgnorePattern, Organization
+from api.models import (
+    PolicyRule,
+    PolicyRuleset,
+    Device,
+    LicenseKey,
+    ActivityIgnorePattern,
+    Organization,
+    DiffReport,
+)
 
 
 @pytest.mark.e2e
@@ -930,6 +938,50 @@ class TestSilenceRules:
         # Wait for sidebar to close
         sidebar.wait_for(state="hidden", timeout=5000)
         assert not sidebar.is_visible(), "Silence rules sidebar should be hidden"
+    
+    def test_quick_silence_button_prefills_form(self, authenticated_browser, live_server_url, test_device):
+        """Quick-silence icon opens the form with prefilled values."""
+        page = authenticated_browser
+
+        DiffReport.objects.create(
+            device=test_device,
+            diff_report={
+                'changed': [
+                    {'quick_silence_key': {'old': 'old value', 'new': 'new value'}}
+                ]
+            }
+        )
+
+        page.goto(f"{live_server_url}/activity/")
+        page.wait_for_load_state("networkidle")
+
+        host_toggle = page.locator('[data-host-toggle]').first
+        host_toggle.wait_for(state="visible", timeout=5000)
+        host_toggle.click()
+
+        silence_button = page.locator('[data-silence-key]').first
+        silence_button.wait_for(state="visible", timeout=5000)
+
+        key_value = silence_button.get_attribute('data-silence-key')
+        event_value = (silence_button.get_attribute('data-silence-event') or 'all').lower()
+        host_value = silence_button.get_attribute('data-silence-host') or '*'
+
+        silence_button.click()
+
+        panel = page.locator('#silence-rule-edit-panel')
+        panel.wait_for(state="visible", timeout=5000)
+
+        key_input = page.locator('#silence_key_pattern')
+        event_select = page.locator('#silence_event_type')
+        host_input = page.locator('#silence_host_pattern')
+
+        key_input.wait_for(state="visible", timeout=5000)
+        assert key_input.input_value() == key_value
+        assert event_select.input_value() == event_value
+        assert host_input.input_value() == host_value
+
+        close_button = page.locator('.silence-rule-edit-panel-button')
+        close_button.first.click()
     
     def test_create_silence_rule(self, authenticated_browser, live_server_url):
         """Test creating a new silence rule."""
