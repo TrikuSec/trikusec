@@ -17,7 +17,155 @@ document.addEventListener('DOMContentLoaded', function() {
             submitLicenseForm();
         });
     }
+
+    // Initialize filtering (with a small delay to ensure licenses data is available)
+    setTimeout(initializeLicenseFilters, 100);
 });
+
+// Initialize license filtering functionality
+function initializeLicenseFilters() {
+    // Only initialize if we're on the license list page
+    const searchInput = document.getElementById('license-search');
+    const statusFilter = document.getElementById('status-filter');
+    const expirationFilter = document.getElementById('expiration-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearFiltersInlineBtn = document.getElementById('clear-filters-inline');
+
+    if (!searchInput || !statusFilter || !expirationFilter) {
+        return; // Not on license list page
+    }
+
+    // Wait for licenses data to be available (it's defined in inline script)
+    if (typeof licenses === 'undefined') {
+        // Retry after a short delay if licenses isn't available yet
+        setTimeout(initializeLicenseFilters, 100);
+        return;
+    }
+
+    // Set expiration data attributes on rows based on license data
+    setExpirationDataAttributes();
+
+    // Add event listeners
+    searchInput.addEventListener('input', filterLicenses);
+    statusFilter.addEventListener('change', filterLicenses);
+    expirationFilter.addEventListener('change', filterLicenses);
+    
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearFilters);
+    }
+    if (clearFiltersInlineBtn) {
+        clearFiltersInlineBtn.addEventListener('click', clearFilters);
+    }
+}
+
+// Set expiration data attributes on table rows
+function setExpirationDataAttributes() {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    const rows = document.querySelectorAll('.license-row');
+    rows.forEach(row => {
+        const licenseId = parseInt(row.dataset.licenseId);
+        const license = licenses.find(l => l.id === licenseId);
+        
+        if (!license) return;
+        
+        let expirationStatus = 'never';
+        if (license.expires_at) {
+            const expiresAt = new Date(license.expires_at);
+            if (expiresAt < now) {
+                expirationStatus = 'expired';
+            } else if (expiresAt <= thirtyDaysFromNow) {
+                expirationStatus = 'expires_soon';
+            } else {
+                expirationStatus = 'active';
+            }
+        }
+        
+        row.dataset.expiration = expirationStatus;
+    });
+}
+
+// Filter licenses based on search and filter criteria
+function filterLicenses() {
+    const searchInput = document.getElementById('license-search');
+    const statusFilter = document.getElementById('status-filter');
+    const expirationFilter = document.getElementById('expiration-filter');
+    
+    if (!searchInput || !statusFilter || !expirationFilter) {
+        return;
+    }
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const statusValue = statusFilter.value;
+    const expirationValue = expirationFilter.value;
+
+    const rows = document.querySelectorAll('.license-row');
+    const emptyStateNoLicenses = document.getElementById('empty-state-no-licenses');
+    const emptyStateFiltered = document.getElementById('empty-state-filtered');
+    
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const licenseName = row.dataset.licenseName || '';
+        const licenseKey = row.dataset.licenseKey || '';
+        const status = row.dataset.status || '';
+        const expiration = row.dataset.expiration || '';
+
+        // Check search term
+        const matchesSearch = !searchTerm || 
+            licenseName.includes(searchTerm) || 
+            licenseKey.includes(searchTerm);
+
+        // Check status filter
+        const matchesStatus = statusValue === 'all' || status === statusValue;
+
+        // Check expiration filter
+        let matchesExpiration = true;
+        if (expirationValue === 'never') {
+            matchesExpiration = expiration === 'never';
+        } else if (expirationValue === 'expires_soon') {
+            matchesExpiration = expiration === 'expires_soon';
+        } else if (expirationValue === 'expired') {
+            matchesExpiration = expiration === 'expired';
+        } else if (expirationValue === 'all') {
+            matchesExpiration = true;
+        }
+
+        // Show/hide row based on all filters
+        if (matchesSearch && matchesStatus && matchesExpiration) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Show/hide empty states
+    if (emptyStateNoLicenses) {
+        emptyStateNoLicenses.style.display = (rows.length === 0) ? '' : 'none';
+    }
+    if (emptyStateFiltered) {
+        if (visibleCount === 0 && rows.length > 0) {
+            emptyStateFiltered.classList.remove('hidden');
+        } else {
+            emptyStateFiltered.classList.add('hidden');
+        }
+    }
+}
+
+// Clear all filters
+function clearFilters() {
+    const searchInput = document.getElementById('license-search');
+    const statusFilter = document.getElementById('status-filter');
+    const expirationFilter = document.getElementById('expiration-filter');
+
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = 'all';
+    if (expirationFilter) expirationFilter.value = 'all';
+
+    filterLicenses();
+}
 
 function toggleLicenseEditPanel(licenseId) {
     const panel = document.getElementById('license-edit-panel');

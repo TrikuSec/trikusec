@@ -1678,25 +1678,34 @@ def silence_rule_toggle(request, rule_id):
 def license_list(request):
     """License list view: show all licenses"""
     from django.utils import timezone
+    from datetime import timedelta
     import json
     licenses = LicenseKey.objects.all().order_by('-created_at')
+    now = timezone.now()
     
     # Serialize licenses for JavaScript
     licenses_data = []
     for license in licenses:
+        # Calculate expiration status
+        is_expired = license.expires_at and license.expires_at < now
+        expires_soon = license.expires_at and not is_expired and (license.expires_at - now) <= timedelta(days=30)
+        
         licenses_data.append({
             'id': license.id,
             'name': license.name,
             'licensekey': license.licensekey,
             'max_devices': license.max_devices,
+            'device_count': license.device_count(),
             'expires_at': license.expires_at.isoformat() if license.expires_at else None,
             'is_active': license.is_active,
+            'is_expired': is_expired,
+            'expires_soon': expires_soon,
         })
     
     return render(request, 'license/license_list.html', {
         'licenses': licenses,
         'licenses_json': json.dumps(licenses_data),
-        'now': timezone.now()
+        'now': now
     })
 
 
