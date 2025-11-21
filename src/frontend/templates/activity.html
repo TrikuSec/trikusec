@@ -341,19 +341,11 @@
                                 {% endif %}
                             </small>
                         </div>
-                        {% if block.hidden_count > 0 %}
-                        <button type="button"
-                                class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                                data-show-more="type-{{ entry.device.id }}-{{ entry.timestamp|date:'U' }}-{{ block.type }}"
-                                data-hidden-count="{{ block.hidden_count }}">
-                            See {{ block.hidden_count }} more
-                        </button>
-                        {% endif %}
                     </div>
                     <div id="type-{{ entry.device.id }}-{{ entry.timestamp|date:'U' }}-{{ block.type }}">
                         {% for activity in block.activities %}
                         {% if block.type == 'enrollment' %}
-                            <div class="activity-entry {% if forloop.counter > preview_limit %}hidden extra-entry{% endif %}">
+                            <div class="activity-entry">
                                 <div class="activity-entry-header">
                                     <div class="activity-entry-title">
                                         <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -368,7 +360,7 @@
                                 </div>
                             </div>
                         {% else %}
-                            <div class="activity-entry {% if forloop.counter > preview_limit %}hidden extra-entry{% endif %}">
+                            <div class="activity-entry">
                                 <div class="activity-entry-header">
                                     <div class="activity-entry-title">
                                         <span class="font-semibold text-gray-900">{{ activity.key }}</span>
@@ -578,19 +570,6 @@
                         }
                     }
                     return;
-                }
-
-                const showMoreBtn = event.target.closest('[data-show-more]');
-                if (showMoreBtn) {
-                    const targetId = showMoreBtn.getAttribute('data-show-more');
-                    const container = document.getElementById(targetId);
-                    if (container) {
-                        const hiddenEntries = container.querySelectorAll('.extra-entry');
-                        hiddenEntries.forEach(function (entry) {
-                            entry.classList.remove('hidden');
-                        });
-                        showMoreBtn.remove();
-                    }
                 }
             });
         });
