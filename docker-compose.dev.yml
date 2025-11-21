@@ -56,6 +56,7 @@ services:
       - DJANGO_ENV=testing
       - DJANGO_DEBUG=False
       - DJANGO_ALLOWED_HOSTS=*
+      - DJANGO_ALLOW_ASYNC_UNSAFE=True
     working_dir: /app
     command: ["pytest", "-v", "--cov=api", "--cov=frontend", "--cov-report=term-missing"]
     profiles:
