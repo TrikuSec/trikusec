@@ -187,14 +187,14 @@
         .activity-entry {
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
-            padding: 0.75rem;
+            padding: 1rem;
             background-color: #fdfdfd;
             display: flex;
             flex-direction: column;
         }
 
         .activity-entry + .activity-entry {
-            margin-top: 0.75rem;
+            margin-top: 1.25rem;
         }
 
         .activity-entry-header {
@@ -250,6 +250,23 @@
             overflow-wrap: break-word;
         }
 
+        .activity-value-technical {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 0.875rem;
+            background-color: #f3f4f6;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e5e7eb;
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .activity-value-technical-long {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
         .activity-entry-label {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -267,7 +284,33 @@
         <div class="flex items-center">
             <h1 class="text-3xl font-bold"><a href="{% url 'index' %}">Activity</a></h1>
         </div>
-        <div class="flex justify-end">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div id="activity-filters-container" class="flex flex-wrap items-center gap-2">
+                <select id="activity-filter-type" name="type" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option value="">All Types</option>
+                    <option value="enrollment" {% if request.GET.type == 'enrollment' %}selected{% endif %}>Enrollment</option>
+                    <option value="changed" {% if request.GET.type == 'changed' %}selected{% endif %}>Changed</option>
+                    <option value="added" {% if request.GET.type == 'added' %}selected{% endif %}>Added</option>
+                    <option value="removed" {% if request.GET.type == 'removed' %}selected{% endif %}>Removed</option>
+                </select>
+                <select id="activity-filter-device" name="device" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option value="">All Devices</option>
+                    {% for device in all_devices %}
+                    <option value="{{ device.id }}" {% if request.GET.device == device.id|stringformat:"d" %}selected{% endif %}>{{ device.hostname }}</option>
+                    {% endfor %}
+                </select>
+                <input
+                    id="activity-filter-date"
+                    type="date"
+                    name="date"
+                    value="{{ request.GET.date }}"
+                    class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    title="Filter by date"
+                />
+                {% if request.GET.type or request.GET.device or request.GET.date %}
+                <a href="{% url 'activity' %}" class="text-sm text-gray-600 hover:text-gray-800 underline">Clear filters</a>
+                {% endif %}
+            </div>
             <div class="flex items-center space-x-2">
                 <button id="activity-search-toggle" type="button" class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -397,7 +440,7 @@
                                         {% if activity.array_removed %}
                                         <div class="flex flex-wrap gap-1 mt-1">
                                             {% for item in activity.array_removed %}
-                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 {% if item|is_technical_value %}activity-value-technical{% endif %}">
                                                 {{ item }}
                                             </span>
                                             {% endfor %}
@@ -411,7 +454,7 @@
                                         {% if activity.array_added %}
                                         <div class="flex flex-wrap gap-1 mt-1">
                                             {% for item in activity.array_added %}
-                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 {% if item|is_technical_value %}activity-value-technical{% endif %}">
                                                 {{ item }}
                                             </span>
                                             {% endfor %}
@@ -429,12 +472,12 @@
                                 <div class="activity-entry-grid">
                                     <div class="before-card">
                                         <p class="activity-entry-label">Before</p>
-                                        <p class="activity-value">{{ activity.old_value }}</p>
+                                        <p class="activity-value {% if activity.old_value|is_technical_value %}activity-value-technical{% endif %}">{{ activity.old_value }}</p>
                                     </div>
                                     {% with direction=activity.old_value|value_direction:activity.new_value delta=activity.old_value|value_delta:activity.new_value %}
                                     <div class="now-card {% if direction == 'up' %}now-card--up{% elif direction == 'down' %}now-card--down{% endif %}">
                                         <p class="activity-entry-label text-gray-600">Now</p>
-                                        <p class="activity-value">{{ activity.new_value }}</p>
+                                        <p class="activity-value {% if activity.new_value|is_technical_value %}activity-value-technical{% endif %}">{{ activity.new_value }}</p>
                                         {% if delta %}
                                         <span class="activity-change-pill activity-change-pill--{{ direction }}">
                                             {{ delta }}
@@ -452,14 +495,14 @@
                                     </div>
                                     <div class="now-card now-card--added">
                                         <p class="activity-entry-label">Now</p>
-                                        <p class="activity-value">{{ activity.value }}</p>
+                                        <p class="activity-value {% if activity.value|is_technical_value %}activity-value-technical{% endif %}">{{ activity.value }}</p>
                                     </div>
                                 </div>
                                 {% elif block.type == 'removed' %}
                                 <div class="activity-entry-grid">
                                     <div class="before-card">
                                         <p class="activity-entry-label">Before</p>
-                                        <p class="activity-value">{{ activity.value }}</p>
+                                        <p class="activity-value {% if activity.value|is_technical_value %}activity-value-technical{% endif %}">{{ activity.value }}</p>
                                     </div>
                                     <div class="now-card now-card--removed">
                                         <p class="activity-entry-label">Now</p>
@@ -688,6 +731,39 @@
             activitySearchInput.addEventListener('input', (event) => {
                 filterActivities(event.target.value);
             });
+        }
+
+        // Filter functionality
+        const filterType = document.getElementById('activity-filter-type');
+        const filterDevice = document.getElementById('activity-filter-device');
+        const filterDate = document.getElementById('activity-filter-date');
+
+        function applyFilters() {
+            const params = new URLSearchParams();
+            
+            if (filterType && filterType.value) {
+                params.set('type', filterType.value);
+            }
+            if (filterDevice && filterDevice.value) {
+                params.set('device', filterDevice.value);
+            }
+            if (filterDate && filterDate.value) {
+                params.set('date', filterDate.value);
+            }
+            
+            const queryString = params.toString();
+            const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+            window.location.href = newUrl;
+        }
+
+        if (filterType) {
+            filterType.addEventListener('change', applyFilters);
+        }
+        if (filterDevice) {
+            filterDevice.addEventListener('change', applyFilters);
+        }
+        if (filterDate) {
+            filterDate.addEventListener('change', applyFilters);
         }
 
         document.addEventListener('keydown', function(e) {

@@ -189,3 +189,34 @@ def value_delta(old_value, new_value):
 
     prefix = '+' if delta > 0 else ''
     return f'{prefix}{delta_value}'
+
+
+@register.filter(name='is_technical_value')
+def is_technical_value(value):
+    """
+    Determine if a value should be displayed with technical formatting.
+    Returns True for:
+    - Long strings (>50 chars)
+    - Strings containing tuples, parentheses, IP addresses, MAC addresses
+    - Strings with special characters suggesting code/technical data
+    """
+    if not value:
+        return False
+    
+    value_str = str(value)
+    
+    # Check length
+    if len(value_str) > 50:
+        return True
+    
+    # Check for technical patterns
+    technical_patterns = [
+        '(' in value_str and ')' in value_str,  # Tuples, function calls
+        ':' in value_str and '.' in value_str,  # IP addresses, ports
+        ':' in value_str and len(value_str.split(':')) > 2,  # MAC addresses
+        value_str.startswith('(') and value_str.endswith(')'),  # Tuple-like
+        '/' in value_str and len(value_str.split('/')) > 2,  # Paths
+        '@' in value_str and 'if' in value_str,  # Network interfaces like eth0@if252
+    ]
+    
+    return any(technical_patterns)

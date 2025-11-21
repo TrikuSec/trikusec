@@ -1291,6 +1291,46 @@ def activity(request):
                 if entry['activities_by_type'].get(change_type)
             ]
         
+    # Apply filters from query parameters
+    filter_type = request.GET.get('type', '').strip()
+    filter_device_id = request.GET.get('device', '').strip()
+    filter_date = request.GET.get('date', '').strip()
+    
+    if filter_type or filter_device_id or filter_date:
+        filtered_grouped_activities = []
+        for entry in grouped_activities_list:
+            # Filter by type
+            if filter_type:
+                entry_types = [block['type'] for block in entry['type_blocks']]
+                if filter_type not in entry_types:
+                    continue
+            
+            # Filter by device
+            if filter_device_id:
+                try:
+                    if entry['device'].id != int(filter_device_id):
+                        continue
+                except (ValueError, TypeError):
+                    continue
+            
+            # Filter by date
+            if filter_date:
+                entry_date = entry['timestamp'].date()
+                try:
+                    from datetime import datetime
+                    filter_date_obj = datetime.strptime(filter_date, '%Y-%m-%d').date()
+                    if entry_date != filter_date_obj:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            
+            filtered_grouped_activities.append(entry)
+        
+        grouped_activities_list = filtered_grouped_activities
+    
+    # Get all devices for filter dropdown
+    all_devices = Device.objects.all().order_by('hostname')
+    
     # Paginate grouped activities
     if grouped_activities_list:
         paginator = Paginator(grouped_activities_list, DEVICE_LIST_PAGE_SIZE)
@@ -1318,6 +1358,7 @@ def activity(request):
         'paginator': paginator,
         'is_paginated': is_paginated,
         'pagination_query': base_query,
+        'all_devices': all_devices,
     })
 
 
