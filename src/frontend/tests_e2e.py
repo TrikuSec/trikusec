@@ -1003,7 +1003,15 @@ class TestSilenceRules:
         sidebar = page.locator('#silence-rules-panel')
         sidebar.wait_for(state="visible", timeout=5000)
         
-        # Wait for form to be visible
+        # Open the edit panel via the "+ Add Silenced Event" button
+        add_button = page.locator('button:has-text("+ Add Silenced Event")')
+        add_button.wait_for(state="visible", timeout=5000)
+        add_button.click()
+
+        # Wait for the edit panel/form to be visible
+        panel = page.locator('#silence-rule-edit-panel')
+        panel.wait_for(state="visible", timeout=5000)
+
         form = page.locator('#silence-rule-form')
         form.wait_for(state="visible", timeout=5000)
         
@@ -1068,10 +1076,12 @@ class TestSilenceRules:
         edit_button.click()
         
         # Wait for form to be populated
+        panel = page.locator('#silence-rule-edit-panel')
+        panel.wait_for(state="visible", timeout=5000)
         page.wait_for_timeout(500)
         
         # Verify form is in edit mode
-        form_title = page.locator('#silence-rule-form-title')
+        form_title = page.locator('#silence-rule-edit-title')
         assert 'Edit' in form_title.text_content(), "Form should be in edit mode"
         
         # Update form fields
