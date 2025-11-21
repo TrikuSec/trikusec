@@ -704,6 +704,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#optional-lynis-plugins-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Lynis Plugins &amp; Extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1564,6 +1575,10 @@
 - <strong>rkhunter</strong>: Rootkit detection
 - <strong>auditd</strong>: Linux audit daemon
 - <strong>aide</strong>: File integrity monitoring</p>
+<h3 id="optional-lynis-plugins-extras">Optional Lynis Plugins &amp; Extras<a class="headerlink" href="#optional-lynis-plugins-extras" title="Permanent link">&para;</a></h3>
+<p>TrikuSec can automatically install additional Lynis plugins during enrollment. Administrators can configure these under <strong>Settings → Enrollment configuration → Lynis plugins</strong> using the inline plugin list. Add one HTTP/HTTPS URL per row (remove rows to delete existing plugins). When the enrollment script runs, it downloads each plugin, places it in the Lynis plugin directory reported by <code>lynis show plugindir</code>, and marks it executable following the <a href="https://cisofy.com/documentation/lynis/plugins/">CISOfy plugin guidance</a>. Use this to ship organization-specific tests or vendor plugins without manual intervention on every server.</p>
+<p>Right below the plugin list you’ll find the <strong>Additional packages</strong> list. This works the same way: add one Debian package name per row (e.g., <code>rkhunter</code>, <code>auditd</code>). The generated enrollment script installs every listed package alongside Lynis, so you can codify your baseline tooling without editing shell scripts.</p>
+<p>The adjacent <strong>Skip tests</strong> list follows the same UI pattern: add one Lynis test ID per row (e.g., <code>CRYP-7902</code>). The enrollment script converts the list into the <code>test_skip_always</code> setting so older releases of Lynis—or noisy checks you intentionally ignore—are handled consistently across every enrolled device.</p>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <h4 id="connection-issues">Connection Issues<a class="headerlink" href="#connection-issues" title="Permanent link">&para;</a></h4>
 <p>If you're having trouble connecting to the server:</p>
@@ -1626,7 +1641,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 17, 2025 23:08:29 UTC">November 17, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 21, 2025 14:33:31 UTC">November 21, 2025</span>
   </span>
 
     
