@@ -89,11 +89,11 @@
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-3 space-y-4 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="package" data-formset-prefix="{{ package_formset.prefix }}">
+                    <div class="mt-3 space-y-2 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="package" data-formset-prefix="{{ package_formset.prefix }}">
                         {{ package_formset.management_form }}
-                        <div data-formset-items="package" class="space-y-4">
+                        <div data-formset-items="package" class="space-y-2">
                             {% for package_form in package_formset %}
-                                <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="package">
+                                <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="package">
                                     {% for hidden in package_form.hidden_fields %}
                                     {{ hidden }}
                                     {% endfor %}
@@ -122,7 +122,7 @@
                             {% endfor %}
                         </div>
                         <template data-formset-template="package">
-                            <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="package">
+                            <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="package">
                                 {% with package_form=package_formset.empty_form %}
                                     {% for hidden in package_form.hidden_fields %}
                                         {{ hidden }}
@@ -162,11 +162,11 @@
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-3 space-y-4 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="plugin" data-formset-prefix="{{ plugin_formset.prefix }}">
+                    <div class="mt-3 space-y-2 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="plugin" data-formset-prefix="{{ plugin_formset.prefix }}">
                         {{ plugin_formset.management_form }}
-                        <div data-formset-items="plugin" class="space-y-4">
+                        <div data-formset-items="plugin" class="space-y-2">
                             {% for plugin_form in plugin_formset %}
-                                <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="plugin">
+                                <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="plugin">
                                     {% for hidden in plugin_form.hidden_fields %}
                                         {{ hidden }}
                                     {% endfor %}
@@ -195,7 +195,7 @@
                             {% endfor %}
                         </div>
                         <template data-formset-template="plugin">
-                            <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="plugin">
+                            <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="plugin">
                                 {% with plugin_form=plugin_formset.empty_form %}
                                     {% for hidden in plugin_form.hidden_fields %}
                                         {{ hidden }}
@@ -235,11 +235,11 @@
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-3 space-y-4 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="skiptest" data-formset-prefix="{{ skip_formset.prefix }}">
+                    <div class="mt-3 space-y-2 border border-gray-200 rounded-md p-4 bg-gray-50" data-formset-group="skiptest" data-formset-prefix="{{ skip_formset.prefix }}">
                         {{ skip_formset.management_form }}
-                        <div data-formset-items="skiptest" class="space-y-4">
+                        <div data-formset-items="skiptest" class="space-y-2">
                             {% for skip_form in skip_formset %}
-                                <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="skiptest">
+                                <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="skiptest">
                                     {% for hidden in skip_form.hidden_fields %}
                                         {{ hidden }}
                                     {% endfor %}
@@ -268,7 +268,7 @@
                             {% endfor %}
                         </div>
                         <template data-formset-template="skiptest">
-                            <div class="bg-white border border-gray-200 rounded-md p-4 flex flex-col space-y-2" data-formset-form="skiptest">
+                            <div class="bg-white border border-gray-200 rounded-md p-3 flex flex-col space-y-2" data-formset-form="skiptest">
                                 {% with skip_form=skip_formset.empty_form %}
                                     {% for hidden in skip_form.hidden_fields %}
                                         {{ hidden }}
