@@ -59,26 +59,15 @@ ENROLL_URL="${TRIKUSEC_SERVER_URL}/download/enroll.sh?licensekey=${TRIKUSEC_LICE
 echo "Running enrollment script from ${ENROLL_URL} (systemctl failures are acceptable in container environments)..."
 (set +e; wget -qO- --no-check-certificate "${ENROLL_URL}" | bash) || true
 
-# Run first Lynis scan
+# Run second Lynis scan
+# This scan is used to generate the diff report
 echo ""
-echo "=== Step 3: Running first Lynis scan ==="
+echo "=== Step 3: Running second Lynis scan ==="
 lynis audit system --profile /etc/lynis/custom.prf --quick --upload || {
     echo "⚠ First Lynis scan completed but upload had issues"
     echo "  The scan itself was successful - checking if upload worked..."
 }
 echo "✓ First scan completed"
-
-# Wait a bit before second scan
-sleep 2
-
-# Run second Lynis scan to generate diff
-echo ""
-echo "=== Step 4: Running second Lynis scan (for diff generation) ==="
-lynis audit system --profile /etc/lynis/custom.prf --quick --upload || {
-    echo "⚠ Second Lynis scan completed but upload had issues"
-    echo "  The scan itself was successful - checking if upload worked..."
-}
-echo "✓ Second scan completed"
 
 # Verify upload by checking if we can query the server
 echo ""
