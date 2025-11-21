@@ -136,7 +136,7 @@ class UserProfileForm(forms.ModelForm):
     email = forms.EmailField(
         required=False,
         widget=forms.EmailInput(attrs={
-            'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
             'placeholder': 'name@example.com',
         })
     )
@@ -146,15 +146,15 @@ class UserProfileForm(forms.ModelForm):
         fields = ['username', 'first_name', 'last_name', 'email']
         widgets = {
             'username': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed',
                 'readonly': True,
             }),
             'first_name': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
                 'placeholder': 'First name',
             }),
             'last_name': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
                 'placeholder': 'Last name',
             }),
         }
@@ -240,7 +240,7 @@ class EnrollmentPluginForm(forms.ModelForm):
         fields = ['url']
         widgets = {
             'url': forms.URLInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
                 'placeholder': 'https://example.com/plugins/trikusec-plugin',
             }),
         }
@@ -276,7 +276,7 @@ class EnrollmentPackageForm(forms.ModelForm):
         fields = ['name']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
                 'placeholder': 'e.g., rkhunter',
             }),
         }
@@ -306,7 +306,7 @@ class EnrollmentSkipTestForm(forms.ModelForm):
         fields = ['test_id']
         widgets = {
             'test_id': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 uppercase tracking-wide',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 uppercase tracking-wide',
                 'placeholder': 'e.g., CRYP-7902',
             }),
         }

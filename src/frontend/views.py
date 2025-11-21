@@ -63,7 +63,7 @@ def profile(request):
     def _style_password_form(form):
         for field in form.fields.values():
             field.widget.attrs.update({
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
             })
         if 'new_password1' in form.fields:
             form.fields['new_password1'].help_text = ''
