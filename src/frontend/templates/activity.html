@@ -182,16 +182,65 @@
             border-radius: 0.5rem;
             padding: 0.75rem;
             background-color: #fdfdfd;
+            display: flex;
+            flex-direction: column;
         }
 
         .activity-entry + .activity-entry {
             margin-top: 0.75rem;
         }
 
+        .activity-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+
+        .activity-entry-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .activity-entry-timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .activity-entry-content {
+            flex: 1;
+        }
+
         .activity-entry-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            max-width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .activity-entry-grid {
+                max-width: 600px;
+            }
+        }
+
+        .activity-entry-grid > div {
+            min-width: 0;
+        }
+
+        .activity-entry-grid .activity-entry-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .activity-entry-grid .activity-value {
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .activity-entry-label {
@@ -305,21 +354,23 @@
                         {% for activity in block.activities %}
                         {% if block.type == 'enrollment' %}
                             <div class="activity-entry {% if forloop.counter > preview_limit %}hidden extra-entry{% endif %}">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center space-x-2">
+                                <div class="activity-entry-header">
+                                    <div class="activity-entry-title">
                                         <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <span class="font-semibold text-gray-900">Device enrolled</span>
                                     </div>
-                                    <div class="text-xs text-gray-500">{{ activity.created_at|timesince }} ago</div>
+                                    <div class="activity-entry-timestamp">{{ activity.created_at|timesince }} ago</div>
                                 </div>
-                                <p class="text-sm text-gray-600">New device registered with TrikuSec</p>
+                                <div class="activity-entry-content">
+                                    <p class="text-sm text-gray-600">New device registered with TrikuSec</p>
+                                </div>
                             </div>
                         {% else %}
                             <div class="activity-entry {% if forloop.counter > preview_limit %}hidden extra-entry{% endif %}">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
+                                <div class="activity-entry-header">
+                                    <div class="activity-entry-title">
                                         <span class="font-semibold text-gray-900">{{ activity.key }}</span>
                                         <button
                                             type="button"
@@ -334,8 +385,9 @@
                                             </svg>
                                         </button>
                                     </div>
-                                    <div class="text-xs text-gray-500">{{ activity.created_at|timesince }} ago</div>
+                                    <div class="activity-entry-timestamp">{{ activity.created_at|timesince }} ago</div>
                                 </div>
+                                <div class="activity-entry-content">
 
                                 {% if block.type == 'changed' %}
                                 {% if activity.is_array %}
@@ -414,6 +466,7 @@
                                 {% else %}
                                 <p class="activity-value">{{ activity.value|default:activity.new_value|default:activity.old_value }}</p>
                                 {% endif %}
+                                </div>
                             </div>
                         {% endif %}
                         {% endfor %}
