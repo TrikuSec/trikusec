@@ -16,40 +16,64 @@ document.addEventListener('click', function(event) {
 
 // Delete device with confirmation
 function deleteDevice(deviceId, hostname) {
-    if (!confirm(`Are you sure you want to delete device "${hostname}"?\n\nThis will permanently remove the device and all its reports.`)) {
-        return;
-    }
-
-    // Get CSRF token
+    // Get CSRF token first
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
                       document.cookie.match(/csrftoken=([^;]+)/)?.[1];
 
     if (!csrftoken) {
-        alert('Error: CSRF token not found. Please refresh the page and try again.');
+        showModal({
+            title: 'Error',
+            message: 'CSRF token not found. Please refresh the page and try again.',
+            confirmText: 'OK',
+            variant: 'danger',
+            onConfirm: () => {},
+        });
         return;
     }
 
-    // Send DELETE request via POST (Django doesn't support DELETE method easily)
-    fetch(`/device/${deviceId}/delete/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
+    // Show confirmation modal
+    showModal({
+        title: 'Delete Device',
+        message: `Are you sure you want to delete device <strong>"${hostname}"</strong>?<br><br>This will permanently remove the device and all its reports.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'danger',
+        onConfirm: () => {
+            // Send DELETE request via POST (Django doesn't support DELETE method easily)
+            fetch(`/device/${deviceId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to device list page
+                    window.location.href = '/devices/';
+                } else {
+                    showModal({
+                        title: 'Error',
+                        message: 'Error deleting device: ' + (data.message || 'Unknown error'),
+                        confirmText: 'OK',
+                        variant: 'danger',
+                        onConfirm: () => {},
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showModal({
+                    title: 'Error',
+                    message: 'Error deleting device. Please try again.',
+                    confirmText: 'OK',
+                    variant: 'danger',
+                    onConfirm: () => {},
+                });
+            });
         },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Redirect to device list page
-            window.location.href = '/devices/';
-        } else {
-            alert('Error deleting device: ' + (data.message || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting device. Please try again.');
     });
 }
 

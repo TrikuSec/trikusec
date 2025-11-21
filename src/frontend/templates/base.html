@@ -116,6 +116,9 @@
         <main>
           {% block content %}{% endblock %}
         </main>
+        
+        {% include 'components/modal.html' %}
+        <script src="{% static 'js/modal.js' %}"></script>
     </body>
     {% block scripts %}{% endblock %}
 </html>

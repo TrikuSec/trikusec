@@ -160,7 +160,7 @@ class TestRulesetCRUD:
         assert page.locator('text=Updated Ruleset Name E2E').is_visible()
     
     def test_delete_ruleset_with_confirmation(self, authenticated_browser, live_server_url, test_policy_data):
-        """Delete a ruleset with confirmation dialog."""
+        """Delete a ruleset with confirmation modal."""
         page = authenticated_browser
         
         # Create a ruleset to delete
@@ -177,11 +177,16 @@ class TestRulesetCRUD:
         ruleset_row = page.locator(f'tr:has-text("Ruleset to Delete E2E")')
         delete_button = ruleset_row.locator('button[title="Delete"]')
         
-        # Set up dialog handler to accept
-        page.once("dialog", lambda dialog: dialog.accept())
-        
-        # Click delete
+        # Click delete button
         delete_button.click()
+        
+        # Wait for modal to appear
+        modal_container = page.locator('#modal-container')
+        modal_container.wait_for(state='visible', timeout=5000)
+        
+        # Click confirm button in modal
+        confirm_button = page.locator('#modal-confirm-button')
+        confirm_button.click()
         
         # Wait for page reload
         page.wait_for_load_state("networkidle")
@@ -292,7 +297,7 @@ class TestRuleCRUD:
         assert updated_rule_link.is_visible()
     
     def test_delete_rule_with_confirmation(self, authenticated_browser, live_server_url):
-        """Delete a rule with confirmation dialog."""
+        """Delete a rule with confirmation modal."""
         page = authenticated_browser
         
         # Create a rule to delete
@@ -315,11 +320,16 @@ class TestRuleCRUD:
         rule_row = page.locator(f'tr:has-text("Rule to Delete E2E")')
         delete_button = rule_row.locator('button[title="Delete"]')
         
-        # Set up dialog handler
-        page.once("dialog", lambda dialog: dialog.accept())
-        
-        # Click delete
+        # Click delete button
         delete_button.click()
+        
+        # Wait for modal to appear
+        modal_container = page.locator('#modal-container')
+        modal_container.wait_for(state='visible', timeout=5000)
+        
+        # Click confirm button in modal
+        confirm_button = page.locator('#modal-confirm-button')
+        confirm_button.click()
         
         # Wait for reload
         page.wait_for_load_state("networkidle")

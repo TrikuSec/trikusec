@@ -322,40 +322,64 @@ function hideFormErrors() {
 // Delete license with confirmation
 // Attach to window to make it globally accessible from inline onclick handlers
 window.deleteLicense = function(licenseId, licenseName) {
-    if (!confirm(`Are you sure you want to delete the license "${licenseName}"?\n\nThis action cannot be undone.`)) {
-        return;
-    }
-    
-    // Get CSRF token
+    // Get CSRF token first
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                       document.cookie.match(/csrftoken=([^;]+)/)?.[1];
     
     if (!csrftoken) {
-        alert('Error: CSRF token not found. Please refresh the page and try again.');
+        showModal({
+            title: 'Error',
+            message: 'CSRF token not found. Please refresh the page and try again.',
+            confirmText: 'OK',
+            variant: 'danger',
+            onConfirm: () => {},
+        });
         return;
     }
     
-    // Send DELETE request via POST (Django doesn't support DELETE method easily)
-    fetch(`/license/${licenseId}/delete/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
+    // Show confirmation modal
+    showModal({
+        title: 'Delete License',
+        message: `Are you sure you want to delete the license <strong>"${licenseName}"</strong>?<br><br>This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'danger',
+        onConfirm: () => {
+            // Send DELETE request via POST (Django doesn't support DELETE method easily)
+            fetch(`/license/${licenseId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated list
+                    location.reload();
+                } else {
+                    showModal({
+                        title: 'Error',
+                        message: 'Error deleting license: ' + (data.message || 'Unknown error'),
+                        confirmText: 'OK',
+                        variant: 'danger',
+                        onConfirm: () => {},
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showModal({
+                    title: 'Error',
+                    message: 'Error deleting license. Please try again.',
+                    confirmText: 'OK',
+                    variant: 'danger',
+                    onConfirm: () => {},
+                });
+            });
         },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Reload page to show updated list
-            location.reload();
-        } else {
-            alert('Error deleting license: ' + (data.message || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting license. Please try again.');
     });
 };
 

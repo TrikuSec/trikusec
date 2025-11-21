@@ -200,47 +200,71 @@ function closeRuleEditPanel() {
 
 // Delete rule with confirmation
 function deleteRule(ruleId, ruleName) {
-    if (!confirm(`Are you sure you want to delete the rule "${ruleName}"?\n\nThis action cannot be undone.`)) {
-        return;
-    }
-    
-    // Get CSRF token
+    // Get CSRF token first
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                       document.cookie.match(/csrftoken=([^;]+)/)?.[1];
     
     if (!csrftoken) {
-        alert('Error: CSRF token not found. Please refresh the page and try again.');
+        showModal({
+            title: 'Error',
+            message: 'CSRF token not found. Please refresh the page and try again.',
+            confirmText: 'OK',
+            variant: 'danger',
+            onConfirm: () => {},
+        });
         return;
     }
     
-    // Send DELETE request via POST (Django doesn't support DELETE method easily)
-    fetch(`/rule/${ruleId}/delete/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Unknown error');
+    // Show confirmation modal
+    showModal({
+        title: 'Delete Rule',
+        message: `Are you sure you want to delete the rule <strong>"${ruleName}"</strong>?<br><br>This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'danger',
+        onConfirm: () => {
+            // Send DELETE request via POST (Django doesn't support DELETE method easily)
+            fetch(`/rule/${ruleId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Unknown error');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated list
+                    location.reload();
+                } else {
+                    showModal({
+                        title: 'Error',
+                        message: 'Error deleting rule: ' + (data.message || 'Unknown error'),
+                        confirmText: 'OK',
+                        variant: 'danger',
+                        onConfirm: () => {},
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showModal({
+                    title: 'Error',
+                    message: 'Error deleting rule: ' + error.message,
+                    confirmText: 'OK',
+                    variant: 'danger',
+                    onConfirm: () => {},
+                });
             });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Reload page to show updated list
-            location.reload();
-        } else {
-            alert('Error deleting rule: ' + (data.message || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting rule: ' + error.message);
+        },
     });
 }
 
