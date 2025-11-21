@@ -231,15 +231,40 @@ def device_list(request):
         device.compliant = compliant
         device.save()
     
-    # Order devices by last updated (most recent first)
-    devices = Device.objects.all().order_by('-last_update')
+    # Handle sorting
+    sort_field = request.GET.get('sort', 'last_update')
+    sort_order = request.GET.get('order', 'desc')
+    
+    # Validate sort field to prevent SQL injection
+    valid_sort_fields = {
+        'hostname': 'hostname',
+        'compliant': 'compliant',
+        'warnings': 'warnings',
+        'last_update': 'last_update',
+    }
+    
+    # Default to last_update if invalid sort field
+    sort_field = valid_sort_fields.get(sort_field, 'last_update')
+    
+    # Determine sort order
+    if sort_order == 'asc':
+        order_by = sort_field
+    else:  # default to desc
+        order_by = f'-{sort_field}'
+    
+    # Order devices by selected field
+    devices = Device.objects.all().order_by(order_by)
 
     paginator = Paginator(devices, DEVICE_LIST_PAGE_SIZE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Build query string for pagination (excluding page, but including sort/order)
     query_params = request.GET.copy()
     query_params.pop('page', None)
+    # Ensure sort and order are always included
+    query_params['sort'] = sort_field
+    query_params['order'] = sort_order
     base_query = query_params.urlencode()
 
     return render(request, 'device_list.html', {
@@ -248,6 +273,8 @@ def device_list(request):
         'paginator': paginator,
         'is_paginated': page_obj.has_other_pages(),
         'pagination_query': base_query,
+        'current_sort': sort_field,
+        'current_order': sort_order,
     })
 
 @login_required
