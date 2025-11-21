@@ -498,15 +498,57 @@ def device_report_changelog(request, device_id):
 @login_required
 def policy_list(request):
     """Unified policy list view: show all policy rulesets and rules with pagination"""
+    from django.db.models import Count
+    
+    # Handle sorting for rulesets
+    ruleset_sort_field = request.GET.get('ruleset_sort', 'updated_at')
+    ruleset_sort_order = request.GET.get('ruleset_order', 'desc')
+    
+    # Validate ruleset sort field
+    valid_ruleset_sort_fields = {
+        'name': 'name',
+        'updated_at': 'updated_at',
+        'rules_count': 'rules_count',
+        'devices_count': 'devices_count',
+    }
+    ruleset_sort_field = valid_ruleset_sort_fields.get(ruleset_sort_field, 'updated_at')
+    
+    # Determine ruleset sort order
+    if ruleset_sort_order == 'asc':
+        ruleset_order_by = ruleset_sort_field
+    else:  # default to desc
+        ruleset_order_by = f'-{ruleset_sort_field}'
+    
     # Pagination for rulesets (10 per page)
     ruleset_page = request.GET.get('ruleset_page', 1)
-    rulesets = PolicyRuleset.objects.prefetch_related('rules', 'devices').all().order_by('-updated_at')
+    rulesets = PolicyRuleset.objects.prefetch_related('rules', 'devices').annotate(
+        rules_count=Count('rules'),
+        devices_count=Count('devices')
+    ).all().order_by(ruleset_order_by)
     ruleset_paginator = Paginator(rulesets, 10)
     rulesets_page_obj = ruleset_paginator.get_page(ruleset_page)
     
+    # Handle sorting for rules
+    rule_sort_field = request.GET.get('rule_sort', 'updated_at')
+    rule_sort_order = request.GET.get('rule_order', 'desc')
+    
+    # Validate rule sort field
+    valid_rule_sort_fields = {
+        'name': 'name',
+        'enabled': 'enabled',
+        'updated_at': 'updated_at',
+    }
+    rule_sort_field = valid_rule_sort_fields.get(rule_sort_field, 'updated_at')
+    
+    # Determine rule sort order
+    if rule_sort_order == 'asc':
+        rule_order_by = rule_sort_field
+    else:  # default to desc
+        rule_order_by = f'-{rule_sort_field}'
+    
     # Pagination for rules (10 per page)
     rule_page = request.GET.get('rule_page', 1)
-    rules = PolicyRule.objects.prefetch_related('policyruleset_set').all().order_by('-updated_at')
+    rules = PolicyRule.objects.prefetch_related('policyruleset_set').all().order_by(rule_order_by)
     rule_paginator = Paginator(rules, 10)
     rules_page_obj = rule_paginator.get_page(rule_page)
     
@@ -522,9 +564,13 @@ def policy_list(request):
         PolicyRuleset.objects.filter(devices__isnull=False).values_list('id', flat=True).distinct()
     )
     
-    # Serialize rulesets for JavaScript
+    # Serialize rulesets for JavaScript (use all rulesets, not just paginated)
+    all_rulesets = PolicyRuleset.objects.prefetch_related('rules', 'devices').annotate(
+        rules_count=Count('rules'),
+        devices_count=Count('devices')
+    ).all()
     rulesets_data = []
-    for ruleset in rulesets:  # Use all rulesets for JavaScript, not just paginated
+    for ruleset in all_rulesets:
         ruleset_data = {
             'id': ruleset.id,
             'name': ruleset.name,
@@ -549,6 +595,33 @@ def policy_list(request):
         }
         rules_data.append(rule_data)
     
+    # Build query strings for pagination (preserving sort parameters and other table's params)
+    ruleset_query_params = request.GET.copy()
+    ruleset_query_params.pop('ruleset_page', None)
+    ruleset_query_params['ruleset_sort'] = ruleset_sort_field
+    ruleset_query_params['ruleset_order'] = ruleset_sort_order
+    # Preserve rule pagination and sort params
+    if 'rule_page' in request.GET:
+        ruleset_query_params['rule_page'] = request.GET.get('rule_page')
+    if 'rule_sort' in request.GET:
+        ruleset_query_params['rule_sort'] = request.GET.get('rule_sort')
+    if 'rule_order' in request.GET:
+        ruleset_query_params['rule_order'] = request.GET.get('rule_order')
+    ruleset_pagination_query = ruleset_query_params.urlencode()
+    
+    rule_query_params = request.GET.copy()
+    rule_query_params.pop('rule_page', None)
+    rule_query_params['rule_sort'] = rule_sort_field
+    rule_query_params['rule_order'] = rule_sort_order
+    # Preserve ruleset pagination and sort params
+    if 'ruleset_page' in request.GET:
+        rule_query_params['ruleset_page'] = request.GET.get('ruleset_page')
+    if 'ruleset_sort' in request.GET:
+        rule_query_params['ruleset_sort'] = request.GET.get('ruleset_sort')
+    if 'ruleset_order' in request.GET:
+        rule_query_params['ruleset_order'] = request.GET.get('ruleset_order')
+    rule_pagination_query = rule_query_params.urlencode()
+    
     context = {
         'rulesets': rulesets_page_obj,
         'rulesets_json': json.dumps(rulesets_data),
@@ -557,6 +630,12 @@ def policy_list(request):
         'rules_json': json.dumps(rules_data),
         'rules_linked_to_rulesets': list(rules_linked_to_rulesets),  # List of rule IDs linked to rulesets
         'rulesets_linked_to_devices': list(rulesets_linked_to_devices),  # List of ruleset IDs linked to devices
+        'ruleset_current_sort': ruleset_sort_field,
+        'ruleset_current_order': ruleset_sort_order,
+        'ruleset_pagination_query': ruleset_pagination_query,
+        'rule_current_sort': rule_sort_field,
+        'rule_current_order': rule_sort_order,
+        'rule_pagination_query': rule_pagination_query,
     }
     
     return render(request, 'policy/policy_list.html', context)
