@@ -132,13 +132,13 @@ Ensure strong passwords:
 
 TrikuSec uses a **dual-endpoint architecture** to improve security by separating admin UI access from Lynis API access:
 
-- **Admin UI Endpoint** (`TRIKUSEC_URL`, default: `https://localhost:443`): 
+- **Admin UI Endpoint** (`TRIKUSEC_URL`, default: `https://localhost:8000`): 
   - Used for accessing the web management interface
   - Requires authentication (login required)
   - Should only be accessible to sysadmins
   - Typically accessed on port 443 via nginx reverse proxy
 
-- **Lynis API Endpoint** (`TRIKUSEC_LYNIS_API_URL`, default: `https://localhost:8443`):
+- **Lynis API Endpoint** (`TRIKUSEC_LYNIS_API_URL`, default: `https://localhost:8001`):
   - Used by monitored servers for downloading `enroll.sh`, certificate download, license validation, and report uploads
   - No authentication UI exposed (API-only endpoints)
   - Should be accessible from your server network
@@ -161,12 +161,12 @@ This separation provides important security advantages:
 
 ```bash
 # Allow admin UI access only from corporate network
-iptables -A INPUT -p tcp --dport 443 -s 10.0.0.0/8 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j DROP
+iptables -A INPUT -p tcp --dport 8000 -s 10.0.0.0/8 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8000 -j DROP
 
 # Allow Lynis API access from server network
-iptables -A INPUT -p tcp --dport 8443 -s 192.168.1.0/24 -j ACCEPT
-iptables -A INPUT -p tcp --dport 8443 -j DROP
+iptables -A INPUT -p tcp --dport 8001 -s 192.168.1.0/24 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8001 -j DROP
 ```
 
 #### Configuration
@@ -178,8 +178,8 @@ See [Environment Variables](../configuration/environment-variables.md) for confi
 ### Firewall Configuration
 
 Only expose necessary ports:
-- `443` (or your configured port) for Admin UI HTTP/HTTPS
-- `8443` (or your configured port) for Lynis API HTTP/HTTPS
+- `8000` (or your configured port) for Admin UI HTTP/HTTPS
+- `8001` (or your configured port) for Lynis API HTTP/HTTPS
 - Database port only to application server (if external)
 
 ### Reverse Proxy
@@ -189,6 +189,8 @@ Use a reverse proxy (Nginx, Apache) for:
 - Additional security headers
 - Rate limiting
 - DDoS protection
+
+By default, **TrikuSec** uses a reverse proxy (nginx) to handle HTTPS termination. See [Reverse Proxy Configuration](reverse-proxy.md) for details.
 
 ## Security Headers
 
@@ -201,26 +203,9 @@ X-XSS-Protection: 1; mode=block
 Content-Security-Policy: default-src 'self'
 ```
 
-## Regular Updates
-
-- Keep Django and dependencies updated
-- Monitor security advisories
-- Apply security patches promptly
-- Review and update regularly
-
 ## Backup and Recovery
 
-- Regular database backups
-- Test restore procedures
-- Store backups securely
-- Encrypt backup files
-
-## Monitoring and Logging
-
-- Monitor access logs
-- Set up alerts for suspicious activity
-- Review logs regularly
-- Use centralized logging for production
+All the data is stored in the database. See [Backup and Recovery](../installation/backup-recovery.md) for details.
 
 ## Additional Resources
 

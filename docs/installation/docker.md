@@ -1,10 +1,10 @@
 # Docker Installation
 
-Docker is the recommended way to install TrikuSec. This guide will walk you through the simple setup process using pre-built Docker images.
+Docker is the recommended way to install **TrikuSec**. This guide will walk you through the simple setup process using pre-built Docker images.
 
 ## Quick Installation
 
-TrikuSec uses pre-built Docker images published on GitHub Container Registry, making installation as simple as:
+**TrikuSec** uses pre-built Docker images published on GitHub Container Registry, making installation as simple as:
 
 1. Download `docker-compose.yml`
 2. Create a `.env` file with your environment variables
@@ -14,11 +14,11 @@ No need to clone the repository or build images from source!
 
 ## Prerequisites
 
-- Docker and Docker Compose installed
+- *Docker* and *Docker Compose* installed
 
 ## Installation Steps
 
-### 1. Download docker-compose.yml
+### 1. [Download]([text](https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/docker-compose.yml)) docker-compose.yml
 
 Download the `docker-compose.yml` file from the [TrikuSec repository](https://github.com/trikusec/trikusec/blob/main/docker-compose.yml) and save it to your desired location.
 
@@ -68,7 +68,7 @@ This will:
 Once started, access TrikuSec at:
 
 ```
-https://localhost:8000
+https://yourserver:8000
 ```
 
 Default credentials:

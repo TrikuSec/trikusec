@@ -8,9 +8,6 @@ TrikuSec provides REST API endpoints for:
 
 - Uploading audit reports
 - License key validation
-- Device management
-- Policy management
-- Report retrieval
 
 ## Base URL
 
@@ -43,7 +40,6 @@ Currently, API endpoints use license key authentication. See [Authentication](au
 
 - **[API Endpoints](endpoints.md)** - Complete list of endpoints
 - **[Authentication](authentication.md)** - Authentication methods
-- **[Examples](examples.md)** - Code examples and use cases
 
 ## Rate Limiting
 
@@ -72,5 +68,4 @@ API endpoints are rate-limited to prevent abuse. See configuration for details.
 ## Next Steps
 
 - [Endpoints](endpoints.md) - Detailed endpoint documentation
-- [Examples](examples.md) - Integration examples
 

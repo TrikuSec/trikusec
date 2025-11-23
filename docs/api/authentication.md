@@ -22,22 +22,6 @@ curl -X POST https://yourserver:8001/api/lynis/license/ \
   -F "licensekey=your-license-key"
 ```
 
-## Session Authentication
-
-For web-based API access, use Django session authentication:
-
-1. Login via web interface
-2. Use session cookie in API requests
-
-```bash
-curl -X GET https://yourserver:8000/api/devices/ \
-  -H "Cookie: sessionid=your-session-id"
-```
-
-## API Key Authentication
-
-API key authentication (coming soon) for programmatic access.
-
 ## Security Best Practices
 
 - **Use HTTPS** - Always use HTTPS in production
@@ -66,5 +50,4 @@ If you can't connect:
 ## Next Steps
 
 - [Endpoints](endpoints.md) - See all available endpoints
-- [Examples](examples.md) - Integration examples
 

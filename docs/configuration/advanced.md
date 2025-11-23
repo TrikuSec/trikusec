@@ -14,7 +14,7 @@ Configure static file serving:
 
 ```bash
 # Collect static files
-docker compose run --rm trikusec python manage.py collectstatic --no-input
+docker compose run --rm trikusec-manager python manage.py collectstatic --no-input
 ```
 
 ### Media Files
@@ -50,30 +50,6 @@ DATABASES = {
 }
 ```
 
-### Indexes
-
-TrikuSec includes performance indexes on frequently queried fields. See migrations for details.
-
-## Custom Policies
-
-### Policy Rules
-
-Define custom policy rules through the web interface or API.
-
-### Policy Rule Sets
-
-Create rule sets to apply multiple policies to devices.
-
-## Integration
-
-### Webhooks
-
-Configure webhooks for events (coming soon).
-
-### API Integration
-
-Integrate TrikuSec with other tools using the REST API.
-
 ## Performance Tuning
 
 ### Caching
@@ -97,16 +73,6 @@ Monitor and optimize database queries:
 # Enable query logging
 DJANGO_DEBUG=True  # Development only
 ```
-
-## Customization
-
-### Branding
-
-Customize logos and branding in templates.
-
-### Themes
-
-Modify CSS and templates for custom appearance.
 
 ## Troubleshooting
 
