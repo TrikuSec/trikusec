@@ -18,27 +18,7 @@ No local Python installation required!
 git clone https://github.com/trikusec/trikusec.git
 cd trikusec
 ```
-
-### 2. Set Up Environment Variables
-
-```bash
-cp .env.example .env
-```
-
-Generate a SECRET_KEY:
-
-```bash
-python3 -c "import secrets; print(secrets.token_urlsafe(50))"
-```
-
-Add to `.env`:
-
-```bash
-SECRET_KEY=your-generated-key
-DJANGO_DEBUG=True
-```
-
-### 3. Start Development Services
+### 2. Start Development Services
 
 ```bash
 docker compose -f docker-compose.dev.yml up
@@ -46,13 +26,13 @@ docker compose -f docker-compose.dev.yml up
 
 This starts:
 - TrikuSec development server
-- Database
+- Database (`src/trikusec-dev.sqlite3`)
 - (Optional) Test services
 
 ### 4. Access Development Server
 
 ```
-http://localhost:3000
+http://localhost:8000
 ```
 
 ## Development Workflow
@@ -86,10 +66,10 @@ docker compose -f docker-compose.dev.yml --profile test run --rm test /bin/bash
 
 ```bash
 # Create migration
-docker compose -f docker-compose.dev.yml exec trikusec python manage.py makemigrations
+docker compose -f docker-compose.dev.yml exec trikusec-manager python manage.py makemigrations
 
 # Apply migrations
-docker compose -f docker-compose.dev.yml exec trikusec python manage.py migrate
+docker compose -f docker-compose.dev.yml exec trikusec-manager python manage.py migrate
 ```
 
 ## Code Organization
