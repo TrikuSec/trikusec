@@ -18,7 +18,9 @@ No need to clone the repository or build images from source!
 
 ## Installation Steps
 
-### 1. [Download]([text](https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/docker-compose.yml)) docker-compose.yml
+### 1. Download docker-compose.yml
+
+[Download the docker-compose.yml file](https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/docker-compose.yml)
 
 Download the `docker-compose.yml` file from the [TrikuSec repository](https://github.com/trikusec/trikusec/blob/main/docker-compose.yml) and save it to your desired location.
 

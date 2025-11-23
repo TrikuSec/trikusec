@@ -123,6 +123,7 @@ nav:
     - installation/docker.md
     - installation/postgresql.md
     - installation/client-setup.md
+    - installation/backup-recovery.md
   - Configuration:
     - configuration/index.md
     - configuration/environment-variables.md
@@ -131,18 +132,21 @@ nav:
   - Usage:
     - usage/index.md
     - usage/getting-started.md
-    - usage/dashboard.md
+    - usage/devices.md
     - usage/policies.md
     - usage/reports.md
   - API Reference:
     - api/index.md
     - api/endpoints.md
     - api/authentication.md
-    - api/examples.md
   - Development:
     - development/index.md
     - development/setup.md
     - development/testing.md
+    - development/e2e-testing.md
+    - development/lynis-license-format.md
+    - development/lynis-report-custom-variables.md
+    - development/ui-ux-architecture.md
     - development/contributing.md
   - License: license.md
 

@@ -60,7 +60,7 @@ Once a client has uploaded a report:
 
 ## Next Steps
 
-- [Dashboard Guide](dashboard.md) - Learn about all dashboard features
+- [Device Management](devices.md) - Learn about device management and dashboard features
 - [Policy Management](policies.md) - Create and manage policies
 - [Report Analysis](reports.md) - Understand audit reports
 

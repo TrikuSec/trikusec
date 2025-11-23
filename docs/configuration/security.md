@@ -190,7 +190,7 @@ Use a reverse proxy (Nginx, Apache) for:
 - Rate limiting
 - DDoS protection
 
-By default, **TrikuSec** uses a reverse proxy (nginx) to handle HTTPS termination. See [Reverse Proxy Configuration](reverse-proxy.md) for details.
+By default, **TrikuSec** uses a reverse proxy (nginx) to handle HTTPS termination. The nginx configuration is included in the Docker images and automatically handles SSL/TLS termination.
 
 ## Security Headers
 
