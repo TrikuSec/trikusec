@@ -14,8 +14,16 @@ TrikuSec provides REST API endpoints for:
 
 ## Base URL
 
+The TrikuSec API is available on port 8001:
+
 ```
-https://yourserver:3000/api
+https://yourserver:8001/api
+```
+
+The web interface (admin UI) is available on port 8000:
+
+```
+https://yourserver:8000
 ```
 
 ## API Versioning

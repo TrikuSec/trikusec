@@ -40,8 +40,8 @@ Create a custom Lynis profile at `/etc/lynis/custom.prf`:
 upload=yes
 # License key from TrikuSec server
 license-key=YOUR_LICENSE_KEY
-# Point to the TrikuSec server
-upload-server=yourserver:3000/api/lynis
+# Point to the TrikuSec Lynis API server (port 8001)
+upload-server=yourserver:8001/api/lynis
 # Required for self-signed certificates
 upload-options=--insecure
 
@@ -52,7 +52,7 @@ test_skip_always=CRYP-7902
 
 Replace:
 - `YOUR_LICENSE_KEY` with your actual license key
-- `yourserver:3000` with your TrikuSec Lynis API server address (use `TRIKUSEC_LYNIS_API_URL` value)
+- `yourserver:8001` with your TrikuSec Lynis API server address (use `TRIKUSEC_LYNIS_API_URL` value, default is `https://localhost:8001`)
 
 ### 4. Run Audit
 
@@ -117,8 +117,8 @@ The adjacent **Skip tests** list follows the same UI pattern: add one Lynis test
 
 If you're having trouble connecting to the server:
 
-1. **Check server URL**: Ensure `upload-server` points to the correct address
-2. **Check firewall**: Ensure port 3000 (or your configured port) is open
+1. **Check server URL**: Ensure `upload-server` points to the correct address (default port is 8001 for the API)
+2. **Check firewall**: Ensure port 8001 (or your configured API port) is open
 3. **Check SSL**: If using HTTPS, ensure certificates are valid or use `--insecure` flag
 
 ### License Key Issues
@@ -133,8 +133,8 @@ If you get license key errors:
 
 If uploads fail:
 
-1. Check network connectivity: `curl -k https://yourserver:3000/api/lynis/license`
-2. Check server logs: `docker compose logs trikusec`
+1. Check network connectivity: `curl -k https://yourserver:8001/api/lynis/license`
+2. Check server logs: `docker compose logs trikusec-lynis-api`
 3. Verify the API endpoint is accessible
 
 ## Next Steps

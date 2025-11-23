@@ -32,7 +32,7 @@ Upload a Lynis audit report.
 **Example:**
 
 ```bash
-curl -X POST https://yourserver:3000/api/lynis/upload/ \
+curl -X POST https://yourserver:8001/api/lynis/upload/ \
   -F "licensekey=your-license-key" \
   -F "hostid=server-01" \
   -F "data=$(base64 -w 0 /var/log/lynis-report.dat)"
@@ -63,7 +63,7 @@ Validate a license key.
 **Example:**
 
 ```bash
-curl -X POST https://yourserver:3000/api/lynis/license/ \
+curl -X POST https://yourserver:8001/api/lynis/license/ \
   -F "licensekey=your-license-key" \
   -F "collector_version=3.0.0"
 ```

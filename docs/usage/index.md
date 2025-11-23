@@ -20,7 +20,7 @@ TrikuSec provides:
 
 ## Quick Start
 
-1. **Access the Dashboard** - Navigate to `http://yourserver:3000`
+1. **Access the Dashboard** - Navigate to `https://localhost:8000` (or your configured domain)
 2. **View Devices** - See all servers that have sent reports
 3. **Check Compliance** - Review compliance status for each device
 4. **Create Policies** - Define rules for your organization

@@ -4,7 +4,7 @@ This guide will help you get started with TrikuSec after installation.
 
 ## First Login
 
-1. **Access TrikuSec** - Navigate to `http://yourserver:3000`
+1. **Access TrikuSec** - Navigate to `https://localhost:8000` (or your configured domain)
 
 2. **Login** - Use default credentials:
    - Username: `admin`

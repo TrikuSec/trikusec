@@ -14,9 +14,9 @@ import base64
 with open('/var/log/lynis-report.dat', 'rb') as f:
     report_data = base64.b64encode(f.read()).decode('utf-8')
 
-# Upload to TrikuSec
+# Upload to TrikuSec (use port 8001 for API)
 response = requests.post(
-    'https://yourserver:3000/api/lynis/upload/',
+    'https://yourserver:8001/api/lynis/upload/',
     data={
         'licensekey': 'your-license-key',
         'hostid': 'server-01',
@@ -37,7 +37,7 @@ else:
 import requests
 
 response = requests.post(
-    'https://yourserver:3000/api/lynis/license/',
+    'https://yourserver:8001/api/lynis/license/',
     data={
         'licensekey': 'your-license-key',
         'collector_version': '3.0.0'
@@ -56,14 +56,14 @@ else:
 ```python
 import requests
 
-# Using session authentication
+# Using session authentication (use port 8000 for web interface)
 session = requests.Session()
 session.post(
-    'https://yourserver:3000/login/',
+    'https://yourserver:8000/login/',
     data={'username': 'admin', 'password': 'password'}
 )
 
-response = session.get('https://yourserver:3000/api/devices/')
+response = session.get('https://yourserver:8000/api/devices/')
 devices = response.json()
 
 for device in devices['devices']:
@@ -78,7 +78,7 @@ for device in devices['devices']:
 #!/bin/bash
 
 LICENSE_KEY="your-license-key"
-SERVER="https://yourserver:3000"
+SERVER="https://yourserver:8001"  # Use port 8001 for API
 HOSTID=$(hostname)
 
 # Read and encode report
@@ -104,7 +104,7 @@ fi
 #!/bin/bash
 
 LICENSE_KEY="your-license-key"
-SERVER="https://yourserver:3000"
+SERVER="https://yourserver:8001"  # Use port 8001 for API
 
 RESPONSE=$(curl -k -s -X POST "${SERVER}/api/lynis/license/" \
   -F "licensekey=${LICENSE_KEY}")
@@ -127,7 +127,7 @@ Add to `/etc/lynis/custom.prf`:
 ```ini
 upload=yes
 license-key=your-license-key
-upload-server=yourserver:3000/api/lynis
+upload-server=yourserver:8001/api/lynis  # Use port 8001 for API
 upload-options=--insecure
 ```
 
@@ -150,7 +150,7 @@ from requests.exceptions import RequestException
 
 try:
     response = requests.post(
-        'https://yourserver:3000/api/lynis/upload/',
+        'https://yourserver:8001/api/lynis/upload/',
         data={'licensekey': 'key', 'hostid': 'host', 'data': '...'},
         timeout=30,
         verify=False

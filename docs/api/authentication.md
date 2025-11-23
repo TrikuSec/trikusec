@@ -9,7 +9,7 @@ Lynis endpoints use license key authentication via form data.
 ### Upload Endpoint
 
 ```bash
-curl -X POST https://yourserver:3000/api/lynis/upload/ \
+curl -X POST https://yourserver:8001/api/lynis/upload/ \
   -F "licensekey=your-license-key" \
   -F "hostid=server-01" \
   -F "data=..."
@@ -18,7 +18,7 @@ curl -X POST https://yourserver:3000/api/lynis/upload/ \
 ### License Check Endpoint
 
 ```bash
-curl -X POST https://yourserver:3000/api/lynis/license/ \
+curl -X POST https://yourserver:8001/api/lynis/license/ \
   -F "licensekey=your-license-key"
 ```
 
@@ -30,7 +30,7 @@ For web-based API access, use Django session authentication:
 2. Use session cookie in API requests
 
 ```bash
-curl -X GET https://yourserver:3000/api/devices/ \
+curl -X GET https://yourserver:8000/api/devices/ \
   -H "Cookie: sessionid=your-session-id"
 ```
 

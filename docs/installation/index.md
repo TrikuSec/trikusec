@@ -24,8 +24,18 @@ TrikuSec consists of two main components:
 Before installing TrikuSec, ensure you have:
 
 - Docker and Docker Compose installed
-- A secure `SECRET_KEY` generated for Django
+- A secure `SECRET_KEY` generated for Django (required)
 - (Optional) PostgreSQL for production deployments
+
+## Quick Start
+
+The simplest installation method is using Docker with pre-built images:
+
+1. Download `docker-compose.yml` from the repository
+2. Create a `.env` file with your `SECRET_KEY`
+3. Run `docker compose up -d`
+
+See the [Docker Installation Guide](docker.md) for detailed instructions.
 
 ## Next Steps
 

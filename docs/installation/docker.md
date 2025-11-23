@@ -1,28 +1,80 @@
 # Docker Installation
 
-Docker is the recommended way to install TrikuSec. This guide will walk you through the setup process.
+Docker is the recommended way to install TrikuSec. This guide will walk you through the simple setup process using pre-built Docker images.
+
+## Quick Installation
+
+TrikuSec uses pre-built Docker images published on GitHub Container Registry, making installation as simple as:
+
+1. Download `docker-compose.yml`
+2. Create a `.env` file with your `SECRET_KEY`
+3. Run `docker compose up -d`
+
+No need to clone the repository or build images from source!
 
 ## Prerequisites
 
-Before starting, you need to set up the required environment variables:
+- Docker and Docker Compose installed
+- A secure `SECRET_KEY` for Django
 
-### 1. Copy the Example Environment File
+## Installation Steps
 
-```bash
-cp .env.example .env
-```
+### 1. Download docker-compose.yml
 
-### 2. Generate a Secure SECRET_KEY
+Download the `docker-compose.yml` file from the [TrikuSec repository](https://github.com/trikusec/trikusec/blob/main/docker-compose.yml) and save it to your desired location.
+
+### 2. Create Environment File
+
+Create a `.env` file in the same directory as `docker-compose.yml`:
+
+**Generate a secure SECRET_KEY:**
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-### 3. Configure Environment Variables
+**Create your `.env` file:**
 
-Edit the `.env` file and replace `GENERATE_THIS_SECRET_KEY_AS_EXPLAINED_ABOVE` with your newly generated key.
+```bash
+SECRET_KEY=your-generated-secret-key-here
+```
 
-### 4. Optional Configuration
+The `SECRET_KEY` is **required**. Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
+
+### 3. Start TrikuSec
+
+```bash
+docker compose up -d
+```
+
+This will:
+
+- Pull the pre-built Docker images from GitHub Container Registry:
+  - `ghcr.io/trikusec/trikusec-nginx:latest`
+  - `ghcr.io/trikusec/trikusec-manager:latest`
+  - `ghcr.io/trikusec/trikusec-lynis-api:latest`
+- Start all services (nginx reverse proxy, manager, and API)
+- Initialize the database
+- Create the default admin user
+
+### 4. Access TrikuSec
+
+Once started, access TrikuSec at:
+
+```
+https://localhost:8000
+```
+
+Default credentials:
+- **Username:** `admin`
+- **Password:** `trikusec`
+
+!!! warning "Change Default Password"
+    Never use default admin credentials in production. Set `TRIKUSEC_ADMIN_PASSWORD` in your `.env` file.
+
+## Optional Configuration
+
+### Development Mode
 
 For development environments only, you can enable DEBUG mode:
 
@@ -33,58 +85,19 @@ DJANGO_DEBUG=True
 !!! danger "Security Warning"
     **NEVER** set `DJANGO_DEBUG=True` in production environments. Running with DEBUG enabled exposes sensitive information including stack traces, environment variables, and database queries to potential attackers.
 
+### Production Settings
+
 For production, set allowed hosts:
 
 ```bash
 DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 ```
 
-## Installation Steps
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/trikusec/trikusec.git
-cd trikusec
-```
-
-### 2. Start TrikuSec
-
-```bash
-docker compose up
-```
-
-This will:
-
-- Build the TrikuSec Docker image
-- Start the web server
-- Initialize the database
-- Create default admin user
-
-### 3. Access TrikuSec
-
-Once started, access TrikuSec at:
-
-```
-http://localhost:3000
-```
-
-Default credentials:
-- **Username:** `admin`
-- **Password:** `trikusec`
-
-!!! warning "Change Default Password"
-    Never use default admin credentials in production. Set `TRIKUSEC_ADMIN_PASSWORD` in your `.env` file.
-
 ## Production Deployment
 
-### Collect Static Files
+### Static Files
 
-Before deploying to production, collect static files:
-
-```bash
-docker compose -f docker-compose.yml run --rm trikusec python manage.py collectstatic --no-input
-```
+The Docker images automatically collect static files during startup, so no manual collection is needed. Static files are served by the nginx container.
 
 ### Enable HTTPS Security Headers
 
@@ -100,6 +113,16 @@ CSRF_COOKIE_SECURE=True
 ### PostgreSQL Setup
 
 For production, PostgreSQL is strongly recommended. See the [PostgreSQL Setup Guide](postgresql.md) for detailed instructions.
+
+## Architecture
+
+TrikuSec uses a split architecture with three services:
+
+1. **nginx** (Port 8000, 8001) - Reverse proxy handling HTTPS termination
+2. **trikusec-manager** (Port 8000) - Admin UI and frontend
+3. **trikusec-lynis-api** (Port 8001) - Lynis API endpoints for device enrollment and report uploads
+
+All services use pre-built images from GitHub Container Registry, ensuring consistent and secure deployments.
 
 ## Next Steps
 
