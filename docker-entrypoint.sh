@@ -88,7 +88,9 @@ fi
 
 # Start server logic
 # If the command is "gunicorn" (or starts with it), we assume we want to start the server using our configured params
-if [[ "$1" == "gunicorn"* ]]; then
+# Check if first argument is gunicorn, or if gunicorn appears anywhere in the command
+# Note: When CMD is in shell form, Docker wraps it as /bin/sh -c "gunicorn ...", so we check $* for "gunicorn"
+if [[ "$1" == "gunicorn"* ]] || [[ "$*" == *"gunicorn"* ]] || [[ "$3" == *"gunicorn"* ]]; then
     if [ "${DJANGO_SSL_ENABLED}" = "True" ]; then
         exec gunicorn \
             --bind 0.0.0.0:${PORT} \

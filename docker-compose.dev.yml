@@ -12,8 +12,8 @@ services:
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
-      - TRIKUSEC_URL=${TRIKUSEC_URL:-http://localhost:8000}
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://trikusec-lynis-api-dev:8001}
+      - TRIKUSEC_URL=http://localhost:8000
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_ADMIN_USERNAME=admin
       - TRIKUSEC_ADMIN_PASSWORD=trikusec
       - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
@@ -49,7 +49,7 @@ services:
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://trikusec-lynis-api-dev:8001}
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - PORT=8001
       - WSGI_APPLICATION=trikusec.wsgi_api:application
       - DJANGO_SSL_ENABLED=True
