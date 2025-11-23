@@ -23,6 +23,7 @@ services:
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
       - SSL_CN=localhost
+      - SKIP_COLLECTSTATIC=True
     ports:
       - 8000:8000
     restart: unless-stopped
@@ -57,6 +58,7 @@ services:
       - SSL_CN=localhost
       - SKIP_ADMIN_SETUP=True
       - SKIP_MIGRATIONS=True
+      - SKIP_COLLECTSTATIC=True
     ports:
       - 8001:8001
     restart: unless-stopped
