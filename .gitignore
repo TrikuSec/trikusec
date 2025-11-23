@@ -22,3 +22,6 @@ logs/*.log
 
 # MkDocs build output
 site/
+
+# Static files
+src/staticfiles/
