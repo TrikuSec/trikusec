@@ -136,10 +136,13 @@ if DATABASE_URL:
     else:
         raise ValueError('Invalid DATABASE_URL format. Expected: postgresql://user:password@host:port/dbname')
 else:
+    # Use /app/data for database storage in production (Docker volume mount point)
+    # Falls back to BASE_DIR for local development
+    db_dir = os.environ.get('TRIKUSEC_DB_DIR', str(BASE_DIR))
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'trikusec.sqlite3',
+            'NAME': os.path.join(db_dir, 'trikusec.sqlite3'),
         }
     }
 

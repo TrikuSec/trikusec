@@ -27,10 +27,17 @@ SQLite's `.backup` command creates a consistent backup even while the applicatio
 
 ```bash
 # Backup database (while application is running)
-docker compose exec trikusec sqlite3 /app/trikusec.sqlite3 ".backup '/app/backups/trikusec-backup-$(date +%Y%m%d-%H%M%S).sqlite3'"
+docker compose exec trikusec-manager sqlite3 /app/data/trikusec.sqlite3 ".backup '/tmp/trikusec-backup-$(date +%Y%m%d-%H%M%S).sqlite3'"
 
 # Copy backup to host
-docker compose cp trikusec:/app/backups/. ./backups/
+docker compose cp trikusec-manager:/tmp/trikusec-backup-$(date +%Y%m%d-%H%M%S).sqlite3 ./backups/
+```
+
+Alternatively, you can backup the entire database volume:
+
+```bash
+# Backup database volume
+docker run --rm -v trikusec_trikusec-db:/data -v $(pwd)/backups:/backup busybox tar czf /backup/trikusec-db-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
 ```
 
 #### Verify Backup
@@ -48,11 +55,20 @@ ls -lh backups/trikusec-backup-*.sqlite3
 docker compose down
 ```
 
-#### Copy Backup File
+#### Restore Backup File
+
+Option 1: Restore from database file backup:
 
 ```bash
-# Copy backup file to source directory
-cp backups/trikusec-backup-20241113-020000.sqlite3 src/trikusec.sqlite3
+# Copy backup file into the volume
+docker run --rm -v trikusec_trikusec-db:/data -v $(pwd)/backups:/backup busybox cp /backup/trikusec-backup-20241113-020000.sqlite3 /data/trikusec.sqlite3
+```
+
+Option 2: Restore from volume backup:
+
+```bash
+# Extract volume backup
+docker run --rm -v trikusec_trikusec-db:/data -v $(pwd)/backups:/backup busybox tar xzf /backup/trikusec-db-20241113-020000.tar.gz -C /data
 ```
 
 #### Start Application

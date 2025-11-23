@@ -69,21 +69,33 @@ if [ "${SKIP_COLLECTSTATIC}" != "True" ]; then
     python manage.py collectstatic --no-input --clear || true
 fi
 
-# Create admin user (ignore errors)
-if [ "${SKIP_ADMIN_SETUP}" != "True" ]; then
-    python manage.py createsuperuser --noinput --username=${TRIKUSEC_ADMIN_USERNAME} --email=${TRIKUSEC_ADMIN_EMAIL} || true
+# Create admin user (idempotent - only creates if doesn't exist)
+# Capture output to detect if user already exists
+CREATE_USER_OUTPUT=$(python manage.py createsuperuser --noinput --username=${TRIKUSEC_ADMIN_USERNAME} --email=${TRIKUSEC_ADMIN_EMAIL} 2>&1) || true
+echo "$CREATE_USER_OUTPUT"
 
-    # Update admin user password (from environment variable)
-    # Allow this to fail without crashing the container
+# Check if user already existed
+if echo "$CREATE_USER_OUTPUT" | grep -q "already exists"; then
+    USER_EXISTS=true
+else
+    USER_EXISTS=false
+fi
+
+# Only set password on first run (when user was just created)
+# This allows users to change password in UI without it being overwritten
+if [ "$USER_EXISTS" = "false" ]; then
+    echo "Setting initial admin password..."
     python manage.py change_admin_password || true
+else
+    echo "Admin user already exists, skipping password reset (respecting database)"
+fi
 
-    # Add a license key (use provided env var if available, otherwise generate)
-    # Allow this to fail without crashing the container
-    if [ -n "${TRIKUSEC_LICENSE_KEY}" ]; then
-      python manage.py populate_db_licensekey "${TRIKUSEC_LICENSE_KEY}" || true
-    else
-      python manage.py populate_db_licensekey || true
-    fi
+# Add a license key (use provided env var if available, otherwise generate)
+# Allow this to fail without crashing the container
+if [ -n "${TRIKUSEC_LICENSE_KEY}" ]; then
+  python manage.py populate_db_licensekey "${TRIKUSEC_LICENSE_KEY}" || true
+else
+  python manage.py populate_db_licensekey || true
 fi
 
 # Start server logic

@@ -26,10 +26,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Custom SQLite database filename for development
 # Override the default 'trikusec.sqlite3' to keep dev and production databases separate
 if not os.environ.get('DATABASE_URL'):
+    db_dir = os.environ.get('TRIKUSEC_DB_DIR', str(BASE_DIR))
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'trikusec-dev.sqlite3',
+            'NAME': os.path.join(db_dir, 'trikusec-dev.sqlite3'),
         }
     }
 

@@ -21,6 +21,7 @@ ENV DJANGO_SETTINGS_MODULE=trikusec.settings.frontend
 ENV WSGI_APPLICATION=trikusec.wsgi_frontend:application
 ENV PORT=8000
 ENV DJANGO_SSL_ENABLED=False
+ENV TRIKUSEC_DB_DIR=/app/data
 
 # Copy the entrypoint and scripts
 COPY docker-entrypoint.sh /docker-entrypoint.sh
@@ -39,8 +40,8 @@ RUN pip install --upgrade pip
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements-frontend.txt
 
-# Create directory for collected static files
-RUN mkdir -p /app/staticfiles
+# Create directories for collected static files and database
+RUN mkdir -p /app/staticfiles /app/data
 
 # Export the port
 EXPOSE 8000

@@ -38,6 +38,7 @@ services:
     volumes:
       - frontend-certs:/app/certs
       - staticfiles:/app/staticfiles
+      - trikusec-db:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - TRIKUSEC_URL=${TRIKUSEC_URL}
@@ -59,6 +60,7 @@ services:
     container_name: trikusec-lynis-api
     volumes:
       - api-certs:/app/certs
+      - trikusec-db:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL}
@@ -77,3 +79,4 @@ volumes:
   api-certs:
   staticfiles:
   nginx-certs:
+  trikusec-db:

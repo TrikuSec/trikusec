@@ -55,7 +55,6 @@ services:
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
       - SSL_CN=trikusec-lynis-api-dev
-      - SKIP_ADMIN_SETUP=True
       - SKIP_MIGRATIONS=True
       - SKIP_COLLECTSTATIC=True
     restart: unless-stopped

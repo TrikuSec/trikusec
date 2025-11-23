@@ -14,8 +14,8 @@ ENV DJANGO_SETTINGS_MODULE=trikusec.settings.api
 ENV WSGI_APPLICATION=trikusec.wsgi_api:application
 ENV PORT=8001
 ENV DJANGO_SSL_ENABLED=False
-ENV SKIP_ADMIN_SETUP=True
 ENV SKIP_MIGRATIONS=True
+ENV TRIKUSEC_DB_DIR=/app/data
 
 # Copy the entrypoint and scripts
 COPY docker-entrypoint.sh /docker-entrypoint.sh
@@ -33,6 +33,9 @@ RUN pip install --upgrade pip
 
 # Install dependencies
 RUN pip install -r requirements-api.txt
+
+# Create directory for database
+RUN mkdir -p /app/data
 
 # Export the port
 EXPOSE 8001
