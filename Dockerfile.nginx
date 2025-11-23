@@ -7,6 +7,9 @@ RUN apk add --no-cache openssl
 COPY nginx/generate-certs.sh /docker-entrypoint-nginx.sh
 RUN chmod +x /docker-entrypoint-nginx.sh
 
+# Copy nginx configuration (can be overridden via volume mount)
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
 # Default command
 CMD ["nginx", "-g", "daemon off;"]
 
