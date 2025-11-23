@@ -130,6 +130,8 @@ TrikuSec uses a split architecture with three services:
 
 All services use pre-built images from GitHub Container Registry, ensuring consistent and secure deployments.
 
+![Architecture](../assets/img/trikusec_architecture.png)
+
 ## Next Steps
 
 - [Configure Client](client-setup.md) - Set up Lynis clients

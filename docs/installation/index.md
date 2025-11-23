@@ -7,6 +7,16 @@ This section covers installing and setting up TrikuSec.
 TrikuSec can be installed easily using Docker Compose. By default, *SQLite* is used for the database. You should consider using *PostgreSQL* for production deployments.
 
 
+## Architecture
+TrikuSec uses a split architecture with two WSGI applications:
+
+1. **trikusec-manager** (Port 8000) - Admin UI and frontend
+2. **trikusec-lynis-api** (Port 8001) - Lynis API endpoints for device enrollment and report uploads
+
+Both services share the same database and are served by the same nginx reverse proxy.
+
+![Architecture](../assets/img/trikusec_architecture.png)
+
 ## Installation Options
 
 - **[Docker Installation](docker.md)** - Recommended for most users (quick setup)
