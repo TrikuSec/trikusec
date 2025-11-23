@@ -335,13 +335,44 @@ class TestEnrollScript:
 
         assert response.status_code == 200
         body = response.content.decode()
-        assert 'Installing Lynis plugins configured in TrikuSec' in body
-        assert 'https://plugins.example.com/trikusec/plugin_trikusec_phase1' in body
-        assert 'PLUGIN_URLS=(' in body
-        assert 'apt-get install -y curl lynis rkhunter auditd' in body
-        assert 'Configuring Lynis to skip tests: CRYP-7902' in body
-        assert 'test_skip_always=CRYP-7902' in body
+        
+        # Verify Content-Type
         assert response['Content-Type'] == 'text/x-shellscript'
+        
+        # Verify plugin URL is included in PLUGIN_URLS array
+        assert 'PLUGIN_URLS=(' in body
+        assert 'https://plugins.example.com/trikusec/plugin_trikusec_phase1' in body
+        
+        # Verify additional packages are included in ADDITIONAL_PACKAGES variable
+        assert 'ADDITIONAL_PACKAGES=' in body
+        assert 'rkhunter' in body
+        assert 'auditd' in body
+        
+        # Verify skip tests are included in SKIP_TESTS variable
+        assert 'SKIP_TESTS=' in body
+        assert 'CRYP-7902' in body
+        
+        # Verify the script uses variables correctly (not hardcoded)
+        assert '${packages}' in body or '$packages' in body  # Variable expansion
+        assert '${ADDITIONAL_PACKAGES}' in body or '$ADDITIONAL_PACKAGES' in body
+        assert '${SKIP_TESTS}' in body or '$SKIP_TESTS' in body
+        
+        # Verify actual commands exist (not just in comments)
+        assert 'apt-get install -y' in body  # The actual command pattern
+        assert 'test_skip_always=' in body  # The actual lynis configure command
+        
+        # Verify plugin installation function exists and is called
+        assert 'install_plugins' in body
+        # Verify install_plugins is called in main function
+        main_start = body.find('main()')
+        assert main_start != -1, "main() function should exist"
+        assert 'install_plugins' in body[main_start:], "install_plugins should be called in main()"
+        
+        # Verify the header text for plugin installation
+        assert 'Installing Lynis plugins configured in TrikuSec' in body
+        
+        # Verify the print_info statement for skip tests (actual behavior, not comment)
+        assert 'print_info "Configuring Lynis to skip tests: ${SKIP_TESTS}"' in body
 
     def test_check_license_invalid_method_put(self):
         """Test PUT method returns 405."""
