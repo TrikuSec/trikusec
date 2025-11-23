@@ -12,7 +12,7 @@ services:
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
-      - TRIKUSEC_URL=http://localhost:8000
+      - TRIKUSEC_URL=http://trikusec-manager-dev:8000
       - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_ADMIN_USERNAME=admin
       - TRIKUSEC_ADMIN_PASSWORD=trikusec
@@ -22,7 +22,6 @@ services:
       - DJANGO_SSL_ENABLED=False
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
-      - SSL_CN=localhost
       - SKIP_COLLECTSTATIC=True
     ports:
       - 8000:8000
@@ -55,12 +54,10 @@ services:
       - DJANGO_SSL_ENABLED=True
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
-      - SSL_CN=localhost
+      - SSL_CN=trikusec-lynis-api-dev
       - SKIP_ADMIN_SETUP=True
       - SKIP_MIGRATIONS=True
       - SKIP_COLLECTSTATIC=True
-    ports:
-      - 8001:8001
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-skf", "https://localhost:8001/health/"]
