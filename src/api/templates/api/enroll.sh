@@ -99,7 +99,7 @@ fi
 
 # Bugfix: lynis configure does not work correctly with :port in the upload server URL
 # so we need to set the configuration manually
-echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" >> /etc/lynis/custom.prf
+echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" | ${SUDO} tee -a /etc/lynis/custom.prf
 
 ${SUDO} lynis configure settings upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis auditor=TrikuSec
 {% if ignore_ssl_errors %}
@@ -139,6 +139,7 @@ for PLUGIN_URL in "${PLUGIN_URLS[@]}"; do
         echo "Installed Lynis plugin ${PLUGIN_BASENAME} into ${PLUGIN_DIR}"
 
         # Set right permissions for the plugin
+        ${SUDO} chown root:root "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
         ${SUDO} chmod 644 "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
         echo "Set permissions for ${PLUGIN_BASENAME} to 644"
 
@@ -164,5 +165,5 @@ ${SUDO} lynis configure settings test_skip_always={{ skip_tests }}
 {% endif %}
 
 # First audit
-lynis audit system --upload --quick
+${SUDO} lynis audit system --upload --quick
 
