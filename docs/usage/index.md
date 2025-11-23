@@ -5,7 +5,7 @@ Learn how to use TrikuSec to manage and monitor your servers.
 ## Getting Started
 
 - **[Getting Started](getting-started.md)** - First steps after installation
-- **[Dashboard](dashboard.md)** - Using the web dashboard
+- **[Devices](devices.md)** - Listing and managing devices
 - **[Policies](policies.md)** - Creating and managing policies
 - **[Reports](reports.md)** - Viewing and analyzing audit reports
 

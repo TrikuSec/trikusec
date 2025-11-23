@@ -1,10 +1,10 @@
-# Dashboard Guide
+# Devices
 
-Complete guide to using the TrikuSec web dashboard.
+Learn how to list and manage devices in TrikuSec.
 
-## Main Dashboard
+## Devices Overview
 
-The main dashboard provides an overview of your infrastructure:
+The list of devices is the main page of the manager.
 
 ### Key Metrics
 
