@@ -481,6 +481,8 @@
       
         
       
+        
+      
     
     
     
@@ -608,6 +610,34 @@
     
   
     Client setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/backup-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup recovery
   
 
     
@@ -870,43 +900,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#custom-policies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Policies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Integration
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#performance-tuning" class="md-nav__link">
     <span class="md-ellipsis">
       
         Performance Tuning
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#customization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Customization
       
     </span>
   </a>
@@ -1068,14 +1065,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/dashboard/" class="md-nav__link">
+      <a href="../../usage/devices/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dashboard
+    Devices
   
 
     
@@ -1163,8 +1160,6 @@
       
         
           
-        
-      
         
       
         
@@ -1283,34 +1278,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/examples/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1329,6 +1296,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1456,6 +1431,118 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/e2e-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2e testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-license-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis license format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-report-custom-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis report custom variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/ui-ux-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ui ux architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/contributing/" class="md-nav__link">
         
   
@@ -1541,7 +1628,7 @@
 <h4 id="static-files">Static Files<a class="headerlink" href="#static-files" title="Permanent link">&para;</a></h4>
 <p>Configure static file serving:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Collect static files</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>trikusec<span class="w"> </span>python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--no-input
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>trikusec-manager<span class="w"> </span>python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--no-input
 </span></code></pre></div>
 <h4 id="media-files">Media Files<a class="headerlink" href="#media-files" title="Permanent link">&para;</a></h4>
 <p>Configure media file storage and serving.</p>
@@ -1564,18 +1651,6 @@
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">}</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
 </span></code></pre></div>
-<h4 id="indexes">Indexes<a class="headerlink" href="#indexes" title="Permanent link">&para;</a></h4>
-<p>TrikuSec includes performance indexes on frequently queried fields. See migrations for details.</p>
-<h3 id="custom-policies">Custom Policies<a class="headerlink" href="#custom-policies" title="Permanent link">&para;</a></h3>
-<h4 id="policy-rules">Policy Rules<a class="headerlink" href="#policy-rules" title="Permanent link">&para;</a></h4>
-<p>Define custom policy rules through the web interface or API.</p>
-<h4 id="policy-rule-sets">Policy Rule Sets<a class="headerlink" href="#policy-rule-sets" title="Permanent link">&para;</a></h4>
-<p>Create rule sets to apply multiple policies to devices.</p>
-<h3 id="integration">Integration<a class="headerlink" href="#integration" title="Permanent link">&para;</a></h3>
-<h4 id="webhooks">Webhooks<a class="headerlink" href="#webhooks" title="Permanent link">&para;</a></h4>
-<p>Configure webhooks for events (coming soon).</p>
-<h4 id="api-integration">API Integration<a class="headerlink" href="#api-integration" title="Permanent link">&para;</a></h4>
-<p>Integrate TrikuSec with other tools using the REST API.</p>
 <h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">&para;</a></h3>
 <h4 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h4>
 <p>Configure caching for better performance:</p>
@@ -1591,11 +1666,6 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Enable query logging</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True<span class="w">  </span><span class="c1"># Development only</span>
 </span></code></pre></div>
-<h3 id="customization">Customization<a class="headerlink" href="#customization" title="Permanent link">&para;</a></h3>
-<h4 id="branding">Branding<a class="headerlink" href="#branding" title="Permanent link">&para;</a></h4>
-<p>Customize logos and branding in templates.</p>
-<h4 id="themes">Themes<a class="headerlink" href="#themes" title="Permanent link">&para;</a></h4>
-<p>Modify CSS and templates for custom appearance.</p>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <h4 id="debug-mode">Debug Mode<a class="headerlink" href="#debug-mode" title="Permanent link">&para;</a></h4>
 <p>For troubleshooting, temporarily enable debug mode:</p>
@@ -1653,7 +1723,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 16, 2025 22:21:44 UTC">November 16, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 21:20:38 UTC">November 23, 2025</span>
   </span>
 
     

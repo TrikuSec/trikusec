@@ -481,6 +481,8 @@
       
         
       
+        
+      
     
     
     
@@ -608,6 +610,34 @@
     
   
     Client setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/backup-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup recovery
   
 
     
@@ -897,32 +927,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#regular-updates" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Regular Updates
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#backup-and-recovery" class="md-nav__link">
     <span class="md-ellipsis">
       
         Backup and Recovery
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring-and-logging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Monitoring and Logging
       
     </span>
   </a>
@@ -1101,14 +1109,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/dashboard/" class="md-nav__link">
+      <a href="../../usage/devices/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dashboard
+    Devices
   
 
     
@@ -1196,8 +1204,6 @@
       
         
           
-        
-      
         
       
         
@@ -1316,34 +1322,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/examples/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1362,6 +1340,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1469,6 +1455,118 @@
     
   
     Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/e2e-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2e testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-license-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis license format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-report-custom-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis report custom variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/ui-ux-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ui ux architecture
   
 
     
@@ -1655,7 +1753,7 @@
 <h4 id="api-endpoint-separation-architecture">API Endpoint Separation Architecture<a class="headerlink" href="#api-endpoint-separation-architecture" title="Permanent link">&para;</a></h4>
 <p>TrikuSec uses a <strong>dual-endpoint architecture</strong> to improve security by separating admin UI access from Lynis API access:</p>
 <ul>
-<li><strong>Admin UI Endpoint</strong> (<code>TRIKUSEC_URL</code>, default: <code>https://localhost:443</code>): </li>
+<li><strong>Admin UI Endpoint</strong> (<code>TRIKUSEC_URL</code>, default: <code>https://localhost:8000</code>): </li>
 <li>Used for accessing the web management interface</li>
 <li>Requires authentication (login required)</li>
 <li>Should only be accessible to sysadmins</li>
@@ -1663,7 +1761,7 @@
 <p>Typically accessed on port 443 via nginx reverse proxy</p>
 </li>
 <li>
-<p><strong>Lynis API Endpoint</strong> (<code>TRIKUSEC_LYNIS_API_URL</code>, default: <code>https://localhost:8443</code>):</p>
+<p><strong>Lynis API Endpoint</strong> (<code>TRIKUSEC_LYNIS_API_URL</code>, default: <code>https://localhost:8001</code>):</p>
 </li>
 <li>Used by monitored servers for downloading <code>enroll.sh</code>, certificate download, license validation, and report uploads</li>
 <li>No authentication UI exposed (API-only endpoints)</li>
@@ -1690,20 +1788,20 @@
 </ol>
 <h5 id="example-firewall-configuration">Example Firewall Configuration<a class="headerlink" href="#example-firewall-configuration" title="Permanent link">&para;</a></h5>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Allow admin UI access only from corporate network</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">443</span><span class="w"> </span>-s<span class="w"> </span><span class="m">10</span>.0.0.0/8<span class="w"> </span>-j<span class="w"> </span>ACCEPT
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">443</span><span class="w"> </span>-j<span class="w"> </span>DROP
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8000</span><span class="w"> </span>-s<span class="w"> </span><span class="m">10</span>.0.0.0/8<span class="w"> </span>-j<span class="w"> </span>ACCEPT
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8000</span><span class="w"> </span>-j<span class="w"> </span>DROP
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
 </span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Allow Lynis API access from server network</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8443</span><span class="w"> </span>-s<span class="w"> </span><span class="m">192</span>.168.1.0/24<span class="w"> </span>-j<span class="w"> </span>ACCEPT
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8443</span><span class="w"> </span>-j<span class="w"> </span>DROP
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8001</span><span class="w"> </span>-s<span class="w"> </span><span class="m">192</span>.168.1.0/24<span class="w"> </span>-j<span class="w"> </span>ACCEPT
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8001</span><span class="w"> </span>-j<span class="w"> </span>DROP
 </span></code></pre></div>
 <h5 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h5>
 <p>Set <code>TRIKUSEC_LYNIS_API_URL</code> to your Lynis API endpoint. If not set, it falls back to <code>TRIKUSEC_URL</code> for backward compatibility.</p>
 <p>See <a href="../environment-variables/">Environment Variables</a> for configuration details.</p>
 <h4 id="firewall-configuration">Firewall Configuration<a class="headerlink" href="#firewall-configuration" title="Permanent link">&para;</a></h4>
 <p>Only expose necessary ports:
-- <code>443</code> (or your configured port) for Admin UI HTTP/HTTPS
-- <code>8443</code> (or your configured port) for Lynis API HTTP/HTTPS
+- <code>8000</code> (or your configured port) for Admin UI HTTP/HTTPS
+- <code>8001</code> (or your configured port) for Lynis API HTTP/HTTPS
 - Database port only to application server (if external)</p>
 <h4 id="reverse-proxy">Reverse Proxy<a class="headerlink" href="#reverse-proxy" title="Permanent link">&para;</a></h4>
 <p>Use a reverse proxy (Nginx, Apache) for:
@@ -1711,6 +1809,7 @@
 - Additional security headers
 - Rate limiting
 - DDoS protection</p>
+<p>By default, <strong>TrikuSec</strong> uses a reverse proxy (nginx) to handle HTTPS termination. The nginx configuration is included in the Docker images and automatically handles SSL/TLS termination.</p>
 <h3 id="security-headers">Security Headers<a class="headerlink" href="#security-headers" title="Permanent link">&para;</a></h3>
 <p>TrikuSec includes security headers, but you can add more via reverse proxy:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>X-Content-Type-Options: nosniff
@@ -1718,27 +1817,8 @@
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>X-XSS-Protection: 1; mode=block
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Content-Security-Policy: default-src &#39;self&#39;
 </span></code></pre></div>
-<h3 id="regular-updates">Regular Updates<a class="headerlink" href="#regular-updates" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Keep Django and dependencies updated</li>
-<li>Monitor security advisories</li>
-<li>Apply security patches promptly</li>
-<li>Review and update regularly</li>
-</ul>
 <h3 id="backup-and-recovery">Backup and Recovery<a class="headerlink" href="#backup-and-recovery" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Regular database backups</li>
-<li>Test restore procedures</li>
-<li>Store backups securely</li>
-<li>Encrypt backup files</li>
-</ul>
-<h3 id="monitoring-and-logging">Monitoring and Logging<a class="headerlink" href="#monitoring-and-logging" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Monitor access logs</li>
-<li>Set up alerts for suspicious activity</li>
-<li>Review logs regularly</li>
-<li>Use centralized logging for production</li>
-</ul>
+<p>All the data is stored in the database. See <a href="../../installation/backup-recovery/">Backup and Recovery</a> for details.</p>
 <h3 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="https://docs.djangoproject.com/en/stable/topics/security/">Django Security Documentation</a></li>
@@ -1780,7 +1860,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 21, 2025 08:18:52 UTC">November 21, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 21:31:25 UTC">November 23, 2025</span>
   </span>
 
     

@@ -16,7 +16,7 @@
         <link rel="prev" href="../endpoints/">
       
       
-        <link rel="next" href="../examples/">
+        <link rel="next" href="../../development/">
       
       
         
@@ -481,6 +481,8 @@
       
         
       
+        
+      
     
     
     
@@ -608,6 +610,34 @@
     
   
     Client setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/backup-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup recovery
   
 
     
@@ -906,14 +936,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/dashboard/" class="md-nav__link">
+      <a href="../../usage/devices/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dashboard
+    Devices
   
 
     
@@ -1003,8 +1033,6 @@
       
         
           
-        
-      
         
       
         
@@ -1182,28 +1210,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#session-authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Session Authentication
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#api-key-authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Key Authentication
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#security-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1250,34 +1256,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../examples/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1296,6 +1274,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1423,6 +1409,118 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/e2e-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2e testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-license-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis license format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/lynis-report-custom-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lynis report custom variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/ui-ux-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ui ux architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/contributing/" class="md-nav__link">
         
   
@@ -1514,17 +1612,6 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://yourserver:8001/api/lynis/license/<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;licensekey=your-license-key&quot;</span>
 </span></code></pre></div>
-<h3 id="session-authentication">Session Authentication<a class="headerlink" href="#session-authentication" title="Permanent link">&para;</a></h3>
-<p>For web-based API access, use Django session authentication:</p>
-<ol>
-<li>Login via web interface</li>
-<li>Use session cookie in API requests</li>
-</ol>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span>https://yourserver:8000/api/devices/<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Cookie: sessionid=your-session-id&quot;</span>
-</span></code></pre></div>
-<h3 id="api-key-authentication">API Key Authentication<a class="headerlink" href="#api-key-authentication" title="Permanent link">&para;</a></h3>
-<p>API key authentication (coming soon) for programmatic access.</p>
 <h3 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Use HTTPS</strong> - Always use HTTPS in production</li>
@@ -1550,7 +1637,6 @@
 <h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="../endpoints/">Endpoints</a> - See all available endpoints</li>
-<li><a href="../examples/">Examples</a> - Integration examples</li>
 </ul>
 <p><em>[API]: Application Programming Interface
 </em>[HSTS]: HTTP Strict Transport Security
@@ -1587,7 +1673,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 17:33:12 UTC">November 23, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 21:20:38 UTC">November 23, 2025</span>
   </span>
 
     
