@@ -1,0 +1,43 @@
+FROM python:3.12-slim
+
+# Install system dependencies
+# - curl for healthchecks
+# - openssl for certificate generation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
+ENV DJANGO_SETTINGS_MODULE=trikusec.settings.api
+ENV WSGI_APPLICATION=trikusec.wsgi_api:application
+ENV PORT=8001
+ENV DJANGO_SSL_ENABLED=False
+ENV SKIP_ADMIN_SETUP=True
+ENV SKIP_MIGRATIONS=True
+
+# Copy the entrypoint and scripts
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY scripts/ /opt/scripts/
+RUN chmod +x /docker-entrypoint.sh /opt/scripts/generate-ssl-cert.sh
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the content of the local src directory to the working directory
+COPY src/ .
+
+# Install pip
+RUN pip install --upgrade pip
+
+# Install dependencies
+RUN pip install -r requirements-api.txt
+
+# Export the port
+EXPOSE 8001
+
+# Run the entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD gunicorn --bind 0.0.0.0:${PORT} ${WSGI_APPLICATION}
+

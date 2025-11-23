@@ -1,19 +1,45 @@
 services:
-  trikusec:
-    build: .
-    container_name: trikusec
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: trikusec-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - staticfiles:/app/staticfiles:ro
+      - nginx-certs:/etc/nginx/certs
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on:
+      - trikusec-manager
+      - trikusec-lynis-api
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/docker-entrypoint-nginx.sh"]
+    command: ["nginx", "-g", "daemon off;"]
+    environment:
+      - NGINX_CERT_CN=localhost
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "https://localhost:8000/health/", "--no-check-certificate"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  trikusec-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: trikusec-manager
     volumes:
       - ./src:/app
+      - frontend-certs:/app/certs
+      - staticfiles:/app/staticfiles
     environment:
-      - SECRET_KEY=${SECRET_KEY:-"CHANGE_ME_IN_PRODUCTION"}
-      - DJANGO_ENV=production
-      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
-      - TRIKUSEC_URL=${TRIKUSEC_URL:-https://localhost:8000}
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://localhost:8000}
-      - TRIKUSEC_ADMIN_USERNAME=admin
-      # SECURITY WARNING: Change admin credentials in production!
-      # Set TRIKUSEC_ADMIN_PASSWORD in .env file
-      - TRIKUSEC_ADMIN_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
+      - SECRET_KEY=${SECRET_KEY}
+      - TRIKUSEC_URL=${TRIKUSEC_URL}
+    expose:
+      - "8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/health/"]
@@ -21,18 +47,30 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-  
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - 8000:443
+
+  trikusec-lynis-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: trikusec-lynis-api
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/generate-certs.sh:/docker-entrypoint.d/40-generate-cert.sh
-      - ./nginx/certs:/etc/nginx/certs
+      - ./src:/app
+      - api-certs:/app/certs
     environment:
-      - NGINX_CERT_CN=${NGINX_CERT_CN:-nginx}
-    depends_on:
-      trikusec:
-        condition: service_healthy
+      - SECRET_KEY=${SECRET_KEY}
+      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL}
+    expose:
+      - "8001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  frontend-certs:
+  api-certs:
+  staticfiles:
+  nginx-certs:

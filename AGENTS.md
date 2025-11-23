@@ -45,6 +45,23 @@ docker compose -f docker-compose.dev.yml --profile test run --rm test pytest api
 docker compose -f docker-compose.dev.yml --profile test run --rm test /bin/bash
 ```
 
+## Split Architecture
+
+TrikuSec uses a split architecture with two separate Django processes to improve security:
+
+1. **trikusec-manager** (Port 8000):
+   - Handles Admin UI, frontend views, and user authentication
+   - Includes full middleware stack (sessions, CSRF, admin)
+   - Uses `Dockerfile.frontend` and `src/trikusec/urls_frontend.py`
+
+2. **trikusec-lynis-api** (Port 8001):
+   - Handles Lynis API endpoints only (enrollment, report uploads)
+   - No admin UI, no session middleware, no CSRF middleware (uses `@csrf_exempt`)
+   - Uses `Dockerfile.api` and `src/trikusec/urls_api.py`
+   - Minimal attack surface
+
+Both services share the same database and code volume in development.
+
 ## Critical API Endpoints (DO NOT BREAK)
 
 The following Lynis API endpoints **MUST** remain unchanged to maintain compatibility:
@@ -73,64 +90,6 @@ The following Lynis API endpoints **MUST** remain unchanged to maintain compatib
 - Never change request/response format
 - Always test with actual Lynis client before committing changes
 
-## License Key Management System
-
-### License Model Structure
-
-The license system supports both **per-device licenses** and **shared licenses** with device limits:
-
-#### Organization Model (Future Multi-Tenancy)
-- **Location**: `src/api/models.py` - `Organization` class
-- **Purpose**: Foundation for future multi-tenant support (currently single-tenant)
-- **Key Fields**: `name`, `slug`, `is_active`
-- **Note**: All licenses are currently linked to a default organization
-
-#### LicenseKey Model
-- **Location**: `src/api/models.py` - `LicenseKey` class
-- **Key Fields**:
-  - `licensekey`: Unique license key string (used by Lynis clients)
-  - `name`: Human-readable name (e.g., "Production servers" or "web-01")
-  - `organization`: ForeignKey to Organization (null allowed for backward compatibility)
-  - `max_devices`: Integer or null (null = unlimited devices)
-  - `expires_at`: DateTime or null (null = no expiration)
-  - `is_active`: Boolean (inactive licenses cannot enroll new devices)
-- **Methods**:
-  - `device_count()`: Returns number of devices using this license
-  - `has_capacity()`: Checks if license can accept more devices (considers active status, expiration, and device count)
-
-#### Critical Constraints
-
-1. **Lynis API Compatibility**: 
-   - The `licensekey` field is the ONLY authentication mechanism
-   - There is NO separate "device token" - license key = device authentication
-   - Lynis clients send `licensekey` in POST data - this cannot be changed
-
-2. **License Capacity Checks**:
-   - New device enrollment checks license capacity before creating device
-   - Existing devices can continue uploading reports even if license is at capacity
-   - Capacity check considers: `is_active`, `expires_at`, and `device_count` vs `max_devices`
-
-3. **License Validation**:
-   - `validate_license()`: Checks if license exists, is active, and not expired
-   - `check_license_capacity()`: Validates license AND checks if it has capacity
-   - Both functions used in `upload_report()` endpoint
-
-#### License Utilities
-
-- **Location**: `src/api/utils/license_utils.py`
-- **Functions**:
-  - `generate_license_key()`: Generates unique license key in format `xxxxxxxx-xxxxxxxx-xxxxxxxx`
-  - `validate_license(licensekey)`: Returns (is_valid: bool, error_message: str)
-  - `check_license_capacity(licensekey)`: Returns (has_capacity: bool, error_message: str)
-
-#### Migration Notes
-
-- Migration `0010_add_organization_and_license_fields.py`:
-  - Creates default organization
-  - Sets existing licenses to `max_devices=null` (unlimited) to maintain current behavior
-  - Adds new fields to LicenseKey model
-  - Makes `licensekey` field unique
-
 ## Project Structure
 
 ### Key Directories
@@ -138,24 +97,24 @@ The license system supports both **per-device licenses** and **shared licenses**
 - `src/` - Main application source code
   - `src/api/` - API application (models, views, forms, tests)
   - `src/frontend/` - Frontend application (views, templates, static files)
-  - `src/trikusec/` - Django project settings
-  - `src/utils/` - Shared utilities (will be moved to proper app structure)
+  - `src/trikusec/` - Django project settings (now split into frontend/api)
+  - `src/utils/` - Shared utilities
   - `src/conftest.py` - Pytest fixtures
+- `scripts/` - Helper scripts (e.g. SSL generation)
 - `lynis/` - Lynis integration files
-  - `lynis/Dockerfile` - Docker image for Lynis client testing
-  - `lynis/run-lynis-test.sh` - Integration test script
 - `trikusec-lynis-plugin/` - Lynis custom plugin
 - `.github/workflows/` - CI/CD workflows
 
 ### Key Files
 
-- `docker-compose.yml` - Production Docker Compose configuration
-- `docker-compose.dev.yml` - Development Docker Compose configuration (includes test service)
-- `Dockerfile` - Production Docker image
+- `docker-compose.yml` - Production Docker Compose configuration (2 services)
+- `docker-compose.dev.yml` - Development Docker Compose configuration
+- `Dockerfile.frontend` - Frontend/Manager Docker image
+- `Dockerfile.api` - API Docker image
 - `Dockerfile.test` - Test Docker image
 - `pytest.ini` - Pytest configuration
-- `src/requirements.txt` - Production dependencies
-- `src/requirements-dev.txt` - Development dependencies (pytest, coverage, etc.)
+- `src/requirements-frontend.txt` - Frontend dependencies
+- `src/requirements-api.txt` - API dependencies
 
 ## Security Considerations
 
@@ -184,221 +143,6 @@ The license system supports both **per-device licenses** and **shared licenses**
 
 7. **No Rate Limiting** - API endpoints need rate limiting protection
 
-## Code Conventions
-
-### Django Best Practices
-
-- Use Django's built-in features (forms, validators, middleware)
-- Follow Django naming conventions
-- Use `db_index=True` on frequently queried fields
-- Move business logic out of views into models or utility functions
-
-### Testing
-
-- All tests use pytest (not Django's unittest)
-- Tests are in `src/api/tests.py` (unit tests) and `src/api/tests_integration.py` (integration tests)
-- Use fixtures from `src/conftest.py` for common test data
-- Integration tests are marked with `@pytest.mark.integration`
-- Always test critical Lynis API endpoints before committing
-
-### E2E Testing (Playwright)
-
-**E2E tests verify frontend functionality in a real browser environment.**
-
-- **Location**: `src/frontend/tests_e2e.py` (E2E tests) and `src/frontend/conftest_e2e.py` (E2E fixtures)
-- **Marker**: Tests are marked with `@pytest.mark.e2e`
-- **Service**: Use `test-e2e` service in `docker-compose.dev.yml`
-- **Dependencies**: Playwright and pytest-playwright are installed in `Dockerfile.test`
-
-**Running E2E tests:**
-
-```bash
-# Run all E2E tests
-docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e
-
-# Run specific test
-docker compose -f docker-compose.dev.yml --profile test run --rm test-e2e \
-  pytest frontend/tests_e2e.py::TestRulesetCRUD::test_create_ruleset_basic -v
-```
-
-**Guidelines for AI agents:**
-
-- **Run e2e tests after any frontend changes**: When modifying templates, JavaScript, or views that affect user interactions
-- **Update selectors if UI structure changes**: If you change HTML structure, IDs, or CSS classes, update test selectors
-- **Add new e2e test for new user-facing features**: When adding new UI features, add corresponding E2E tests
-- **Keep tests focused on user interactions**: Test what users see and do, not implementation details
-- **Use stable selectors**: Prefer IDs, data attributes, or text content over CSS classes
-- **Wait for elements**: Always wait for elements to be visible/ready before interacting
-- **Test complete user flows**: E2E tests should verify complete workflows, not just individual actions
-
-**Common patterns:**
-
-- Use `authenticated_browser` fixture for logged-in sessions
-- Use `test_policy_data` fixture for sample rules and rulesets
-- Wait for sidebars: `sidebar.wait_for(state="visible", timeout=5000)`
-- Handle dialogs: `page.once("dialog", lambda dialog: dialog.accept())`
-- Check visibility: `assert page.locator('text=Expected').is_visible()`
-
-See [E2E Testing Documentation](docs/development/e2e-testing.md) for detailed information.
-
-### Database
-
-- Currently using SQLite (will be migrated to PostgreSQL for production)
-- Migrations are automatically run in test container
-- Never commit database files (`*.sqlite3`)
-
-## Policy Rules and Query Syntax
-
-### JMESPath Query Language
-
-Policy rules use [JMESPath](https://jmespath.org/) expressions to evaluate device reports against compliance requirements.
-
-**Key Points:**
-- **Location**: `src/api/utils/policy_query.py` - `evaluate_query()` function
-- **Syntax**: JMESPath expressions (e.g., `os == 'Linux' && hardening_index > \`70\``)
-- **Security**: JMESPath is sandboxed - no code execution risk
-- **Complex Queries**: Supports AND (`&&`), OR (`||`), and NOT (`!`) operators
-- **Field Limit**: `rule_query` field has max_length=255 characters
-
-**Common Query Patterns:**
-- Simple comparison: `hardening_index > \`70\``
-- String equality: `os == 'Linux'`
-- Contains check: `contains(automation_tool_running, 'ansible')`
-- Complex logic: `os == 'Linux' && hardening_index > \`70\` || vulnerable_packages_found == \`0\``
-
-**When modifying policy queries:**
-- Always use JMESPath syntax (not custom syntax)
-- Test queries with actual report data
-- Remember: strings use single quotes, numbers use backticks
-- Complex queries are supported (AND/OR/NOT)
-- Query length is limited to 255 characters
-
-See [Policy Documentation](docs/usage/policies.md) for complete syntax guide and examples.
-
-## UI/UX Architecture
-
-### Collapsible Sidebar Pattern
-
-TrikuSec uses a **consistent UX pattern** for CRUD operations:
-
-- **List views**: Full-window display (e.g., license list, device list)
-- **Detail views**: Full-window with related data (e.g., license details with devices)
-- **Create/Edit operations**: Collapsible right-side panel (sidebar)
-
-#### Rationale
-
-This pattern provides:
-- **Context preservation**: Users see the list/details while editing
-- **Reduced cognitive load**: No navigation interruption or page reloads
-- **Quick operations**: Fast edits without losing place
-- **Modern UX**: Follows patterns from popular apps (Gmail, Slack, Linear)
-
-#### When to Use Collapsible Sidebar
-
-✅ **Use sidebar for:**
-- Simple forms (3-6 fields)
-- Frequent edit operations
-- Forms where seeing related data adds value
-- Quick create/update workflows
-
-❌ **Use full-page form for:**
-- Complex forms (10+ fields) or multi-step wizards
-- Critical operations requiring full attention
-- Rich content editing (markdown, WYSIWYG)
-- Heavy media uploads
-- Mobile-first features where sidebars don't work well
-
-#### Implementation Pattern
-
-**Current implementations:**
-- Rules: `src/frontend/templates/policy/rule_edit_sidebar.html` + `src/frontend/static/js/rules.js`
-- Rulesets: `src/frontend/templates/policy/ruleset_selection_sidebar.html` + `src/frontend/static/js/rulesets.js`
-- Licenses: `src/frontend/templates/license/license_edit_sidebar.html` + `src/frontend/static/js/licenses.js`
-
-**Template structure:**
-```html
-<div id="item-edit-panel" class="hidden fixed right-0 top-0 h-full w-1/4 bg-white shadow-md z-50">
-    <div class="flex justify-between items-center p-4 border-b bg-gray-200">
-        <h2 class="text-xl font-bold" id="item-edit-title">Edit Item</h2>
-        <button class="item-edit-panel-button"><!-- Close icon --></button>
-    </div>
-    <form id="item-edit-form" method="POST">
-        {% csrf_token %}
-        <!-- Form fields -->
-        <div class="absolute flex space-x-2 w-full bottom-0 p-4 bg-gray-200">
-            <button type="submit">Save</button>
-            <button type="button" class="item-edit-panel-button">Cancel</button>
-        </div>
-    </form>
-</div>
-```
-
-**JavaScript structure:**
-```javascript
-function toggleItemEditPanel(itemId) {
-    const panel = document.getElementById('item-edit-panel');
-    panel.classList.toggle('hidden');
-    if (!panel.classList.contains('hidden')) {
-        loadItemDetails(itemId);  // Populate form
-    }
-}
-
-function submitItemForm() {
-    // AJAX submission with X-Requested-With header
-    // Handle success (close panel, reload) or errors (show in panel)
-}
-```
-
-**Firefox Compatibility Note:**
-When attaching event listeners to buttons in sidebars (especially those initially hidden), **always use event delegation** instead of direct listeners. Firefox has issues with direct listeners on hidden elements. Example:
-
-```javascript
-// ✅ Use event delegation (works in Firefox)
-const panel = document.getElementById('rule-selection-panel');
-panel.addEventListener('click', function(e) {
-    const button = e.target.closest('.rule-edit-panel-button');
-    if (button) {
-        // Handle click
-    }
-});
-
-// ❌ Avoid direct listeners on hidden elements (fails in Firefox)
-const button = document.querySelector('.rule-edit-panel-button');
-button.addEventListener('click', function() { ... });
-```
-
-**Backend structure:**
-```python
-def item_create(request):
-    if request.method == 'POST':
-        form = ItemForm(request.POST)
-        if form.is_valid():
-            item = form.save()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'item_id': item.id})
-            return redirect('item_detail', item_id=item.id)
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-    return redirect('item_list')  # Fallback
-```
-
-**Key requirements:**
-1. Sidebar template included in both list and detail pages
-2. JavaScript file loaded with item data serialized to JSON
-3. Views handle both AJAX (JSON response) and traditional (redirect) requests
-4. Toggle button classes: `.item-edit-panel-button` for open/close
-5. Form submission via AJAX with `X-Requested-With: XMLHttpRequest` header
-
-#### Best Practices
-
-- **Keyboard support**: Sidebar should close on `Esc` key (future enhancement)
-- **Error handling**: Show validation errors inline without closing sidebar
-- **Success feedback**: Currently reloads page; consider toast notifications
-- **Mobile**: Consider full-screen modal for small screens
-- **Consistency**: Follow existing patterns for new features
-- **Firefox compatibility**: Always use event delegation for buttons in sidebars (see JavaScript structure section above)
-
 ## Environment Variables
 
 ### Required
@@ -409,18 +153,11 @@ def item_create(request):
 ### Optional
 
 - `DJANGO_ALLOWED_HOSTS` - Allowed hosts (default: `['*']` for development)
-- `TRIKUSEC_URL` - TrikuSec admin UI server URL (default: `https://localhost:443`)
-- `TRIKUSEC_LYNIS_API_URL` - TrikuSec Lynis API server URL for device enrollment and report uploads (default: `https://localhost:8443`, falls back to `TRIKUSEC_URL` if not set)
+- `TRIKUSEC_URL` - TrikuSec admin UI server URL (default: `https://localhost:8000`)
+- `TRIKUSEC_LYNIS_API_URL` - TrikuSec Lynis API server URL (default: `https://localhost:8001`)
 - `TRIKUSEC_ADMIN_USERNAME` - Admin username (default: `admin`)
 - `TRIKUSEC_ADMIN_PASSWORD` - Admin password (default: `trikusec`)
-
-#### Dual-Endpoint Architecture
-
-TrikuSec uses separate endpoints for admin UI and Lynis API to improve security:
-- **Admin UI** (`TRIKUSEC_URL`): Web interface for sysadmins, requires authentication
-- **Lynis API** (`TRIKUSEC_LYNIS_API_URL`): API endpoints for device enrollment and report uploads
-
-This separation allows different firewall rules for each endpoint, preventing compromised servers from accessing the admin interface. See [Security Documentation](../docs/configuration/security.md#api-endpoint-separation-architecture) for details.
+- `DJANGO_SSL_ENABLED` - Enable internal SSL (default: `True` for dev/standalone)
 
 ## Common Tasks
 
@@ -440,7 +177,8 @@ docker compose -f docker-compose.dev.yml --profile test run --rm test
 ### Running Development Server
 
 ```bash
-docker compose -f docker-compose.dev.yml up trikusec
+docker compose -f docker-compose.dev.yml up
+# Starts trikusec-manager (8000) and trikusec-lynis-api (8001)
 ```
 
 ### Running Integration Tests with Lynis
@@ -451,43 +189,8 @@ export SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))
 export TRIKUSEC_LICENSE_KEY=test-license-key-$(date +%s)
 
 # Start services
-docker compose -f docker-compose.dev.yml up -d trikusec
+docker compose -f docker-compose.dev.yml up -d trikusec-manager trikusec-lynis-api
 
 # Wait for health check, then run Lynis client
 docker compose -f docker-compose.dev.yml up --abort-on-container-exit lynis-client
 ```
-
-## Important Notes
-
-1. **Never break Lynis compatibility** - The API endpoints are used by external Lynis clients
-2. **Always test in Docker** - Never assume local environment matches production
-3. **Use Docker Compose V2 syntax** - Always `docker compose`, never `docker-compose`
-4. **Security first** - Review security implications of all changes
-5. **Test coverage** - Maintain test coverage for critical functionality
-6. **Documentation** - Update README.md and this file when making significant changes
-
-## File Naming Conventions
-
-- Docker files: `Dockerfile`, `Dockerfile.test`, `docker-compose.yml`, `docker-compose.dev.yml`
-- Test files: `tests.py`, `tests_integration.py`, `conftest.py`
-- Configuration: `pytest.ini`, `settings.py`
-- Scripts: `docker-entrypoint.sh`, `docker-entrypoint-test.sh`, `run-lynis-test.sh`
-
-## When Making Changes
-
-1. **Before making changes:**
-   - Read this file completely
-   - Understand the impact on Lynis API endpoints
-   - Check if tests exist for the code you're modifying
-
-2. **While making changes:**
-   - Use `docker compose` syntax (not `docker-compose`)
-   - Run tests in Docker containers
-   - Test Lynis integration if modifying API endpoints
-
-3. **After making changes:**
-   - Run all tests: `docker compose -f docker-compose.dev.yml --profile test run --rm test`
-   - Verify Lynis integration still works
-   - Update documentation if needed
-   - Update this file if you discover new important guidelines
-

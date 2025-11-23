@@ -202,7 +202,10 @@ def enroll_sh(request):
 
     trikusec_lynis_api_url = settings.TRIKUSEC_LYNIS_API_URL
     parsed_lynis_api_url = urlparse(trikusec_lynis_api_url)
+    # Extract netloc (hostname:port) for certificate operations
     trikusec_lynis_upload_server = parsed_lynis_api_url.netloc
+    # Full URL with scheme for Lynis upload-server configuration
+    trikusec_lynis_upload_url = f"{parsed_lynis_api_url.scheme}://{parsed_lynis_api_url.netloc}"
     enrollment_settings = EnrollmentSettings.get_settings()
     additional_packages = enrollment_settings.additional_packages.strip()
     skip_tests = ','.join(enrollment_settings.skip_test_ids)
@@ -210,6 +213,7 @@ def enroll_sh(request):
 
     context = {
         'trikusec_lynis_upload_server': trikusec_lynis_upload_server,
+        'trikusec_lynis_upload_url': trikusec_lynis_upload_url,
         'licensekey': licensekey,
         'ignore_ssl_errors': enrollment_settings.ignore_ssl_errors,
         'overwrite_lynis_profile': enrollment_settings.overwrite_lynis_profile,
