@@ -1,0 +1,12 @@
+FROM nginx:alpine
+
+# Install openssl for certificate generation
+RUN apk add --no-cache openssl
+
+# Copy the certificate generation script
+COPY nginx/generate-certs.sh /docker-entrypoint-nginx.sh
+RUN chmod +x /docker-entrypoint-nginx.sh
+
+# Default command
+CMD ["nginx", "-g", "daemon off;"]
+

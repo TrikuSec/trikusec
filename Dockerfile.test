@@ -14,6 +14,9 @@ WORKDIR /app
 RUN pip install --upgrade pip
 
 # Copy requirements files (will be overridden by volume mount, but needed for build)
+# Copy all requirements files since they reference each other
+COPY src/requirements-api.txt /tmp/requirements-api.txt
+COPY src/requirements-frontend.txt /tmp/requirements-frontend.txt
 COPY src/requirements.txt /tmp/requirements.txt
 COPY src/requirements-dev.txt /tmp/requirements-dev.txt
 

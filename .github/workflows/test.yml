@@ -73,17 +73,17 @@ jobs:
     
     - name: Start TrikuSec service
       run: |
-        docker compose -f docker-compose.dev.yml up -d trikusec
+        docker compose -f docker-compose.dev.yml up -d trikusec-manager
       env:
         SECRET_KEY: ${{ env.SECRET_KEY }}
     
     - name: Wait for service to be ready
       run: |
-        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec && exit 1)
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec-manager && exit 1)
     
     - name: Create test license key in database
       run: |
-        docker compose -f docker-compose.dev.yml exec -T trikusec python manage.py shell <<EOF
+        docker compose -f docker-compose.dev.yml exec -T trikusec-manager python manage.py shell <<EOF
         from django.contrib.auth.models import User
         from api.models import LicenseKey, Organization
         user = User.objects.first()
@@ -151,13 +151,13 @@ jobs:
     
     - name: Start TrikuSec service
       run: |
-        docker compose -f docker-compose.dev.yml up -d trikusec
+        docker compose -f docker-compose.dev.yml up -d trikusec-manager
       env:
         SECRET_KEY: ${{ env.SECRET_KEY }}
     
     - name: Wait for service to be ready
       run: |
-        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec && exit 1)
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec-manager && exit 1)
     
     - name: Run E2E tests
       run: |

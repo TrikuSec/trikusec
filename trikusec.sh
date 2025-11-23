@@ -1,9 +1,58 @@
 #!/usr/bin/env bash
 
+
+# CONFIGURATION
+
+TRIKUSEC_LYNIS_UPLOAD_SERVER=localhost:8001
+TRIKUSEC_LICENSEKEY=cb01e362-e3bfb0f0-335582a7
+ignore_ssl_errors=False
+overwrite_lynis_profile=False
+additional_packages=rkhunter auditd
+skip_tests=
+
+function overview() {
+    echo "=== TrikuSec Lynis Enrollment Script ==="
+    echo "Server URL: ${TRIKUSEC_LYNIS_UPLOAD_SERVER}"
+    echo "License Key: ${TRIKUSEC_LICENSEKEY}"
+    echo "Ignore SSL Errors: ${ignore_ssl_errors}"
+    echo "Overwrite Lynis Profile: ${overwrite_lynis_profile}"
+    echo "Additional Packages: ${additional_packages}"
+    echo "Skip Tests: ${skip_tests}"
+}
+
+function check_server_reachability() {
+    echo "Checking server reachability..."
+
+    # Try with SSL
+    curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Server is not reachable. Trying with ignore SSL errors..."
+    fi
+
+    # Try ignoring SSL errors
+    curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null --insecure
+    if [ $? -ne 0 ]; then
+        echo "Server is not reachable. Please check the server URL."
+        exit 1
+    fi
+}
+
+# Print overview
+overview
+
+# Continue?
+read -p "Continue? (y/n): " continue </dev/tty
+if [ "$continue" != "y" ]; then
+    echo "Exiting..."
+    exit 1
+fi
+
+check_server_reachability
+
 # TRIKUSEC_LYNIS_API_URL is used for certificate download and API operations
-TRIKUSEC_LYNIS_UPLOAD_SERVER={{ trikusec_lynis_upload_server }}
+TRIKUSEC_LYNIS_UPLOAD_SERVER=localhost:8001
 TRIKUSEC_CERT_TMP=/tmp/trikusec.crt
-TRIKUSEC_LICENSEKEY={{ licensekey }}
+TRIKUSEC_LICENSEKEY=cb01e362-e3bfb0f0-335582a7
 
 if [ ! -f /etc/debian_version ]; then
     echo "This script is only compatible with Debian-based systems."
@@ -20,7 +69,7 @@ if [ $(id -u) -ne 0 ]; then
     fi
 fi
 
-{% if not ignore_ssl_errors %}
+
 # Check if the server is reachable and has a valid certificate
 curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null
 if [ $? -ne 0 ]; then
@@ -38,13 +87,11 @@ if [ $? -ne 0 ]; then
 else
     echo "Server certificate is valid."
 fi
-{% else %}
-echo "Skipping server certificate validation (configured)."
-{% endif %}
+
 
 # Update and install necessary packages
 ${SUDO} apt-get update
-${SUDO} apt-get install -y curl lynis{% if additional_packages %} {{ additional_packages }}{% endif %}
+${SUDO} apt-get install -y curl lynis rkhunter auditd
 
 
 
@@ -53,13 +100,10 @@ LYNIS_VERSION=$(lynis --version)
 
 # If a custom profile file already exists, handle per configuration
 if [ -f /etc/lynis/custom.prf ]; then
-    {% if overwrite_lynis_profile %}
-    echo "Existing /etc/lynis/custom.prf detected. Overwriting as requested."
-    ${SUDO} rm -f /etc/lynis/custom.prf
-    {% else %}
+    
     echo "A custom profile file already exists. Please remove it before running this script or enable overwriting in TrikuSec."
     exit 1
-    {% endif %}
+    
 fi
 
 # Create custom profile file if it doesn't exist
@@ -99,12 +143,10 @@ fi
 
 # Bugfix: lynis configure does not work correctly with :port in the upload server URL
 # so we need to set the configuration manually
-echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" | ${SUDO} tee -a /etc/lynis/custom.prf
+echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" >> /etc/lynis/custom.prf
 
 ${SUDO} lynis configure settings upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis auditor=TrikuSec
-{% if ignore_ssl_errors %}
-echo "upload-options=--insecure" >> /etc/lynis/custom.prf
-{% endif %}
+
 
 # If lynis version is older than 3.0.0, add test_skip_always=CRYP-7902 to the custom profile
 # Extract major version number for comparison
@@ -116,7 +158,7 @@ fi
 
 
 # Install optional Lynis plugins defined in TrikuSec (https://cisofy.com/documentation/lynis/plugins/)
-{% if plugin_urls %}
+
 echo "Installing Lynis plugins configured in TrikuSec..."
 PLUGIN_DIR=$(lynis show plugindir 2>/dev/null | grep -Eo '/[^[:space:]]+' | head -n1)
 if [ -z "$PLUGIN_DIR" ]; then
@@ -125,9 +167,9 @@ if [ -z "$PLUGIN_DIR" ]; then
 fi
 ${SUDO} mkdir -p "${PLUGIN_DIR}"
 PLUGIN_URLS=(
-{% for plugin_url in plugin_urls %}
-"{{ plugin_url }}"
-{% endfor %}
+
+"https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/trikusec-lynis-plugin/plugin_trikusec_phase1"
+
 )
 for PLUGIN_URL in "${PLUGIN_URLS[@]}"; do
     echo "Downloading plugin from ${PLUGIN_URL}"
@@ -139,7 +181,6 @@ for PLUGIN_URL in "${PLUGIN_URLS[@]}"; do
         echo "Installed Lynis plugin ${PLUGIN_BASENAME} into ${PLUGIN_DIR}"
 
         # Set right permissions for the plugin
-        ${SUDO} chown root:root "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
         ${SUDO} chmod 644 "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
         echo "Set permissions for ${PLUGIN_BASENAME} to 644"
 
@@ -156,14 +197,11 @@ for PLUGIN_URL in "${PLUGIN_URLS[@]}"; do
         exit 1
     fi
 done
-{% endif %}
 
 
-{% if skip_tests %}
-echo "Configuring Lynis to skip tests: {{ skip_tests }}"
-${SUDO} lynis configure settings test_skip_always={{ skip_tests }}
-{% endif %}
+
+
 
 # First audit
-${SUDO} lynis audit system --upload --quick
+lynis audit system --upload --quick
 

@@ -1,21 +1,28 @@
 services:
-  trikusec:
+  trikusec-manager:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: trikusec-dev
+      dockerfile: Dockerfile.frontend
+    container_name: trikusec-manager-dev
     volumes:
       - ./src:/app
+      - frontend-certs:/app/certs
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
-      - TRIKUSEC_URL=${TRIKUSEC_URL:-http://trikusec:8000}
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://nginx-dev:443}
+      - DJANGO_ALLOWED_HOSTS=*
+      - TRIKUSEC_URL=http://trikusec-manager-dev:8000
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_ADMIN_USERNAME=admin
       - TRIKUSEC_ADMIN_PASSWORD=trikusec
       - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
-      - DJANGO_ALLOWED_HOSTS=*
+      - PORT=8000
+      - WSGI_APPLICATION=trikusec.wsgi_frontend:application
+      - DJANGO_SSL_ENABLED=False
+      - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
+      - DJANGO_SSL_KEYFILE=/app/certs/key.pem
+      - SKIP_COLLECTSTATIC=True
     ports:
       - 8000:8000
     restart: unless-stopped
@@ -25,21 +32,39 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - default
 
-  nginx:
-    image: nginx:latest
-    container_name: nginx-dev
-    ports:
-      - 8001:443
+  trikusec-lynis-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: trikusec-lynis-api-dev
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/generate-certs.sh:/docker-entrypoint.d/40-generate-cert.sh
-      - ./nginx/certs:/etc/nginx/certs
+      - ./src:/app
+      - api-certs:/app/certs
     environment:
-      - NGINX_CERT_CN=${NGINX_CERT_CN:-nginx-dev}
-    depends_on:
-      trikusec:
-        condition: service_healthy
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DJANGO_ENV=development
+      - DJANGO_DEBUG=True
+      - DJANGO_ALLOWED_HOSTS=*
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
+      - PORT=8001
+      - WSGI_APPLICATION=trikusec.wsgi_api:application
+      - DJANGO_SSL_ENABLED=True
+      - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
+      - DJANGO_SSL_KEYFILE=/app/certs/key.pem
+      - SSL_CN=trikusec-lynis-api-dev
+      - SKIP_ADMIN_SETUP=True
+      - SKIP_MIGRATIONS=True
+      - SKIP_COLLECTSTATIC=True
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-skf", "https://localhost:8001/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - default
 
@@ -61,6 +86,8 @@ services:
     command: ["pytest", "-v", "--cov=api", "--cov=frontend", "--cov-report=term-missing"]
     profiles:
       - test
+    networks:
+      - default
 
   test-e2e:
     build:
@@ -77,12 +104,17 @@ services:
       - DJANGO_ALLOWED_HOSTS=*
       - DJANGO_ALLOW_ASYNC_UNSAFE=True
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      - TRIKUSEC_URL=http://trikusec-manager-dev:8000
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
     working_dir: /app
     command: ["pytest", "-v", "-m", "e2e"]
     profiles:
       - test
     depends_on:
-      - trikusec
+      trikusec-manager:
+        condition: service_healthy
+    networks:
+      - default
 
   lynis-client:
     build:
@@ -90,17 +122,20 @@ services:
       dockerfile: lynis/Dockerfile
     container_name: lynis-client
     environment:
-      - TRIKUSEC_SERVER_URL=https://nginx-dev:443
+      - TRIKUSEC_SERVER_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
       - DEBIAN_FRONTEND=noninteractive
     depends_on:
-      nginx:
-        condition: service_started
+      trikusec-lynis-api:
+        condition: service_healthy
     networks:
       - default
     command: ["/test/run-lynis-test.sh"]
 
+volumes:
+  frontend-certs:
+  api-certs:
+
 networks:
   default:
     name: trikusec-dev-network
-
