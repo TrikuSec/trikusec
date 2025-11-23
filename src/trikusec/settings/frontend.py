@@ -1,6 +1,14 @@
 """Frontend-specific settings with full Django features"""
-from .base import *
 import os
+
+# Load environment-specific settings first
+env = os.environ.get('DJANGO_ENV', 'development')
+if env == 'production':
+    from .production import *  # noqa
+elif env == 'testing':
+    from .testing import *  # noqa
+else:
+    from .development import *  # noqa
 
 # Debug mode
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
