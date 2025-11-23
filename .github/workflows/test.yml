@@ -83,7 +83,7 @@ jobs:
     
     - name: Create test license key in database
       run: |
-        docker compose -f docker-compose.dev.yml exec -T trikusec python manage.py shell <<EOF
+        docker compose -f docker-compose.dev.yml exec -T trikusec-manager python manage.py shell <<EOF
         from django.contrib.auth.models import User
         from api.models import LicenseKey, Organization
         user = User.objects.first()
