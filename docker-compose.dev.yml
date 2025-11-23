@@ -12,14 +12,14 @@ services:
       - DJANGO_ENV=development
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
-      - TRIKUSEC_URL=${TRIKUSEC_URL:-https://localhost:8000}
+      - TRIKUSEC_URL=${TRIKUSEC_URL:-http://localhost:8000}
       - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://trikusec-lynis-api-dev:8001}
       - TRIKUSEC_ADMIN_USERNAME=admin
       - TRIKUSEC_ADMIN_PASSWORD=trikusec
       - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
       - PORT=8000
       - WSGI_APPLICATION=trikusec.wsgi_frontend:application
-      - DJANGO_SSL_ENABLED=True
+      - DJANGO_SSL_ENABLED=False
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
       - SSL_CN=localhost
@@ -27,7 +27,7 @@ services:
       - 8000:8000
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-skf", "https://localhost:8000/health/"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health/"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -105,7 +105,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=*
       - DJANGO_ALLOW_ASYNC_UNSAFE=True
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-      - TRIKUSEC_URL=https://trikusec-manager-dev:8000
+      - TRIKUSEC_URL=http://trikusec-manager-dev:8000
       - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
     working_dir: /app
     command: ["pytest", "-v", "-m", "e2e"]
