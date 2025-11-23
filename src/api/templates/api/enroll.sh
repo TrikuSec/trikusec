@@ -300,7 +300,7 @@ install_plugins() {
         return 0
     fi
     
-    print_header "Installing Lynis Plugins"
+    print_header "Installing Lynis plugins configured in TrikuSec"
     
     print_info "Finding plugin directory..."
     PLUGIN_DIR=$(lynis show plugindir 2>/dev/null | grep -Eo '/[^[:space:]]+' | head -n1)
