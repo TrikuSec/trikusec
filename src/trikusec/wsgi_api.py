@@ -6,3 +6,4 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'trikusec.settings.api')
 application = get_wsgi_application()
 
 
+

@@ -10,6 +10,8 @@ This guide will help you get started with TrikuSec after installation.
    - Username: `admin`
    - Password: `trikusec`
 
+![TrikuSec Login Page](../assets/img/trikusec-login.png)
+
 !!! warning "Change Default Password"
     Immediately change the default password after first login.
 
@@ -33,6 +35,8 @@ License keys are required for clients to upload reports.
 
 See [Client Setup](../installation/client-setup.md) for detailed instructions.
 
+![Enroll New Device](../assets/img/trikusec-enroll-new-device.png)
+
 ### 4. Review Default Baseline Ruleset
 
 TrikuSec includes a **"Default baseline"** ruleset with essential security checks. You can:
@@ -48,6 +52,8 @@ The main dashboard shows:
 - **Compliance Status** - Overall compliance percentage
 - **Recent Activity** - Latest audit reports
 - **Warnings** - Security warnings and recommendations
+
+![TrikuSec Devices Dashboard](../assets/img/trikusec-devices.png)
 
 ## Viewing Your First Report
 

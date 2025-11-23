@@ -6,6 +6,8 @@ Learn how to list and manage devices in TrikuSec.
 
 The list of devices is the main page of the manager.
 
+![TrikuSec Devices List](../assets/img/trikusec-devices.png)
+
 ### Key Metrics
 
 - **Total Devices** - Number of servers being monitored
@@ -38,6 +40,8 @@ Click on a device to view:
 - **Suggestions** - Improvement suggestions
 - **Report History** - Historical compliance data
 
+![Device Detail Page](../assets/img/trikusec-device-detail.png)
+
 ### Device Actions
 
 From the device detail page, use the **Actions** dropdown menu (located in the top-right corner of the Overview section) to access:
@@ -65,6 +69,12 @@ Use the search bar to:
 - Find devices by hostname
 - Search by license key
 - Filter by compliance status
+
+## Activity Log
+
+The Activity page shows a chronological log of all device events, including enrollments, report uploads, and compliance changes. You can filter by device, event type, and date range.
+
+![Activity Log](../assets/img/trikusec-activity.png)
 
 ## Tips and Tricks
 

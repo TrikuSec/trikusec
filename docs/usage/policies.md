@@ -11,6 +11,8 @@ Policies in TrikuSec allow you to:
 - Track compliance against policies
 - Get recommendations for improvement
 
+![Policies Page](../assets/img/trikusec-policies.png)
+
 ## Policy Components
 
 ### Policy Rules
@@ -179,6 +181,8 @@ System rules and rulesets are marked with "System" as the creator and cannot be 
    - **Alert**: Check to generate alerts on failure
 4. Save the rule
 
+![Edit Policy Rule](../assets/img/trikusec-policies-rule-edit.png)
+
 ### 2. Create a Policy Rule Set
 
 1. Navigate to **Policies** → **Rule Sets**
@@ -193,6 +197,8 @@ System rules and rulesets are marked with "System" as the creator and cannot be 
 2. Select a device
 3. Go to **Policy Rulesets** tab
 4. Assign rule sets to the device
+
+![Assign Rulesets to Device](../assets/img/trikusec-device-edit-ruleset.png)
 
 ## Common Policy Examples
 
@@ -281,6 +287,8 @@ openssh_daemon_running == `1`
 2. Click **Compliance**
 3. See compliance status for each rule
 4. Review failed rules and recommendations
+
+![Rule Evaluation for Device](../assets/img/trikusec-device-rule-evaluation.png)
 
 ### Compliance Reports
 

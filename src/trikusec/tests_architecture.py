@@ -42,3 +42,4 @@ class TestSplitArchitecture:
         assert has_api_v1, "API URLs should include api/v1/"
 
 
+

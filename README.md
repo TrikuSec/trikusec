@@ -27,6 +27,12 @@ TrikuSec is ideal for:
 - **Web Dashboard**: User-friendly interface for viewing devices, compliance status, policies, and reports
 - **API Integration**: Lynis-compatible API endpoints for seamless integration with existing Lynis installations
 
+### Screenshots
+
+![TrikuSec Devices Dashboard](docs/assets/img/trikusec-devices.png)
+
+![Device Detail View](docs/assets/img/trikusec-device-detail.png)
+
 ## Quick Start
 
 1. **Download `docker-compose.yml`** from the [repository](https://github.com/trikusec/trikusec/blob/main/docker-compose.yml)
