@@ -7,7 +7,7 @@ Docker is the recommended way to install TrikuSec. This guide will walk you thro
 TrikuSec uses pre-built Docker images published on GitHub Container Registry, making installation as simple as:
 
 1. Download `docker-compose.yml`
-2. Create a `.env` file with your `SECRET_KEY`
+2. Create a `.env` file with your environment variables
 3. Run `docker compose up -d`
 
 No need to clone the repository or build images from source!
@@ -15,7 +15,6 @@ No need to clone the repository or build images from source!
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- A secure `SECRET_KEY` for Django
 
 ## Installation Steps
 
@@ -37,9 +36,16 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 
 ```bash
 SECRET_KEY=your-generated-secret-key-here
+TRIKUSEC_URL=https://your-server-ip-or-dns:8000
+TRIKUSEC_LYNIS_API_URL=https://your-server-ip-or-dns:8001
 ```
 
-The `SECRET_KEY` is **required**. Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
+The following environment variables are **required**:
+- `SECRET_KEY` - Django secret key for cryptographic signing
+- `TRIKUSEC_URL` - The URL of the TrikuSec admin UI server (must point to your server's IP address or DNS name)
+- `TRIKUSEC_LYNIS_API_URL` - The URL of the TrikuSec Lynis API server (must point to your server's IP address or DNS name)
+
+Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
 
 ### 3. Start TrikuSec
 

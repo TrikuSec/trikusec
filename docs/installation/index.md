@@ -4,13 +4,8 @@ This section covers installing and setting up TrikuSec.
 
 ## Overview
 
-TrikuSec consists of two main components:
+TrikuSec can be installed easily using Docker Compose. By default, *SQLite* is used for the database. You should consider using *PostgreSQL* for production deployments.
 
-1. **TrikuSec Server** - The central server that receives and manages audit reports
-2. **Lynis Client** - The auditing tool installed on each server you want to monitor
-
-!!! tip "Security-First Design"
-    TrikuSec uses a **read-only architecture** - it only receives data from your servers and never pushes changes or executes commands. The only requirement on monitored servers is [Lynis](https://cisofy.com/lynis/), a well-established open-source tool available in standard Linux repositories.
 
 ## Installation Options
 
@@ -24,15 +19,16 @@ TrikuSec consists of two main components:
 Before installing TrikuSec, ensure you have:
 
 - Docker and Docker Compose installed
-- A secure `SECRET_KEY` generated for Django (required)
-- (Optional) PostgreSQL for production deployments
 
 ## Quick Start
 
 The simplest installation method is using Docker with pre-built images:
 
 1. Download `docker-compose.yml` from the repository
-2. Create a `.env` file with your `SECRET_KEY`
+2. Create a `.env` file with the following environment variables:
+    - `SECRET_KEY` - A secure secret key for Django. Generate a new key with: `python3 -c "import secrets; print(secrets.token_urlsafe(50))"`
+    - `TRIKUSEC_URL` - The URL of the TrikuSec server. Example: `https://yourserver:8000`
+    - `TRIKUSEC_LYNIS_API_URL` - The URL of the Lynis API. Example: `https://yourserver:8001`
 3. Run `docker compose up -d`
 
 See the [Docker Installation Guide](docker.md) for detailed instructions.
