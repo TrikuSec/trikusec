@@ -615,6 +615,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#quick-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -637,10 +648,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#optional-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#production-deployment" class="md-nav__link">
     <span class="md-ellipsis">
       
         Production Deployment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
       
     </span>
   </a>
@@ -1479,46 +1512,48 @@
   <h1>Docker</h1>
 
 <h2 id="docker-installation">Docker Installation<a class="headerlink" href="#docker-installation" title="Permanent link">&para;</a></h2>
-<p>Docker is the recommended way to install TrikuSec. This guide will walk you through the setup process.</p>
+<p>Docker is the recommended way to install TrikuSec. This guide will walk you through the simple setup process using pre-built Docker images.</p>
+<h3 id="quick-installation">Quick Installation<a class="headerlink" href="#quick-installation" title="Permanent link">&para;</a></h3>
+<p>TrikuSec uses pre-built Docker images published on GitHub Container Registry, making installation as simple as:</p>
+<ol>
+<li>Download <code>docker-compose.yml</code></li>
+<li>Create a <code>.env</code> file with your <code>SECRET_KEY</code></li>
+<li>Run <code>docker compose up -d</code></li>
+</ol>
+<p>No need to clone the repository or build images from source!</p>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
-<p>Before starting, you need to set up the required environment variables:</p>
-<h4 id="1-copy-the-example-environment-file">1. Copy the Example Environment File<a class="headerlink" href="#1-copy-the-example-environment-file" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
-</span></code></pre></div>
-<h4 id="2-generate-a-secure-secret_key">2. Generate a Secure SECRET_KEY<a class="headerlink" href="#2-generate-a-secure-secret_key" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(50))&quot;</span>
-</span></code></pre></div>
-<h4 id="3-configure-environment-variables">3. Configure Environment Variables<a class="headerlink" href="#3-configure-environment-variables" title="Permanent link">&para;</a></h4>
-<p>Edit the <code>.env</code> file and replace <code>GENERATE_THIS_SECRET_KEY_AS_EXPLAINED_ABOVE</code> with your newly generated key.</p>
-<h4 id="4-optional-configuration">4. Optional Configuration<a class="headerlink" href="#4-optional-configuration" title="Permanent link">&para;</a></h4>
-<p>For development environments only, you can enable DEBUG mode:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True
-</span></code></pre></div>
-<div class="admonition danger">
-<p class="admonition-title">Security Warning</p>
-<p><strong>NEVER</strong> set <code>DJANGO_DEBUG=True</code> in production environments. Running with DEBUG enabled exposes sensitive information including stack traces, environment variables, and database queries to potential attackers.</p>
-</div>
-<p>For production, set allowed hosts:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
-</span></code></pre></div>
+<ul>
+<li>Docker and Docker Compose installed</li>
+<li>A secure <code>SECRET_KEY</code> for Django</li>
+</ul>
 <h3 id="installation-steps">Installation Steps<a class="headerlink" href="#installation-steps" title="Permanent link">&para;</a></h3>
-<h4 id="1-clone-the-repository">1. Clone the Repository<a class="headerlink" href="#1-clone-the-repository" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/trikusec/trikusec.git
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>trikusec
+<h4 id="1-download-docker-composeyml">1. Download docker-compose.yml<a class="headerlink" href="#1-download-docker-composeyml" title="Permanent link">&para;</a></h4>
+<p>Download the <code>docker-compose.yml</code> file from the <a href="https://github.com/trikusec/trikusec/blob/main/docker-compose.yml">TrikuSec repository</a> and save it to your desired location.</p>
+<h4 id="2-create-environment-file">2. Create Environment File<a class="headerlink" href="#2-create-environment-file" title="Permanent link">&para;</a></h4>
+<p>Create a <code>.env</code> file in the same directory as <code>docker-compose.yml</code>:</p>
+<p><strong>Generate a secure SECRET_KEY:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(50))&quot;</span>
 </span></code></pre></div>
-<h4 id="2-start-trikusec">2. Start TrikuSec<a class="headerlink" href="#2-start-trikusec" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up
+<p><strong>Create your <code>.env</code> file:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-generated-secret-key-here
+</span></code></pre></div>
+<p>The <code>SECRET_KEY</code> is <strong>required</strong>. Other environment variables are optional. See the <a href="../../configuration/environment-variables/">Configuration Guide</a> for all available options.</p>
+<h4 id="3-start-trikusec">3. Start TrikuSec<a class="headerlink" href="#3-start-trikusec" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 </span></code></pre></div>
 <p>This will:</p>
 <ul>
-<li>Build the TrikuSec Docker image</li>
-<li>Start the web server</li>
+<li>Pull the pre-built Docker images from GitHub Container Registry:</li>
+<li><code>ghcr.io/trikusec/trikusec-nginx:latest</code></li>
+<li><code>ghcr.io/trikusec/trikusec-manager:latest</code></li>
+<li><code>ghcr.io/trikusec/trikusec-lynis-api:latest</code></li>
+<li>Start all services (nginx reverse proxy, manager, and API)</li>
 <li>Initialize the database</li>
-<li>Create default admin user</li>
+<li>Create the default admin user</li>
 </ul>
-<h4 id="3-access-trikusec">3. Access TrikuSec<a class="headerlink" href="#3-access-trikusec" title="Permanent link">&para;</a></h4>
+<h4 id="4-access-trikusec">4. Access TrikuSec<a class="headerlink" href="#4-access-trikusec" title="Permanent link">&para;</a></h4>
 <p>Once started, access TrikuSec at:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>http://localhost:3000
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>https://localhost:8000
 </span></code></pre></div>
 <p>Default credentials:
 - <strong>Username:</strong> <code>admin</code>
@@ -1527,20 +1562,39 @@
 <p class="admonition-title">Change Default Password</p>
 <p>Never use default admin credentials in production. Set <code>TRIKUSEC_ADMIN_PASSWORD</code> in your <code>.env</code> file.</p>
 </div>
-<h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
-<h4 id="collect-static-files">Collect Static Files<a class="headerlink" href="#collect-static-files" title="Permanent link">&para;</a></h4>
-<p>Before deploying to production, collect static files:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>trikusec<span class="w"> </span>python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--no-input
+<h3 id="optional-configuration">Optional Configuration<a class="headerlink" href="#optional-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="development-mode">Development Mode<a class="headerlink" href="#development-mode" title="Permanent link">&para;</a></h4>
+<p>For development environments only, you can enable DEBUG mode:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True
 </span></code></pre></div>
+<div class="admonition danger">
+<p class="admonition-title">Security Warning</p>
+<p><strong>NEVER</strong> set <code>DJANGO_DEBUG=True</code> in production environments. Running with DEBUG enabled exposes sensitive information including stack traces, environment variables, and database queries to potential attackers.</p>
+</div>
+<h4 id="production-settings">Production Settings<a class="headerlink" href="#production-settings" title="Permanent link">&para;</a></h4>
+<p>For production, set allowed hosts:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
+</span></code></pre></div>
+<h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
+<h4 id="static-files">Static Files<a class="headerlink" href="#static-files" title="Permanent link">&para;</a></h4>
+<p>The Docker images automatically collect static files during startup, so no manual collection is needed. Static files are served by the nginx container.</p>
 <h4 id="enable-https-security-headers">Enable HTTPS Security Headers<a class="headerlink" href="#enable-https-security-headers" title="Permanent link">&para;</a></h4>
 <p>Add to your <code>.env</code> file:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="postgresql-setup">PostgreSQL Setup<a class="headerlink" href="#postgresql-setup" title="Permanent link">&para;</a></h4>
 <p>For production, PostgreSQL is strongly recommended. See the <a href="../postgresql/">PostgreSQL Setup Guide</a> for detailed instructions.</p>
+<h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
+<p>TrikuSec uses a split architecture with three services:</p>
+<ol>
+<li><strong>nginx</strong> (Port 8000, 8001) - Reverse proxy handling HTTPS termination</li>
+<li><strong>trikusec-manager</strong> (Port 8000) - Admin UI and frontend</li>
+<li><strong>trikusec-lynis-api</strong> (Port 8001) - Lynis API endpoints for device enrollment and report uploads</li>
+</ol>
+<p>All services use pre-built images from GitHub Container Registry, ensuring consistent and secure deployments.</p>
 <h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="../client-setup/">Configure Client</a> - Set up Lynis clients</li>
@@ -1581,7 +1635,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 16, 2025 22:21:44 UTC">November 16, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 17:33:12 UTC">November 23, 2025</span>
   </span>
 
     
