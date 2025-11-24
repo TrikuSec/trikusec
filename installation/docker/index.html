@@ -1669,9 +1669,18 @@
 </ul>
 </li>
 </ul>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Filename: .env
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a># Required variables
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>SECRET_KEY=your-generated-secret-key-here
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>TRIKUSEC_DOMAIN=trikusec.yourdomain.com
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># Set admin password (recommended for first run, otherwise it will be set to &#39;trikusec&#39;)
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>TRIKUSEC_ADMIN_PASSWORD=your-secure-password
+</span></code></pre></div>
 <p>Other environment variables are optional. See the <a href="../../configuration/environment-variables/">Configuration Guide</a> for all available options.</p>
 <h4 id="3-start-trikusec">3. Start TrikuSec<a class="headerlink" href="#3-start-trikusec" title="Permanent link">&para;</a></h4>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 </span></code></pre></div>
 <p>This will:</p>
 <ul>
@@ -1686,7 +1695,7 @@
 </ul>
 <h4 id="4-access-trikusec">4. Access TrikuSec<a class="headerlink" href="#4-access-trikusec" title="Permanent link">&para;</a></h4>
 <p>Once started, access TrikuSec at:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>https://trikusec.yourdomain.com:8000
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>https://trikusec.yourdomain.com:8000
 </span></code></pre></div>
 <p>Default credentials:
 - <strong>Username:</strong> <code>admin</code>
@@ -1704,7 +1713,7 @@
 <h3 id="optional-configuration">Optional Configuration<a class="headerlink" href="#optional-configuration" title="Permanent link">&para;</a></h3>
 <h4 id="development-mode">Development Mode<a class="headerlink" href="#development-mode" title="Permanent link">&para;</a></h4>
 <p>For development environments only, you can enable DEBUG mode:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True
 </span></code></pre></div>
 <div class="admonition danger">
 <p class="admonition-title">Security Warning</p>
@@ -1713,17 +1722,17 @@
 <h4 id="production-settings">Production Settings<a class="headerlink" href="#production-settings" title="Permanent link">&para;</a></h4>
 <p>For production, we recommend using <code>TRIKUSEC_DOMAIN</code> which automatically configures allowed hosts.</p>
 <p>If you need to manually override it:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
 </span></code></pre></div>
 <h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
 <h4 id="static-files">Static Files<a class="headerlink" href="#static-files" title="Permanent link">&para;</a></h4>
 <p>The Docker images automatically collect static files during startup, so no manual collection is needed. Static files are served by the nginx container.</p>
 <h4 id="enable-https-security-headers">Enable <abbr title="HTTP Secure">HTTPS</abbr> Security Headers<a class="headerlink" href="#enable-https-security-headers" title="Permanent link">&para;</a></h4>
 <p>Add to your <code>.env</code> file:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="postgresql-setup">PostgreSQL Setup<a class="headerlink" href="#postgresql-setup" title="Permanent link">&para;</a></h4>
 <p>For production, PostgreSQL is strongly recommended. See the <a href="../postgresql/">PostgreSQL Setup Guide</a> for detailed instructions.</p>
@@ -1763,7 +1772,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 20:27:39 UTC">November 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 21:00:04 UTC">November 24, 2025</span>
   </span>
 
     

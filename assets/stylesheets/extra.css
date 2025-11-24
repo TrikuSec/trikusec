@@ -200,6 +200,16 @@
   color: #ffffff;
 }
 
+/* Fix search input text color on focus (when background becomes white in light mode) */
+.md-search__input:focus {
+  color: #1f2937;
+}
+
+/* Keep white text in dark mode */
+[data-md-color-scheme="slate"] .md-search__input:focus {
+  color: #ffffff;
+}
+
 .md-search__input::placeholder {
   color: #9ca3af;
 }
