@@ -56,13 +56,16 @@
   color: #1f2937;
 }
 
-/* Buttons and links to match gray scheme */
+/* Buttons and links - modified to be more distinct */
 .md-typeset a {
-  color: #1f2937;
+  color: #2563eb; /* blue-600 */
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .md-typeset a:hover {
-  color: #374151;
+  color: #1d4ed8; /* blue-700 */
 }
 
 /* Code blocks and inline code */
@@ -279,11 +282,11 @@
 }
 
 [data-md-color-scheme="slate"] .md-typeset a {
-  color: #c7d7ff;
+  color: #60a5fa; /* blue-400 */
 }
 
 [data-md-color-scheme="slate"] .md-typeset a:hover {
-  color: #e2ecff;
+  color: #93c5fd; /* blue-300 */
 }
 
 /* Buttons */
