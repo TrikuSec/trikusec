@@ -4,6 +4,12 @@ CERT_DIR="/etc/nginx/certs"
 CERT_FILE="$CERT_DIR/cert.pem"
 KEY_FILE="$CERT_DIR/key.pem"
 
+# Domain-based configuration (simplifies setup)
+# If TRIKUSEC_DOMAIN is set, use it for NGINX_CERT_CN
+if [ -n "${TRIKUSEC_DOMAIN}" ]; then
+    NGINX_CERT_CN="${NGINX_CERT_CN:-${TRIKUSEC_DOMAIN}}"
+fi
+
 # Resolve CN from env var, defaulting to localhost
 CERT_SUBJ_CN="${NGINX_CERT_CN:-localhost}"
 SUBJECT="/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=${CERT_SUBJ_CN}"
