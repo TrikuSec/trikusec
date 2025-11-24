@@ -86,14 +86,25 @@ TRIKUSEC_ADMIN_USERNAME=admin
 
 ### TRIKUSEC_ADMIN_PASSWORD
 
-Default admin password.
+Admin password behavior depends on whether the admin user already exists:
 
+**On fresh installation:**
 ```bash
 TRIKUSEC_ADMIN_PASSWORD=secure-password
 ```
 
-!!! warning "Change Default Password"
-    Always change the default admin password in production.
+If not set, defaults to `trikusec`. The password is used to create the initial admin user.
+
+**On existing installation:**
+
+- If `TRIKUSEC_ADMIN_PASSWORD` is **set** (explicitly in environment): Password will be updated to the new value
+- If `TRIKUSEC_ADMIN_PASSWORD` is **not set** or **commented out**: Existing password is preserved
+
+!!! tip "Best Practice"
+    Set this variable for initial deployment, then comment it out or remove it from your `.env` file to prevent accidental password overwrites. Change the password via the Django admin UI after first login.
+
+!!! warning "Production Security"
+    Never use the default `trikusec` password in production. Always set a strong password for initial deployment.
 
 ## HTTPS Security
 
