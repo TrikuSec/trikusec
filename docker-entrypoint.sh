@@ -2,6 +2,22 @@
 
 set -e
 
+# Domain-based configuration (simplifies setup)
+# If TRIKUSEC_DOMAIN is set, derive other variables from it
+if [ -n "${TRIKUSEC_DOMAIN}" ]; then
+    # Derive URLs from domain if not explicitly set
+    TRIKUSEC_URL=${TRIKUSEC_URL:-https://${TRIKUSEC_DOMAIN}:8000}
+    TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://${TRIKUSEC_DOMAIN}:8001}
+    
+    # Set allowed hosts to include both localhost and the domain
+    if [ -z "${DJANGO_ALLOWED_HOSTS}" ]; then
+        DJANGO_ALLOWED_HOSTS="localhost,${TRIKUSEC_DOMAIN}"
+    fi
+    
+    # Set SSL certificate CN
+    SSL_CN=${SSL_CN:-${TRIKUSEC_DOMAIN}}
+fi
+
 # Set default environment variables if not provided
 # These defaults work for both manager and API services
 

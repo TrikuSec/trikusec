@@ -21,7 +21,8 @@ services:
     entrypoint: ["/bin/sh", "/docker-entrypoint-nginx.sh"]
     command: ["nginx", "-g", "daemon off;"]
     environment:
-      - NGINX_CERT_CN=localhost
+      # Domain-based configuration (automatically configures NGINX_CERT_CN)
+      - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "https://localhost:8000/health/", "--no-check-certificate"]
       interval: 30s
@@ -41,9 +42,8 @@ services:
       - trikusec-db:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY}
-      - TRIKUSEC_URL=${TRIKUSEC_URL}
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      # Domain-based configuration (automatically configures URLs and allowed hosts)
+      - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
       - TRIKUSEC_ADMIN_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
     expose:
       - "8000"
@@ -66,8 +66,8 @@ services:
       - trikusec-db:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY}
-      - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      # Domain-based configuration (automatically configures URLs and allowed hosts)
+      - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
     expose:
       - "8001"
     restart: unless-stopped

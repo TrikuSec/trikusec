@@ -37,13 +37,16 @@ TrikuSec is ideal for:
 
 1. **Download `docker-compose.yml`** from the [repository](https://github.com/trikusec/trikusec/blob/main/docker-compose.yml)
 
-2. **Create a `.env` file** with your `SECRET_KEY`:
+2. **Create a `.env` file** with your configuration:
    ```bash
    # Generate a secure SECRET_KEY
    python3 -c "import secrets; print(secrets.token_urlsafe(50))"
    
-   # Add to .env file
+   # Create .env file
+   cat > .env <<EOF
    SECRET_KEY=your-generated-secret-key-here
+   TRIKUSEC_DOMAIN=localhost
+   EOF
    ```
 
 3. **Start TrikuSec**:
@@ -54,6 +57,22 @@ TrikuSec is ideal for:
 4. **Access TrikuSec** at `https://localhost:8000`
    - Default credentials: `admin` / `trikusec`
    - ⚠️ **Change the default password in production!**
+
+### Production Deployment
+
+For production, simply change the domain in your `.env` file:
+
+```bash
+SECRET_KEY=your-generated-secret-key-here
+TRIKUSEC_DOMAIN=yourdomain.com
+TRIKUSEC_ADMIN_PASSWORD=your-secure-password
+```
+
+This automatically configures:
+- Admin UI: `https://yourdomain.com:8000`
+- Lynis API: `https://yourdomain.com:8001`
+- Allowed hosts: `localhost,yourdomain.com`
+- SSL certificates with CN: `yourdomain.com`
 
 ## Documentation
 

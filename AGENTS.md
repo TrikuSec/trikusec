@@ -148,13 +148,24 @@ The following Lynis API endpoints **MUST** remain unchanged to maintain compatib
 ### Required
 
 - `SECRET_KEY` - Django secret key (must be set, no default)
+
+### Recommended (Simplified Configuration)
+
+- `TRIKUSEC_DOMAIN` - Domain name (automatically configures URLs, allowed hosts, and SSL certificates)
+  - Example: `localhost` for local development
+  - Example: `yourdomain.com` for production
+  - Automatically derives:
+    - `TRIKUSEC_URL=https://${TRIKUSEC_DOMAIN}:8000`
+    - `TRIKUSEC_LYNIS_API_URL=https://${TRIKUSEC_DOMAIN}:8001`
+    - `DJANGO_ALLOWED_HOSTS=localhost,${TRIKUSEC_DOMAIN}`
+    - `NGINX_CERT_CN=${TRIKUSEC_DOMAIN}`
+
+### Optional (Advanced Override)
+
+- `TRIKUSEC_URL` - TrikuSec admin UI server URL (default: `https://localhost:8000`, or derived from `TRIKUSEC_DOMAIN`)
+- `TRIKUSEC_LYNIS_API_URL` - TrikuSec Lynis API server URL (default: `https://localhost:8001`, or derived from `TRIKUSEC_DOMAIN`)
+- `DJANGO_ALLOWED_HOSTS` - Allowed hosts (default: `localhost`, or derived from `TRIKUSEC_DOMAIN`)
 - `DJANGO_DEBUG` - Debug mode (default: `False` for security)
-
-### Optional
-
-- `DJANGO_ALLOWED_HOSTS` - Allowed hosts (default: `['*']` for development)
-- `TRIKUSEC_URL` - TrikuSec admin UI server URL (default: `https://localhost:8000`)
-- `TRIKUSEC_LYNIS_API_URL` - TrikuSec Lynis API server URL (default: `https://localhost:8001`)
 - `TRIKUSEC_ADMIN_USERNAME` - Admin username (default: `admin`)
 - `TRIKUSEC_ADMIN_PASSWORD` - Admin password (default: `trikusec`)
 - `DJANGO_SSL_ENABLED` - Enable internal SSL (default: `True` for dev/standalone)

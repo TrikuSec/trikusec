@@ -2,6 +2,40 @@
 
 Complete reference of all environment variables used by TrikuSec.
 
+## Simplified Configuration (Recommended)
+
+### TRIKUSEC_DOMAIN
+
+The easiest way to configure TrikuSec is using a single domain variable. When set, this automatically derives other settings:
+
+```bash
+TRIKUSEC_DOMAIN=yourdomain.com
+```
+
+**This automatically configures:**
+
+- `TRIKUSEC_URL=https://yourdomain.com:8000` (Admin UI)
+- `TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8001` (Lynis API)
+- `DJANGO_ALLOWED_HOSTS=localhost,yourdomain.com`
+- `NGINX_CERT_CN=yourdomain.com` (SSL certificate)
+
+You can still override any of these individually if needed for advanced configurations.
+
+**Examples:**
+
+For local development:
+```bash
+TRIKUSEC_DOMAIN=localhost
+```
+
+For production:
+```bash
+TRIKUSEC_DOMAIN=trikusec.example.com
+```
+
+!!! tip "Recommended Approach"
+    Using `TRIKUSEC_DOMAIN` simplifies configuration and reduces errors. You only need to set one variable and everything else is automatically configured consistently.
+
 ## Required Variables
 
 ### SECRET_KEY
@@ -184,11 +218,33 @@ If not set, falls back to `TRIKUSEC_URL` for backward compatibility.
 !!! tip "Security Best Practice"
     Use separate endpoints for admin UI and Lynis API to improve security. This allows you to configure different firewall rules for each endpoint. See [Security Configuration](../configuration/security.md#api-endpoint-separation-architecture) for details.
 
-## Example .env File
+## Example .env Files
+
+### Simple Configuration (Recommended)
 
 ```bash
 # Required
 SECRET_KEY=your-generated-secret-key-here
+
+# Domain-based configuration (automatically derives URLs and settings)
+TRIKUSEC_DOMAIN=yourdomain.com
+
+# Admin
+TRIKUSEC_ADMIN_USERNAME=admin
+TRIKUSEC_ADMIN_PASSWORD=your-secure-password
+
+# Optional: Database
+DATABASE_URL=postgresql://trikusec_user:password@postgres:5432/trikusec
+```
+
+### Advanced Configuration (All Options)
+
+```bash
+# Required
+SECRET_KEY=your-generated-secret-key-here
+
+# Domain (recommended)
+TRIKUSEC_DOMAIN=yourdomain.com
 
 # Django
 DJANGO_DEBUG=False
@@ -211,8 +267,8 @@ CSRF_COOKIE_SECURE=True
 # Rate Limiting
 RATELIMIT_ENABLE=True
 
-# Server
-TRIKUSEC_URL=https://yourdomain.com:443
-TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8443
+# Server (manual override - not needed if TRIKUSEC_DOMAIN is set)
+TRIKUSEC_URL=https://yourdomain.com:8000
+TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8001
 ```
 
