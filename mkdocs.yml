@@ -58,6 +58,8 @@ plugins:
   - awesome-pages
 
 markdown_extensions:
+  # Abbreviations
+  - abbreviations
   # Admonitions
   - admonition
   - pymdownx.details
