@@ -81,10 +81,20 @@ services:
       - DJANGO_DEBUG=False
       - DJANGO_ALLOWED_HOSTS=*
       - DJANGO_ALLOW_ASYNC_UNSAFE=True
+      - DJANGO_TEST_DB_NAME=/app/trikusec-dev.sqlite3
+      - TRIKUSEC_URL=http://trikusec-manager-dev:8000
+      - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
+      - TRIKUSEC_LYNIS_API_VERIFY_SSL=false
+      - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
     working_dir: /app
     command: ["pytest", "-v", "--cov=api", "--cov=frontend", "--cov-report=term-missing"]
     profiles:
       - test
+    depends_on:
+      trikusec-manager:
+        condition: service_healthy
+      trikusec-lynis-api:
+        condition: service_healthy
     networks:
       - default
 
