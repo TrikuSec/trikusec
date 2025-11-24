@@ -42,6 +42,7 @@ TRIKUSEC_DOMAIN=trikusec.yourdomain.com
 ```
 
 The following environment variables are **recommended**:
+
 - `SECRET_KEY` - (Required) Django secret key for cryptographic signing
 - `TRIKUSEC_DOMAIN` - (Recommended) Your domain (or subdomain) name. This automatically configures:
     - Admin UI URL: `https://trikusec.yourdomain.com:8000`
