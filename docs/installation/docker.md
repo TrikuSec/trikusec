@@ -38,14 +38,16 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 
 ```bash
 SECRET_KEY=your-generated-secret-key-here
-TRIKUSEC_URL=https://your-server-ip-or-dns:8000
-TRIKUSEC_LYNIS_API_URL=https://your-server-ip-or-dns:8001
+TRIKUSEC_DOMAIN=trikusec.yourdomain.com
 ```
 
-The following environment variables are **required**:
-- `SECRET_KEY` - Django secret key for cryptographic signing
-- `TRIKUSEC_URL` - The URL of the TrikuSec admin UI server (must point to your server's IP address or DNS name)
-- `TRIKUSEC_LYNIS_API_URL` - The URL of the TrikuSec Lynis API server (must point to your server's IP address or DNS name)
+The following environment variables are **recommended**:
+- `SECRET_KEY` - (Required) Django secret key for cryptographic signing
+- `TRIKUSEC_DOMAIN` - (Recommended) Your domain name. This automatically configures:
+    - Admin UI URL: `https://trikusec.yourdomain.com:8000`
+    - API URL: `https://trikusec.yourdomain.com:8001`
+    - SSL Certificates
+    - Allowed Hosts
 
 Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
 
@@ -70,7 +72,7 @@ This will:
 Once started, access TrikuSec at:
 
 ```
-https://yourserver:8000
+https://trikusec.yourdomain.com:8000
 ```
 
 Default credentials:
@@ -101,7 +103,9 @@ DJANGO_DEBUG=True
 
 ### Production Settings
 
-For production, set allowed hosts:
+For production, we recommend using `TRIKUSEC_DOMAIN` which automatically configures allowed hosts.
+
+If you need to manually override it:
 
 ```bash
 DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
