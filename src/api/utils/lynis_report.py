@@ -176,7 +176,14 @@ class LynisReport:
                 base_key = key.replace('[]', '')
                 if base_key not in parsed_keys:
                     parsed_keys[base_key] = []
-                parsed_keys[base_key].append(value)
+                
+                # If the value is already a list (from comma separation), extend the existing list
+                # instead of appending it as a nested list. This ensures flat lists for fields
+                # like installed_packages_array[]=pkg1,ver1,pkg2,ver2
+                if isinstance(value, list):
+                    parsed_keys[base_key].extend(value)
+                else:
+                    parsed_keys[base_key].append(value)
             else:
                 # Convert numeric strings to integers for proper JMESPath comparisons
                 if isinstance(value, str) and value.isdigit():
