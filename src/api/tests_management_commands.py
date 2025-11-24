@@ -10,14 +10,24 @@ from io import StringIO
 class TestChangeAdminPassword:
     """Tests for the change_admin_password management command."""
 
+    def _create_or_reset_admin(self):
+        """Ensure a single reusable admin user for each test."""
+        admin, _ = User.objects.get_or_create(
+            username='admin',
+            defaults={
+                'email': 'admin@test.com',
+                'is_staff': True,
+                'is_superuser': True,
+            },
+        )
+        admin.set_password('initial_password')
+        admin.save()
+        return admin
+
     def test_change_password_with_env_var(self):
         """Test changing admin password using TRIKUSEC_ADMIN_PASSWORD env var."""
         # Create admin user with initial password
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@test.com',
-            password='initial_password'
-        )
+        admin = self._create_or_reset_admin()
         
         # Set environment variable
         os.environ['TRIKUSEC_ADMIN_PASSWORD'] = 'new_password_123'
@@ -38,11 +48,7 @@ class TestChangeAdminPassword:
     def test_change_password_with_command_line_arg(self):
         """Test changing admin password using command line argument."""
         # Create admin user with initial password
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@test.com',
-            password='initial_password'
-        )
+        admin = self._create_or_reset_admin()
         
         # Run command with password argument
         out = StringIO()
@@ -56,11 +62,7 @@ class TestChangeAdminPassword:
     def test_change_password_command_line_overrides_env(self):
         """Test that command line password argument takes precedence over env var."""
         # Create admin user
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@test.com',
-            password='initial_password'
-        )
+        admin = self._create_or_reset_admin()
         
         # Set environment variable
         os.environ['TRIKUSEC_ADMIN_PASSWORD'] = 'env_password'
@@ -81,11 +83,7 @@ class TestChangeAdminPassword:
     def test_change_password_no_password_provided(self):
         """Test that command fails gracefully when no password is provided."""
         # Create admin user
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@test.com',
-            password='initial_password'
-        )
+        admin = self._create_or_reset_admin()
         
         # Ensure env var is not set
         if 'TRIKUSEC_ADMIN_PASSWORD' in os.environ:

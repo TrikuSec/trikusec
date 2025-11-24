@@ -5,6 +5,7 @@ These tests verify the complex Policies/Rulesets UI with nested sidebars,
 AJAX forms, and state management.
 """
 import pytest
+from playwright.sync_api import expect
 from django.contrib.auth.models import User
 from api.models import (
     PolicyRule,
@@ -191,8 +192,9 @@ class TestRulesetCRUD:
         # Wait for page reload
         page.wait_for_load_state("networkidle")
         
-        # Verify ruleset is gone
-        assert not page.locator('text=Ruleset to Delete E2E').is_visible()
+        # Verify ruleset is gone (ensure table rows no longer include it)
+        deleted_ruleset_rows = page.locator('tr:has-text("Ruleset to Delete E2E")')
+        expect(deleted_ruleset_rows).to_have_count(0)
 
 
 @pytest.mark.e2e
@@ -335,7 +337,8 @@ class TestRuleCRUD:
         page.wait_for_load_state("networkidle")
         
         # Verify rule is gone
-        assert not page.locator('text=Rule to Delete E2E').is_visible()
+        deleted_rule_rows = page.locator('tr:has-text("Rule to Delete E2E")')
+        expect(deleted_rule_rows).to_have_count(0)
 
 
 @pytest.mark.e2e
