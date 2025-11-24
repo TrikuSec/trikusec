@@ -71,15 +71,20 @@ jobs:
       run: |
         docker compose -f docker-compose.dev.yml build
     
-    - name: Start TrikuSec service
+    - name: Start TrikuSec services
       run: |
-        docker compose -f docker-compose.dev.yml up -d trikusec-manager
+        docker compose -f docker-compose.dev.yml up -d trikusec-manager trikusec-lynis-api
       env:
         SECRET_KEY: ${{ env.SECRET_KEY }}
     
-    - name: Wait for service to be ready
+    - name: Wait for services to be ready
       run: |
-        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec-manager && exit 1)
+        echo "Waiting for trikusec-manager to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health/; do sleep 2; done' || (echo "Manager service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec-manager && exit 1)
+        echo "Manager service is ready!"
+        echo "Waiting for trikusec-lynis-api to be ready..."
+        timeout 60 bash -c 'until curl -kf https://localhost:8001/health/; do sleep 2; done' || (echo "API service failed to start. Showing logs:" && docker compose -f docker-compose.dev.yml logs trikusec-lynis-api && exit 1)
+        echo "API service is ready!"
     
     - name: Create test license key in database
       run: |
