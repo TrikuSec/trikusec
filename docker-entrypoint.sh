@@ -59,9 +59,37 @@ fi
 
 # Show database migrations
 if [ "${SKIP_MIGRATIONS}" != "True" ]; then
+    # Fix database file permissions in development mode BEFORE accessing it
+    # This allows multiple containers to access the same SQLite database file
+    if [ "${DJANGO_ENV}" = "development" ]; then
+        DB_FILE="/app/data/trikusec-dev.sqlite3"
+        
+        # Ensure the database directory exists and is writable
+        mkdir -p /app/data 2>/dev/null || true
+        chmod 777 /app/data 2>/dev/null || true
+        
+        # If database file exists, fix its permissions
+        if [ -f "${DB_FILE}" ]; then
+            chmod 666 "${DB_FILE}" 2>/dev/null || true
+            echo "Fixed existing database file permissions for development mode"
+        fi
+    fi
+    
     python manage.py showmigrations
     # Apply database migrations
     python manage.py migrate
+    
+    # Fix database file permissions again after creation (in case it was just created)
+    if [ "${DJANGO_ENV}" = "development" ]; then
+        DB_FILE="/app/data/trikusec-dev.sqlite3"
+        if [ -f "${DB_FILE}" ]; then
+            chmod 666 "${DB_FILE}" 2>/dev/null || true
+            # Also fix any journal files
+            chmod 666 "${DB_FILE}-shm" 2>/dev/null || true
+            chmod 666 "${DB_FILE}-wal" 2>/dev/null || true
+            echo "Fixed database file permissions after migrations"
+        fi
+    fi
 fi
 
 # Collect static files for production (skip if SKIP_COLLECTSTATIC is set)
