@@ -40,6 +40,21 @@ WSGI_APPLICATION=${WSGI_APPLICATION:-trikusec.wsgi:application}
 TRIKUSEC_URL=${TRIKUSEC_URL:-https://localhost:8000}
 TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://localhost:8001}
 
+# Database Directory
+# Default to /app/data for shared volume usage in Docker
+export TRIKUSEC_DB_DIR=${TRIKUSEC_DB_DIR:-/app/data}
+
+# Service Detection
+# Check if we are running the API service based on settings module
+IS_API_SERVICE=false
+if [[ "${DJANGO_SETTINGS_MODULE}" == *"api"* ]]; then
+    IS_API_SERVICE=true
+    # For API service in production, skip collectstatic by default if not specified
+    if [ -z "${SKIP_COLLECTSTATIC}" ]; then
+        export SKIP_COLLECTSTATIC=True
+    fi
+fi
+
 # Admin user configuration
 TRIKUSEC_ADMIN_USERNAME=${TRIKUSEC_ADMIN_USERNAME:-admin}
 TRIKUSEC_ADMIN_EMAIL=${TRIKUSEC_ADMIN_EMAIL:-empty@domain.com}
@@ -109,6 +124,31 @@ if [ "${SKIP_MIGRATIONS}" != "True" ]; then
             echo "Fixed database file permissions after migrations"
         fi
     fi
+else
+    # If we skip migrations (e.g. API service), we must wait for the database to be ready
+    # This prevents race conditions when starting API and Manager simultaneously
+    echo "Skipping migrations. Waiting for database to be ready..."
+    
+    until python -c "
+import sys
+import django
+from django.db import connections
+from django.db.utils import OperationalError
+django.setup()
+try:
+    c = connections['default'].cursor()
+    # Check if auth_user table exists (created by migrations)
+    c.execute('SELECT 1 FROM auth_user LIMIT 1')
+except OperationalError:
+    sys.exit(1)
+except Exception:
+    sys.exit(1)
+sys.exit(0)
+"; do
+        echo "Database not ready yet, waiting..."
+        sleep 2
+    done
+    echo "Database is ready."
 fi
 
 # Collect static files for production (skip if SKIP_COLLECTSTATIC is set)
