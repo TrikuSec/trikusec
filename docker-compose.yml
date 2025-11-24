@@ -42,6 +42,8 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - TRIKUSEC_URL=${TRIKUSEC_URL}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      - TRIKUSEC_ADMIN_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
     expose:
       - "8000"
     restart: unless-stopped
@@ -64,6 +66,7 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
     expose:
       - "8001"
     restart: unless-stopped
