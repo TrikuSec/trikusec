@@ -50,6 +50,18 @@ The following environment variables are **recommended**:
     - SSL Certificates
     - Allowed Hosts
 
+
+```
+# Filename: .env
+
+# Required variables
+SECRET_KEY=your-generated-secret-key-here
+TRIKUSEC_DOMAIN=trikusec.yourdomain.com
+
+# Set admin password (recommended for first run, otherwise it will be set to 'trikusec')
+TRIKUSEC_ADMIN_PASSWORD=your-secure-password
+```
+
 Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
 
 ### 3. Start TrikuSec
