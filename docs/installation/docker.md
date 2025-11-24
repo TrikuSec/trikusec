@@ -78,7 +78,13 @@ Default credentials:
 - **Password:** `trikusec`
 
 !!! warning "Change Default Password"
-    Never use default admin credentials in production. Set `TRIKUSEC_ADMIN_PASSWORD` in your `.env` file.
+    For production deployments:
+    
+    1. Set `TRIKUSEC_ADMIN_PASSWORD` in your `.env` file for the initial deployment
+    2. After first login, change your password through the Django admin interface
+    3. Comment out or remove `TRIKUSEC_ADMIN_PASSWORD` from your `.env` file to prevent accidental overwrites
+    
+    The password is only set automatically during initial admin user creation. If you manually change it via the UI and `TRIKUSEC_ADMIN_PASSWORD` is not set in the environment, your custom password will be preserved on container restarts.
 
 ## Optional Configuration
 

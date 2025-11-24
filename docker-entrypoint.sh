@@ -27,14 +27,17 @@ TRIKUSEC_LYNIS_API_URL=${TRIKUSEC_LYNIS_API_URL:-https://localhost:8001}
 # Admin user configuration
 TRIKUSEC_ADMIN_USERNAME=${TRIKUSEC_ADMIN_USERNAME:-admin}
 TRIKUSEC_ADMIN_EMAIL=${TRIKUSEC_ADMIN_EMAIL:-empty@domain.com}
-TRIKUSEC_ADMIN_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
+# Note: TRIKUSEC_ADMIN_PASSWORD has no default here
+# This allows us to detect if it was explicitly set by the user
 
 # CSRF trusted origins
 TRIKUSEC_CSRF_TRUSTED_ORIGINS=${TRIKUSEC_CSRF_TRUSTED_ORIGINS:-${TRIKUSEC_URL}}
 DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS:-${TRIKUSEC_CSRF_TRUSTED_ORIGINS}}
 
 # Export Django environment variables
-DJANGO_SUPERUSER_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD}
+# Set DJANGO_SUPERUSER_PASSWORD for createsuperuser command
+# Use provided password or default to 'trikusec' for initial user creation
+DJANGO_SUPERUSER_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
 export DJANGO_SUPERUSER_PASSWORD
 export DJANGO_ALLOWED_HOSTS
 export DJANGO_CSRF_TRUSTED_ORIGINS
@@ -50,7 +53,7 @@ export TRIKUSEC_URL
 export TRIKUSEC_LYNIS_API_URL
 export TRIKUSEC_ADMIN_USERNAME
 export TRIKUSEC_ADMIN_EMAIL
-export TRIKUSEC_ADMIN_PASSWORD
+# Note: TRIKUSEC_ADMIN_PASSWORD is exported conditionally below when needed
 
 # Generate SSL certificates if enabled
 if [ "${DJANGO_SSL_ENABLED}" = "True" ]; then
@@ -109,13 +112,21 @@ else
     USER_EXISTS=false
 fi
 
-# Only set password on first run (when user was just created)
-# This allows users to change password in UI without it being overwritten
+# Password management logic:
+# - If user was just created: set password (use provided or default 'trikusec')
+# - If user already exists AND TRIKUSEC_ADMIN_PASSWORD is set: update password
+# - If user already exists AND TRIKUSEC_ADMIN_PASSWORD is NOT set: keep existing password
 if [ "$USER_EXISTS" = "false" ]; then
+    # New user - set initial password
     echo "Setting initial admin password..."
+    export TRIKUSEC_ADMIN_PASSWORD="${TRIKUSEC_ADMIN_PASSWORD:-trikusec}"
+    python manage.py change_admin_password || true
+elif [ -n "${TRIKUSEC_ADMIN_PASSWORD+x}" ]; then
+    # Existing user - only update if TRIKUSEC_ADMIN_PASSWORD was explicitly set
+    echo "TRIKUSEC_ADMIN_PASSWORD is set, updating admin password..."
     python manage.py change_admin_password || true
 else
-    echo "Admin user already exists, skipping password reset (respecting database)"
+    echo "Admin user already exists and TRIKUSEC_ADMIN_PASSWORD not set, keeping existing password"
 fi
 
 # Add a license key (use provided env var if available, otherwise generate)
