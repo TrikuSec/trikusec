@@ -1494,37 +1494,37 @@
 
   <h1>Index</h1>
 
-<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
-<p>Complete API reference for TrikuSec.</p>
+<h2 id="api-reference"><abbr title="Application Programming Interface">API</abbr> Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
+<p>Complete <abbr title="Application Programming Interface">API</abbr> reference for TrikuSec.</p>
 <h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h3>
-<p>TrikuSec provides REST API endpoints for:</p>
+<p>TrikuSec provides REST <abbr title="Application Programming Interface">API</abbr> endpoints for:</p>
 <ul>
 <li>Uploading audit reports</li>
 <li>License key validation</li>
 </ul>
 <h3 id="base-url">Base URL<a class="headerlink" href="#base-url" title="Permanent link">&para;</a></h3>
-<p>The TrikuSec API is available on port 8001:</p>
+<p>The TrikuSec <abbr title="Application Programming Interface">API</abbr> is available on port 8001:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>https://yourserver:8001/api
 </span></code></pre></div>
 <p>The web interface (admin UI) is available on port 8000:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>https://yourserver:8000
 </span></code></pre></div>
-<h3 id="api-versioning">API Versioning<a class="headerlink" href="#api-versioning" title="Permanent link">&para;</a></h3>
-<p>TrikuSec supports API versioning:</p>
+<h3 id="api-versioning"><abbr title="Application Programming Interface">API</abbr> Versioning<a class="headerlink" href="#api-versioning" title="Permanent link">&para;</a></h3>
+<p>TrikuSec supports <abbr title="Application Programming Interface">API</abbr> versioning:</p>
 <ul>
-<li><strong>Versioned API</strong>: <code>/api/v1/lynis/...</code></li>
-<li><strong>Legacy API</strong>: <code>/api/lynis/...</code> (for backward compatibility)</li>
+<li><strong>Versioned <abbr title="Application Programming Interface">API</abbr></strong>: <code>/api/v1/lynis/...</code></li>
+<li><strong>Legacy <abbr title="Application Programming Interface">API</abbr></strong>: <code>/api/lynis/...</code> (for backward compatibility)</li>
 </ul>
 <p>Both endpoints route to the same views.</p>
 <h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h3>
-<p>Currently, API endpoints use license key authentication. See <a href="authentication/">Authentication</a> for details.</p>
+<p>Currently, <abbr title="Application Programming Interface">API</abbr> endpoints use license key authentication. See <a href="authentication/">Authentication</a> for details.</p>
 <h3 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><a href="endpoints/">API Endpoints</a></strong> - Complete list of endpoints</li>
+<li><strong><a href="endpoints/"><abbr title="Application Programming Interface">API</abbr> Endpoints</a></strong> - Complete list of endpoints</li>
 <li><strong><a href="authentication/">Authentication</a></strong> - Authentication methods</li>
 </ul>
 <h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
-<p>API endpoints are rate-limited to prevent abuse. See configuration for details.</p>
+<p><abbr title="Application Programming Interface">API</abbr> endpoints are rate-limited to prevent abuse. See configuration for details.</p>
 <h3 id="response-formats">Response Formats<a class="headerlink" href="#response-formats" title="Permanent link">&para;</a></h3>
 <h4 id="success-response">Success Response<a class="headerlink" href="#success-response" title="Permanent link">&para;</a></h4>
 <div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
@@ -1542,19 +1542,6 @@
 <ul>
 <li><a href="endpoints/">Endpoints</a> - Detailed endpoint documentation</li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 

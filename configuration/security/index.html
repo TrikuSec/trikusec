@@ -1672,7 +1672,7 @@
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>DJANGO_ALLOWED_HOSTS</code> is configured (not <code>*</code>)</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>SECRET_KEY</code> is unique and secure</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Default admin password is changed</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> HTTPS is enabled with security headers</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <abbr title="HTTP Secure">HTTPS</abbr> is enabled with security headers</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Rate limiting is enabled</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PostgreSQL is used (not SQLite)</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Regular backups are configured</li>
@@ -1702,11 +1702,11 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(50))&quot;</span>
 </span></code></pre></div>
 <p>Never reuse secret keys across deployments.</p>
-<h3 id="https-configuration">HTTPS Configuration<a class="headerlink" href="#https-configuration" title="Permanent link">&para;</a></h3>
-<h4 id="enable-https-redirect">Enable HTTPS Redirect<a class="headerlink" href="#enable-https-redirect" title="Permanent link">&para;</a></h4>
+<h3 id="https-configuration"><abbr title="HTTP Secure">HTTPS</abbr> Configuration<a class="headerlink" href="#https-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="enable-https-redirect">Enable <abbr title="HTTP Secure">HTTPS</abbr> Redirect<a class="headerlink" href="#enable-https-redirect" title="Permanent link">&para;</a></h4>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
 </span></code></pre></div>
-<h4 id="http-strict-transport-security-hsts">HTTP Strict Transport Security (HSTS)<a class="headerlink" href="#http-strict-transport-security-hsts" title="Permanent link">&para;</a></h4>
+<h4 id="http-strict-transport-security-hsts"><abbr title="Hypertext Transfer Protocol">HTTP</abbr> Strict Transport Security (<abbr title="HTTP Strict Transport Security">HSTS</abbr>)<a class="headerlink" href="#http-strict-transport-security-hsts" title="Permanent link">&para;</a></h4>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span><span class="w">  </span><span class="c1"># 1 year</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">SECURE_HSTS_INCLUDE_SUBDOMAINS</span><span class="o">=</span>True
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">SECURE_HSTS_PRELOAD</span><span class="o">=</span>True
@@ -1720,7 +1720,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True
 </span></code></pre></div>
 <p>Rate limits apply to:
-- API endpoints (<code>/api/lynis/upload/</code>, <code>/api/lynis/license/</code>)
+- <abbr title="Application Programming Interface">API</abbr> endpoints (<code>/api/lynis/upload/</code>, <code>/api/lynis/license/</code>)
 - Login attempts
 - Registration attempts</p>
 <h3 id="database-security">Database Security<a class="headerlink" href="#database-security" title="Permanent link">&para;</a></h3>
@@ -1750,8 +1750,8 @@
 - Not dictionary words
 - Not reused from other services</p>
 <h3 id="network-security">Network Security<a class="headerlink" href="#network-security" title="Permanent link">&para;</a></h3>
-<h4 id="api-endpoint-separation-architecture">API Endpoint Separation Architecture<a class="headerlink" href="#api-endpoint-separation-architecture" title="Permanent link">&para;</a></h4>
-<p>TrikuSec uses a <strong>dual-endpoint architecture</strong> to improve security by separating admin UI access from Lynis API access:</p>
+<h4 id="api-endpoint-separation-architecture"><abbr title="Application Programming Interface">API</abbr> Endpoint Separation Architecture<a class="headerlink" href="#api-endpoint-separation-architecture" title="Permanent link">&para;</a></h4>
+<p>TrikuSec uses a <strong>dual-endpoint architecture</strong> to improve security by separating admin UI access from Lynis <abbr title="Application Programming Interface">API</abbr> access:</p>
 <ul>
 <li><strong>Admin UI Endpoint</strong> (<code>TRIKUSEC_URL</code>, default: <code>https://localhost:8000</code>): </li>
 <li>Used for accessing the web management interface</li>
@@ -1761,10 +1761,10 @@
 <p>Typically accessed on port 443 via nginx reverse proxy</p>
 </li>
 <li>
-<p><strong>Lynis API Endpoint</strong> (<code>TRIKUSEC_LYNIS_API_URL</code>, default: <code>https://localhost:8001</code>):</p>
+<p><strong>Lynis <abbr title="Application Programming Interface">API</abbr> Endpoint</strong> (<code>TRIKUSEC_LYNIS_API_URL</code>, default: <code>https://localhost:8001</code>):</p>
 </li>
 <li>Used by monitored servers for downloading <code>enroll.sh</code>, certificate download, license validation, and report uploads</li>
-<li>No authentication UI exposed (API-only endpoints)</li>
+<li>No authentication UI exposed (<abbr title="Application Programming Interface">API</abbr>-only endpoints)</li>
 <li>Should be accessible from your server network</li>
 <li>Typically accessed on a separate port (e.g., 8443) via nginx</li>
 </ul>
@@ -1772,19 +1772,19 @@
 <p>This separation provides important security advantages:</p>
 <ol>
 <li>
-<p><strong>Compromised Server Isolation</strong>: If a monitored server is compromised, the attacker cannot access the admin UI or authentication forms, even if they can upload reports to the API.</p>
+<p><strong>Compromised Server Isolation</strong>: If a monitored server is compromised, the attacker cannot access the admin UI or authentication forms, even if they can upload reports to the <abbr title="Application Programming Interface">API</abbr>.</p>
 </li>
 <li>
 <p><strong>Firewall Rule Granularity</strong>: Sysadmins can configure different firewall rules:</p>
 </li>
 <li><strong>Admin UI</strong>: Restrict access to corporate IPs, VPN networks, or specific admin workstations</li>
 <li>
-<p><strong>Lynis API</strong>: Allow access from server networks, data centers, or cloud provider IP ranges</p>
+<p><strong>Lynis <abbr title="Application Programming Interface">API</abbr></strong>: Allow access from server networks, data centers, or cloud provider IP ranges</p>
 </li>
 <li>
 <p><strong>Attack Surface Reduction</strong>: The admin interface is not exposed to the same network as monitored servers, reducing the risk of credential theft or session hijacking.</p>
 </li>
-<li><strong>Enrollment Isolation</strong>: Devices download <code>enroll.sh</code> directly from the Lynis API endpoint, so production servers never need outbound access to the admin UI.</li>
+<li><strong>Enrollment Isolation</strong>: Devices download <code>enroll.sh</code> directly from the Lynis <abbr title="Application Programming Interface">API</abbr> endpoint, so production servers never need outbound access to the admin UI.</li>
 </ol>
 <h5 id="example-firewall-configuration">Example Firewall Configuration<a class="headerlink" href="#example-firewall-configuration" title="Permanent link">&para;</a></h5>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Allow admin UI access only from corporate network</span>
@@ -1796,20 +1796,20 @@
 </span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">8001</span><span class="w"> </span>-j<span class="w"> </span>DROP
 </span></code></pre></div>
 <h5 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h5>
-<p>Set <code>TRIKUSEC_LYNIS_API_URL</code> to your Lynis API endpoint. If not set, it falls back to <code>TRIKUSEC_URL</code> for backward compatibility.</p>
+<p>Set <code>TRIKUSEC_LYNIS_API_URL</code> to your Lynis <abbr title="Application Programming Interface">API</abbr> endpoint. If not set, it falls back to <code>TRIKUSEC_URL</code> for backward compatibility.</p>
 <p>See <a href="../environment-variables/">Environment Variables</a> for configuration details.</p>
 <h4 id="firewall-configuration">Firewall Configuration<a class="headerlink" href="#firewall-configuration" title="Permanent link">&para;</a></h4>
 <p>Only expose necessary ports:
-- <code>8000</code> (or your configured port) for Admin UI HTTP/HTTPS
-- <code>8001</code> (or your configured port) for Lynis API HTTP/HTTPS
+- <code>8000</code> (or your configured port) for Admin UI <abbr title="Hypertext Transfer Protocol">HTTP</abbr>/<abbr title="HTTP Secure">HTTPS</abbr>
+- <code>8001</code> (or your configured port) for Lynis <abbr title="Application Programming Interface">API</abbr> <abbr title="Hypertext Transfer Protocol">HTTP</abbr>/<abbr title="HTTP Secure">HTTPS</abbr>
 - Database port only to application server (if external)</p>
 <h4 id="reverse-proxy">Reverse Proxy<a class="headerlink" href="#reverse-proxy" title="Permanent link">&para;</a></h4>
 <p>Use a reverse proxy (Nginx, Apache) for:
-- SSL/TLS termination
+- <abbr title="Secure Sockets Layer">SSL</abbr>/<abbr title="Transport Layer Security">TLS</abbr> termination
 - Additional security headers
 - Rate limiting
-- DDoS protection</p>
-<p>By default, <strong>TrikuSec</strong> uses a reverse proxy (nginx) to handle HTTPS termination. The nginx configuration is included in the Docker images and automatically handles SSL/TLS termination.</p>
+- <abbr title="Distributed Denial of Service">DDoS</abbr> protection</p>
+<p>By default, <strong>TrikuSec</strong> uses a reverse proxy (nginx) to handle <abbr title="HTTP Secure">HTTPS</abbr> termination. The nginx configuration is included in the Docker images and automatically handles <abbr title="Secure Sockets Layer">SSL</abbr>/<abbr title="Transport Layer Security">TLS</abbr> termination.</p>
 <h3 id="security-headers">Security Headers<a class="headerlink" href="#security-headers" title="Permanent link">&para;</a></h3>
 <p>TrikuSec includes security headers, but you can add more via reverse proxy:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>X-Content-Type-Options: nosniff
@@ -1822,22 +1822,9 @@
 <h3 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="https://docs.djangoproject.com/en/stable/topics/security/">Django Security Documentation</a></li>
-<li><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a></li>
-<li><a href="https://www.cisecurity.org/cis-benchmarks/">CIS Benchmarks</a></li>
+<li><a href="https://owasp.org/www-project-top-ten/"><abbr title="Open Web Application Security Project">OWASP</abbr> Top 10</a></li>
+<li><a href="https://www.cisecurity.org/cis-benchmarks/"><abbr title="Center for Internet Security">CIS</abbr> Benchmarks</a></li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 

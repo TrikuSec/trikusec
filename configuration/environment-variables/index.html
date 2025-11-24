@@ -1663,9 +1663,9 @@
 <p><strong>This automatically configures:</strong></p>
 <ul>
 <li><code>TRIKUSEC_URL=https://yourdomain.com:8000</code> (Admin UI)</li>
-<li><code>TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8001</code> (Lynis API)</li>
+<li><code>TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8001</code> (Lynis <abbr title="Application Programming Interface">API</abbr>)</li>
 <li><code>DJANGO_ALLOWED_HOSTS=localhost,yourdomain.com</code></li>
-<li><code>NGINX_CERT_CN=yourdomain.com</code> (SSL certificate)</li>
+<li><code>NGINX_CERT_CN=yourdomain.com</code> (<abbr title="Secure Sockets Layer">SSL</abbr> certificate)</li>
 </ul>
 <p>You can still override any of these individually if needed for advanced configurations.</p>
 <p><strong>Examples:</strong></p>
@@ -1751,26 +1751,26 @@
 <p class="admonition-title">Production Security</p>
 <p>Never use the default <code>trikusec</code> password in production. Always set a strong password for initial deployment.</p>
 </div>
-<h3 id="https-security">HTTPS Security<a class="headerlink" href="#https-security" title="Permanent link">&para;</a></h3>
+<h3 id="https-security"><abbr title="HTTP Secure">HTTPS</abbr> Security<a class="headerlink" href="#https-security" title="Permanent link">&para;</a></h3>
 <h4 id="secure_ssl_redirect">SECURE_SSL_REDIRECT<a class="headerlink" href="#secure_ssl_redirect" title="Permanent link">&para;</a></h4>
-<p>Redirect all HTTP traffic to HTTPS.</p>
+<p>Redirect all <abbr title="Hypertext Transfer Protocol">HTTP</abbr> traffic to <abbr title="HTTP Secure">HTTPS</abbr>.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="secure_hsts_seconds">SECURE_HSTS_SECONDS<a class="headerlink" href="#secure_hsts_seconds" title="Permanent link">&para;</a></h4>
-<p>HTTP Strict Transport Security (HSTS) duration in seconds.</p>
+<p><abbr title="Hypertext Transfer Protocol">HTTP</abbr> Strict Transport Security (<abbr title="HTTP Strict Transport Security">HSTS</abbr>) duration in seconds.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span><span class="w">  </span><span class="c1"># 1 year</span>
 </span></code></pre></div>
 <h4 id="session_cookie_secure">SESSION_COOKIE_SECURE<a class="headerlink" href="#session_cookie_secure" title="Permanent link">&para;</a></h4>
-<p>Only send session cookies over HTTPS.</p>
+<p>Only send session cookies over <abbr title="HTTP Secure">HTTPS</abbr>.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="csrf_cookie_secure">CSRF_COOKIE_SECURE<a class="headerlink" href="#csrf_cookie_secure" title="Permanent link">&para;</a></h4>
-<p>Only send CSRF cookies over HTTPS.</p>
+<p>Only send <abbr title="Cross-Site Request Forgery">CSRF</abbr> cookies over <abbr title="HTTP Secure">HTTPS</abbr>.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
 <h4 id="ratelimit_enable">RATELIMIT_ENABLE<a class="headerlink" href="#ratelimit_enable" title="Permanent link">&para;</a></h4>
-<p>Enable or disable rate limiting on API endpoints.</p>
+<p>Enable or disable rate limiting on <abbr title="Application Programming Interface">API</abbr> endpoints.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True<span class="w">   </span><span class="c1"># Enabled (default)</span>
 </span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>False<span class="w">  </span><span class="c1"># Disabled</span>
 </span></code></pre></div>
@@ -1782,7 +1782,7 @@
 <p>This is the endpoint used for accessing the web management interface. It should point to your nginx reverse proxy or direct Django server for admin access.</p>
 <p>In the enrollment workflow, <code>TRIKUSEC_URL</code> is only used for authenticated admin interactions (no device traffic).</p>
 <h4 id="trikusec_lynis_api_url">TRIKUSEC_LYNIS_API_URL<a class="headerlink" href="#trikusec_lynis_api_url" title="Permanent link">&para;</a></h4>
-<p>TrikuSec Lynis API server URL (used for device enrollment and report uploads).</p>
+<p>TrikuSec Lynis <abbr title="Application Programming Interface">API</abbr> server URL (used for device enrollment and report uploads).</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://localhost:8443
 </span></code></pre></div>
 <p>This is the endpoint used by monitored servers for:
@@ -1793,7 +1793,7 @@
 <p>If not set, falls back to <code>TRIKUSEC_URL</code> for backward compatibility.</p>
 <div class="admonition tip">
 <p class="admonition-title">Security Best Practice</p>
-<p>Use separate endpoints for admin UI and Lynis API to improve security. This allows you to configure different firewall rules for each endpoint. See <a href="../security/#api-endpoint-separation-architecture">Security Configuration</a> for details.</p>
+<p>Use separate endpoints for admin UI and Lynis <abbr title="Application Programming Interface">API</abbr> to improve security. This allows you to configure different firewall rules for each endpoint. See <a href="../security/#api-endpoint-separation-architecture">Security Configuration</a> for details.</p>
 </div>
 <h3 id="example-env-files">Example .env Files<a class="headerlink" href="#example-env-files" title="Permanent link">&para;</a></h3>
 <h4 id="simple-configuration-recommended">Simple Configuration (Recommended)<a class="headerlink" href="#simple-configuration-recommended" title="Permanent link">&para;</a></h4>
@@ -1842,19 +1842,6 @@
 </span><span id="__span-20-29"><a id="__codelineno-20-29" name="__codelineno-20-29" href="#__codelineno-20-29"></a><span class="nv">TRIKUSEC_URL</span><span class="o">=</span>https://yourdomain.com:8000
 </span><span id="__span-20-30"><a id="__codelineno-20-30" name="__codelineno-20-30" href="#__codelineno-20-30"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://yourdomain.com:8001
 </span></code></pre></div>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 

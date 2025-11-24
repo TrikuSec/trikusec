@@ -1658,7 +1658,7 @@
 <h3 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h3>
 <p>All tests use pytest (not Django's unittest):</p>
 <ul>
-<li><code>src/api/tests.py</code> - Unit tests for API endpoints</li>
+<li><code>src/api/tests.py</code> - Unit tests for <abbr title="Application Programming Interface">API</abbr> endpoints</li>
 <li><code>src/api/tests_integration.py</code> - Integration tests</li>
 <li><code>src/api/tests_middleware.py</code> - Middleware tests</li>
 <li><code>src/api/tests_policy_security.py</code> - Policy security tests</li>
@@ -1695,7 +1695,7 @@
 <h4 id="unit-tests">Unit Tests<a class="headerlink" href="#unit-tests" title="Permanent link">&para;</a></h4>
 <p>Test individual components in isolation:</p>
 <ul>
-<li>API endpoints</li>
+<li><abbr title="Application Programming Interface">API</abbr> endpoints</li>
 <li>Models</li>
 <li>Forms</li>
 <li>Utilities</li>
@@ -1763,11 +1763,11 @@
 <p>Tests run automatically on:
 - Push to <code>main</code> or <code>develop</code> branches
 - Pull requests</p>
-<p>CI runs three separate test jobs:
+<p><abbr title="Continuous Integration">CI</abbr> runs three separate test jobs:
 1. <strong>Unit Tests</strong> - Fast unit tests (excludes integration and E2E tests)
-2. <strong>Integration Tests</strong> - End-to-end API workflows with Lynis client
+2. <strong>Integration Tests</strong> - End-to-end <abbr title="Application Programming Interface">API</abbr> workflows with Lynis client
 3. <strong>E2E Tests</strong> - Browser-based frontend tests with Playwright</p>
-<p>See <code>.github/workflows/test.yml</code> for CI configuration.</p>
+<p>See <code>.github/workflows/test.yml</code> for <abbr title="Continuous Integration">CI</abbr> configuration.</p>
 <h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Isolation</strong> - Each test should be independent</li>
@@ -1781,19 +1781,6 @@
 <li><a href="../setup/">Development Setup</a> - Development environment</li>
 <li><a href="../contributing/">Contributing</a> - Contribution guidelines</li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 

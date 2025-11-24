@@ -1598,8 +1598,8 @@
 
   <h1>Authentication</h1>
 
-<h2 id="api-authentication">API Authentication<a class="headerlink" href="#api-authentication" title="Permanent link">&para;</a></h2>
-<p>Authentication methods for TrikuSec API.</p>
+<h2 id="api-authentication"><abbr title="Application Programming Interface">API</abbr> Authentication<a class="headerlink" href="#api-authentication" title="Permanent link">&para;</a></h2>
+<p>Authentication methods for TrikuSec <abbr title="Application Programming Interface">API</abbr>.</p>
 <h3 id="license-key-authentication">License Key Authentication<a class="headerlink" href="#license-key-authentication" title="Permanent link">&para;</a></h3>
 <p>Lynis endpoints use license key authentication via form data.</p>
 <h4 id="upload-endpoint">Upload Endpoint<a class="headerlink" href="#upload-endpoint" title="Permanent link">&para;</a></h4>
@@ -1614,10 +1614,10 @@
 </span></code></pre></div>
 <h3 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Use HTTPS</strong> - Always use HTTPS in production</li>
+<li><strong>Use <abbr title="HTTP Secure">HTTPS</abbr></strong> - Always use <abbr title="HTTP Secure">HTTPS</abbr> in production</li>
 <li><strong>Protect License Keys</strong> - Never expose license keys in logs or version control</li>
 <li><strong>Rotate Keys</strong> - Regularly rotate license keys</li>
-<li><strong>Rate Limiting</strong> - Be aware of rate limits on API endpoints</li>
+<li><strong>Rate Limiting</strong> - Be aware of rate limits on <abbr title="Application Programming Interface">API</abbr> endpoints</li>
 </ul>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <h4 id="invalid-license-key">Invalid License Key<a class="headerlink" href="#invalid-license-key" title="Permanent link">&para;</a></h4>
@@ -1632,25 +1632,12 @@
 <ol>
 <li>Check server URL is correct</li>
 <li>Verify firewall allows connections</li>
-<li>Check SSL certificate (use <code>--insecure</code> for self-signed certs)</li>
+<li>Check <abbr title="Secure Sockets Layer">SSL</abbr> certificate (use <code>--insecure</code> for self-signed certs)</li>
 </ol>
 <h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="../endpoints/">Endpoints</a> - See all available endpoints</li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 

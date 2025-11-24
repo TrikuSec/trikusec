@@ -1658,13 +1658,17 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-generated-secret-key-here
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>trikusec.yourdomain.com
 </span></code></pre></div>
-<p>The following environment variables are <strong>recommended</strong>:
-- <code>SECRET_KEY</code> - (Required) Django secret key for cryptographic signing
-- <code>TRIKUSEC_DOMAIN</code> - (Recommended) Your domain (or subdomain) name. This automatically configures:
-    - Admin UI URL: <code>https://trikusec.yourdomain.com:8000</code>
-    - API URL: <code>https://trikusec.yourdomain.com:8001</code>
-    - SSL Certificates
-    - Allowed Hosts</p>
+<p>The following environment variables are <strong>recommended</strong>:</p>
+<ul>
+<li><code>SECRET_KEY</code> - (Required) Django secret key for cryptographic signing</li>
+<li><code>TRIKUSEC_DOMAIN</code> - (Recommended) Your domain (or subdomain) name. This automatically configures:<ul>
+<li>Admin UI URL: <code>https://trikusec.yourdomain.com:8000</code></li>
+<li><abbr title="Application Programming Interface">API</abbr> URL: <code>https://trikusec.yourdomain.com:8001</code></li>
+<li><abbr title="Secure Sockets Layer">SSL</abbr> Certificates</li>
+<li>Allowed Hosts</li>
+</ul>
+</li>
+</ul>
 <p>Other environment variables are optional. See the <a href="../../configuration/environment-variables/">Configuration Guide</a> for all available options.</p>
 <h4 id="3-start-trikusec">3. Start TrikuSec<a class="headerlink" href="#3-start-trikusec" title="Permanent link">&para;</a></h4>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
@@ -1675,8 +1679,8 @@
 <li><code>ghcr.io/trikusec/trikusec-nginx:latest</code></li>
 <li><code>ghcr.io/trikusec/trikusec-manager:latest</code></li>
 <li><code>ghcr.io/trikusec/trikusec-lynis-api:latest</code></li>
-<li>Start all services (nginx reverse proxy, manager, and API)</li>
-<li>Generate SSL certificates</li>
+<li>Start all services (nginx reverse proxy, manager, and <abbr title="Application Programming Interface">API</abbr>)</li>
+<li>Generate <abbr title="Secure Sockets Layer">SSL</abbr> certificates</li>
 <li>Initialize the database</li>
 <li>Create the default admin user</li>
 </ul>
@@ -1714,7 +1718,7 @@
 <h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
 <h4 id="static-files">Static Files<a class="headerlink" href="#static-files" title="Permanent link">&para;</a></h4>
 <p>The Docker images automatically collect static files during startup, so no manual collection is needed. Static files are served by the nginx container.</p>
-<h4 id="enable-https-security-headers">Enable HTTPS Security Headers<a class="headerlink" href="#enable-https-security-headers" title="Permanent link">&para;</a></h4>
+<h4 id="enable-https-security-headers">Enable <abbr title="HTTP Secure">HTTPS</abbr> Security Headers<a class="headerlink" href="#enable-https-security-headers" title="Permanent link">&para;</a></h4>
 <p>Add to your <code>.env</code> file:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
@@ -1726,9 +1730,9 @@
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
 <p>TrikuSec uses a split architecture with three services:</p>
 <ol>
-<li><strong>nginx</strong> (Port 8000, 8001) - Reverse proxy handling HTTPS termination</li>
+<li><strong>nginx</strong> (Port 8000, 8001) - Reverse proxy handling <abbr title="HTTP Secure">HTTPS</abbr> termination</li>
 <li><strong>trikusec-manager</strong> (Port 8000) - Admin UI and frontend</li>
-<li><strong>trikusec-lynis-api</strong> (Port 8001) - Lynis API endpoints for device enrollment and report uploads</li>
+<li><strong>trikusec-lynis-api</strong> (Port 8001) - Lynis <abbr title="Application Programming Interface">API</abbr> endpoints for device enrollment and report uploads</li>
 </ol>
 <p>All services use pre-built images from GitHub Container Registry, ensuring consistent and secure deployments.</p>
 <p><img alt="Architecture" src="../../assets/img/trikusec_architecture.png" /></p>
@@ -1737,19 +1741,6 @@
 <li><a href="../client-setup/">Configure Client</a> - Set up Lynis clients</li>
 <li><a href="../../configuration/">Configuration Guide</a> - Advanced configuration options</li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 
@@ -1772,7 +1763,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 17:46:25 UTC">November 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 20:27:39 UTC">November 24, 2025</span>
   </span>
 
     

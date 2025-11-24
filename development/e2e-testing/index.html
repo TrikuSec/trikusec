@@ -1809,7 +1809,7 @@
 </span></code></pre></div></p>
 </li>
 </ol>
-<h3 id="cicd-integration">CI/CD Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">&para;</a></h3>
+<h3 id="cicd-integration"><abbr title="Continuous Integration">CI</abbr>/<abbr title="Continuous Deployment">CD</abbr> Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">&para;</a></h3>
 <p>E2E tests run automatically in GitHub Actions after integration tests pass. The workflow:</p>
 <ol>
 <li>Builds the test image with Playwright</li>
@@ -1854,7 +1854,7 @@
 <p>If tests fail because the service isn't ready:</p>
 <ul>
 <li>Check service logs: <code>docker compose -f docker-compose.dev.yml logs trikusec</code></li>
-<li>Increase wait timeout in CI/CD workflow</li>
+<li>Increase wait timeout in <abbr title="Continuous Integration">CI</abbr>/<abbr title="Continuous Deployment">CD</abbr> workflow</li>
 <li>Check health endpoint: <code>curl http://localhost:8000/health/</code></li>
 </ul>
 <h3 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h3>
@@ -1863,19 +1863,6 @@
 <li><a href="https://pytest-playwright.readthedocs.io/">pytest-playwright Documentation</a></li>
 <li><a href="https://docs.djangoproject.com/en/stable/topics/testing/tools/#django.test.LiveServerTestCase">Django Live Server Testing</a></li>
 </ul>
-<p><em>[API]: Application Programming Interface
-</em>[HSTS]: HTTP Strict Transport Security
-<em>[SSL]: Secure Sockets Layer
-</em>[TLS]: Transport Layer Security
-<em>[CSRF]: Cross-Site Request Forgery
-</em>[SQL]: Structured Query Language
-<em>[HTTPS]: HTTP Secure
-</em>[HTTP]: Hypertext Transfer Protocol
-<em>[CI]: Continuous Integration
-</em>[CD]: Continuous Deployment
-<em>[DDoS]: Distributed Denial of Service
-</em>[OWASP]: Open Web Application Security Project
-*[CIS]: Center for Internet Security</p>
 
 
 
