@@ -59,7 +59,7 @@ plugins:
 
 markdown_extensions:
   # Abbreviations
-  - abbreviations
+  - abbr
   # Admonitions
   - admonition
   - pymdownx.details
