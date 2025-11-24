@@ -53,7 +53,7 @@ export TRIKUSEC_URL
 export TRIKUSEC_LYNIS_API_URL
 export TRIKUSEC_ADMIN_USERNAME
 export TRIKUSEC_ADMIN_EMAIL
-export TRIKUSEC_ADMIN_PASSWORD
+# Note: TRIKUSEC_ADMIN_PASSWORD is exported conditionally below when needed
 
 # Generate SSL certificates if enabled
 if [ "${DJANGO_SSL_ENABLED}" = "True" ]; then
