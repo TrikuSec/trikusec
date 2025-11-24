@@ -31,7 +31,7 @@ The simplest installation method is using *Docker* with pre-built images:
 1. [Download](https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/docker-compose.yml) `docker-compose.yml` from [the repository](https://github.com/TrikuSec/trikusec/blob/main/docker-compose.yml)
 2. Create a `.env` file with the following environment variables:
     - `SECRET_KEY` - A secure secret key for Django. Generate a new key with: `python3 -c "import secrets; print(secrets.token_urlsafe(50))"`
-    - `TRIKUSEC_DOMAIN` - The domain name for your installation. Example: `trikusec.yourdomain.com`. This automatically configures the service URLs.
+    - `TRIKUSEC_DOMAIN` - The domain name (or subdomain) for your installation. Example: `trikusec.yourdomain.com`. This automatically configures the service URLs.
 3. Run `docker compose up -d`
 
 See the [Docker Installation Guide](docker.md) for detailed instructions.
@@ -40,6 +40,5 @@ See the [Docker Installation Guide](docker.md) for detailed instructions.
 
 After installation, proceed to:
 
-- [Configuration](../configuration/index.md) - Configure environment variables and security settings
 - [Getting Started](../usage/getting-started.md) - Learn how to use TrikuSec
-
+- [Configuration](../configuration/index.md) - Configure environment variables and security settings

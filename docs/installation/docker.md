@@ -43,7 +43,7 @@ TRIKUSEC_DOMAIN=trikusec.yourdomain.com
 
 The following environment variables are **recommended**:
 - `SECRET_KEY` - (Required) Django secret key for cryptographic signing
-- `TRIKUSEC_DOMAIN` - (Recommended) Your domain name. This automatically configures:
+- `TRIKUSEC_DOMAIN` - (Recommended) Your domain (or subdomain) name. This automatically configures:
     - Admin UI URL: `https://trikusec.yourdomain.com:8000`
     - API URL: `https://trikusec.yourdomain.com:8001`
     - SSL Certificates
@@ -64,6 +64,7 @@ This will:
   - `ghcr.io/trikusec/trikusec-manager:latest`
   - `ghcr.io/trikusec/trikusec-lynis-api:latest`
 - Start all services (nginx reverse proxy, manager, and API)
+- Generate SSL certificates
 - Initialize the database
 - Create the default admin user
 
