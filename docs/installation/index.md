@@ -31,8 +31,7 @@ The simplest installation method is using *Docker* with pre-built images:
 1. [Download](https://raw.githubusercontent.com/TrikuSec/trikusec/refs/heads/main/docker-compose.yml) `docker-compose.yml` from [the repository](https://github.com/TrikuSec/trikusec/blob/main/docker-compose.yml)
 2. Create a `.env` file with the following environment variables:
     - `SECRET_KEY` - A secure secret key for Django. Generate a new key with: `python3 -c "import secrets; print(secrets.token_urlsafe(50))"`
-    - `TRIKUSEC_URL` - The URL of the  manager server. Example: `https://yourserver:8000`
-    - `TRIKUSEC_LYNIS_API_URL` - The URL of the Lynis API. Example: `https://yourserver:8001`
+    - `TRIKUSEC_DOMAIN` - The domain name for your installation. Example: `trikusec.yourdomain.com`. This automatically configures the service URLs.
 3. Run `docker compose up -d`
 
 See the [Docker Installation Guide](docker.md) for detailed instructions.
