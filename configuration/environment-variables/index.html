@@ -811,6 +811,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#simplified-configuration-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simplified Configuration (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#required-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -888,10 +899,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-env-file" class="md-nav__link">
+  <a href="#example-env-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example .env File
+        Example .env Files
       
     </span>
   </a>
@@ -1644,23 +1655,47 @@
 
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <p>Complete reference of all environment variables used by TrikuSec.</p>
+<h3 id="simplified-configuration-recommended">Simplified Configuration (Recommended)<a class="headerlink" href="#simplified-configuration-recommended" title="Permanent link">&para;</a></h3>
+<h4 id="trikusec_domain">TRIKUSEC_DOMAIN<a class="headerlink" href="#trikusec_domain" title="Permanent link">&para;</a></h4>
+<p>The easiest way to configure TrikuSec is using a single domain variable. When set, this automatically derives other settings:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>yourdomain.com
+</span></code></pre></div>
+<p><strong>This automatically configures:</strong></p>
+<ul>
+<li><code>TRIKUSEC_URL=https://yourdomain.com:8000</code> (Admin UI)</li>
+<li><code>TRIKUSEC_LYNIS_API_URL=https://yourdomain.com:8001</code> (Lynis API)</li>
+<li><code>DJANGO_ALLOWED_HOSTS=localhost,yourdomain.com</code></li>
+<li><code>NGINX_CERT_CN=yourdomain.com</code> (SSL certificate)</li>
+</ul>
+<p>You can still override any of these individually if needed for advanced configurations.</p>
+<p><strong>Examples:</strong></p>
+<p>For local development:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>localhost
+</span></code></pre></div></p>
+<p>For production:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>trikusec.example.com
+</span></code></pre></div></p>
+<div class="admonition tip">
+<p class="admonition-title">Recommended Approach</p>
+<p>Using <code>TRIKUSEC_DOMAIN</code> simplifies configuration and reduces errors. You only need to set one variable and everything else is automatically configured consistently.</p>
+</div>
 <h3 id="required-variables">Required Variables<a class="headerlink" href="#required-variables" title="Permanent link">&para;</a></h3>
 <h4 id="secret_key">SECRET_KEY<a class="headerlink" href="#secret_key" title="Permanent link">&para;</a></h4>
 <p>Django secret key for cryptographic signing.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-secret-key-here
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-secret-key-here
 </span></code></pre></div>
 <div class="admonition danger">
 <p class="admonition-title">Security Critical</p>
 <p><strong>NEVER</strong> commit your actual secret key to version control. Generate a new unique key for each deployment.</p>
 </div>
 <p><strong>Generate a secure key:</strong>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(50))&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(50))&quot;</span>
 </span></code></pre></div></p>
 <h3 id="django-settings">Django Settings<a class="headerlink" href="#django-settings" title="Permanent link">&para;</a></h3>
 <h4 id="django_debug">DJANGO_DEBUG<a class="headerlink" href="#django_debug" title="Permanent link">&para;</a></h4>
 <p>Enable or disable Django debug mode.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>False<span class="w">  </span><span class="c1"># Production (default)</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True<span class="w">   </span><span class="c1"># Development only</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>False<span class="w">  </span><span class="c1"># Production (default)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>True<span class="w">   </span><span class="c1"># Development only</span>
 </span></code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Never Enable in Production</p>
@@ -1668,10 +1703,10 @@
 </div>
 <h4 id="django_allowed_hosts">DJANGO_ALLOWED_HOSTS<a class="headerlink" href="#django_allowed_hosts" title="Permanent link">&para;</a></h4>
 <p>Comma-separated list of allowed hostnames.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
 </span></code></pre></div>
 <p>For development, you can use:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>*
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>*
 </span></code></pre></div></p>
 <div class="admonition warning">
 <p class="admonition-title">Production Security</p>
@@ -1679,28 +1714,28 @@
 </div>
 <h4 id="django_env">DJANGO_ENV<a class="headerlink" href="#django_env" title="Permanent link">&para;</a></h4>
 <p>Environment type selector.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>development<span class="w">   </span><span class="c1"># Development settings (default)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>production<span class="w">    </span><span class="c1"># Production settings</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>testing<span class="w">       </span><span class="c1"># Testing settings</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>development<span class="w">   </span><span class="c1"># Development settings (default)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>production<span class="w">    </span><span class="c1"># Production settings</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>testing<span class="w">       </span><span class="c1"># Testing settings</span>
 </span></code></pre></div>
 <h3 id="database-configuration">Database Configuration<a class="headerlink" href="#database-configuration" title="Permanent link">&para;</a></h3>
 <h4 id="database_url">DATABASE_URL<a class="headerlink" href="#database_url" title="Permanent link">&para;</a></h4>
 <p>Database connection URL. Defaults to SQLite if not set.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># PostgreSQL</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://user:password@host:5432/dbname
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># SQLite (default)</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># DATABASE_URL not set or empty</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># PostgreSQL</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://user:password@host:5432/dbname
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># SQLite (default)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># DATABASE_URL not set or empty</span>
 </span></code></pre></div>
 <h3 id="admin-configuration">Admin Configuration<a class="headerlink" href="#admin-configuration" title="Permanent link">&para;</a></h3>
 <h4 id="trikusec_admin_username">TRIKUSEC_ADMIN_USERNAME<a class="headerlink" href="#trikusec_admin_username" title="Permanent link">&para;</a></h4>
 <p>Default admin username.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">TRIKUSEC_ADMIN_USERNAME</span><span class="o">=</span>admin
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">TRIKUSEC_ADMIN_USERNAME</span><span class="o">=</span>admin
 </span></code></pre></div>
 <h4 id="trikusec_admin_password">TRIKUSEC_ADMIN_PASSWORD<a class="headerlink" href="#trikusec_admin_password" title="Permanent link">&para;</a></h4>
 <p>Admin password behavior depends on whether the admin user already exists:</p>
 <p><strong>On fresh installation:</strong>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">TRIKUSEC_ADMIN_PASSWORD</span><span class="o">=</span>secure-password
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">TRIKUSEC_ADMIN_PASSWORD</span><span class="o">=</span>secure-password
 </span></code></pre></div></p>
 <p>If not set, defaults to <code>trikusec</code>. The password is used to create the initial admin user.</p>
 <p><strong>On existing installation:</strong></p>
@@ -1719,36 +1754,36 @@
 <h3 id="https-security">HTTPS Security<a class="headerlink" href="#https-security" title="Permanent link">&para;</a></h3>
 <h4 id="secure_ssl_redirect">SECURE_SSL_REDIRECT<a class="headerlink" href="#secure_ssl_redirect" title="Permanent link">&para;</a></h4>
 <p>Redirect all HTTP traffic to HTTPS.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="secure_hsts_seconds">SECURE_HSTS_SECONDS<a class="headerlink" href="#secure_hsts_seconds" title="Permanent link">&para;</a></h4>
 <p>HTTP Strict Transport Security (HSTS) duration in seconds.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span><span class="w">  </span><span class="c1"># 1 year</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span><span class="w">  </span><span class="c1"># 1 year</span>
 </span></code></pre></div>
 <h4 id="session_cookie_secure">SESSION_COOKIE_SECURE<a class="headerlink" href="#session_cookie_secure" title="Permanent link">&para;</a></h4>
 <p>Only send session cookies over HTTPS.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h4 id="csrf_cookie_secure">CSRF_COOKIE_SECURE<a class="headerlink" href="#csrf_cookie_secure" title="Permanent link">&para;</a></h4>
 <p>Only send CSRF cookies over HTTPS.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
 </span></code></pre></div>
 <h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
 <h4 id="ratelimit_enable">RATELIMIT_ENABLE<a class="headerlink" href="#ratelimit_enable" title="Permanent link">&para;</a></h4>
 <p>Enable or disable rate limiting on API endpoints.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True<span class="w">   </span><span class="c1"># Enabled (default)</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>False<span class="w">  </span><span class="c1"># Disabled</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True<span class="w">   </span><span class="c1"># Enabled (default)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>False<span class="w">  </span><span class="c1"># Disabled</span>
 </span></code></pre></div>
 <h3 id="server-configuration">Server Configuration<a class="headerlink" href="#server-configuration" title="Permanent link">&para;</a></h3>
 <h4 id="trikusec_url">TRIKUSEC_URL<a class="headerlink" href="#trikusec_url" title="Permanent link">&para;</a></h4>
 <p>TrikuSec admin UI server URL (used for generating admin interface links).</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">TRIKUSEC_URL</span><span class="o">=</span>https://localhost:443
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">TRIKUSEC_URL</span><span class="o">=</span>https://localhost:443
 </span></code></pre></div>
 <p>This is the endpoint used for accessing the web management interface. It should point to your nginx reverse proxy or direct Django server for admin access.</p>
 <p>In the enrollment workflow, <code>TRIKUSEC_URL</code> is only used for authenticated admin interactions (no device traffic).</p>
 <h4 id="trikusec_lynis_api_url">TRIKUSEC_LYNIS_API_URL<a class="headerlink" href="#trikusec_lynis_api_url" title="Permanent link">&para;</a></h4>
 <p>TrikuSec Lynis API server URL (used for device enrollment and report uploads).</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://localhost:8443
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://localhost:8443
 </span></code></pre></div>
 <p>This is the endpoint used by monitored servers for:
 - Downloading the enrollment script (<code>/api/lynis/enroll/</code>)
@@ -1760,34 +1795,52 @@
 <p class="admonition-title">Security Best Practice</p>
 <p>Use separate endpoints for admin UI and Lynis API to improve security. This allows you to configure different firewall rules for each endpoint. See <a href="../security/#api-endpoint-separation-architecture">Security Configuration</a> for details.</p>
 </div>
-<h3 id="example-env-file">Example .env File<a class="headerlink" href="#example-env-file" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Required</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-generated-secret-key-here
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Django</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>False
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>production
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="c1"># Database</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://trikusec_user:password@postgres:5432/trikusec
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="c1"># Admin</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="nv">TRIKUSEC_ADMIN_USERNAME</span><span class="o">=</span>admin
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="nv">TRIKUSEC_ADMIN_PASSWORD</span><span class="o">=</span>your-secure-password
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="c1"># HTTPS</span>
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
-</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
-</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>
-</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="c1"># Rate Limiting</span>
-</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True
-</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>
-</span><span id="__span-16-25"><a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="c1"># Server</span>
-</span><span id="__span-16-26"><a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="nv">TRIKUSEC_URL</span><span class="o">=</span>https://yourdomain.com:443
-</span><span id="__span-16-27"><a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://yourdomain.com:8443
+<h3 id="example-env-files">Example .env Files<a class="headerlink" href="#example-env-files" title="Permanent link">&para;</a></h3>
+<h4 id="simple-configuration-recommended">Simple Configuration (Recommended)<a class="headerlink" href="#simple-configuration-recommended" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Required</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-generated-secret-key-here
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Domain-based configuration (automatically derives URLs and settings)</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>yourdomain.com
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Admin</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="nv">TRIKUSEC_ADMIN_USERNAME</span><span class="o">=</span>admin
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="nv">TRIKUSEC_ADMIN_PASSWORD</span><span class="o">=</span>your-secure-password
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="c1"># Optional: Database</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://trikusec_user:password@postgres:5432/trikusec
+</span></code></pre></div>
+<h4 id="advanced-configuration-all-options">Advanced Configuration (All Options)<a class="headerlink" href="#advanced-configuration-all-options" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Required</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-generated-secret-key-here
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Domain (recommended)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="nv">TRIKUSEC_DOMAIN</span><span class="o">=</span>yourdomain.com
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># Django</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="nv">DJANGO_DEBUG</span><span class="o">=</span>False
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>yourdomain.com,www.yourdomain.com
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="nv">DJANGO_ENV</span><span class="o">=</span>production
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="c1"># Database</span>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://trikusec_user:password@postgres:5432/trikusec
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="c1"># Admin</span>
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="nv">TRIKUSEC_ADMIN_USERNAME</span><span class="o">=</span>admin
+</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="nv">TRIKUSEC_ADMIN_PASSWORD</span><span class="o">=</span>your-secure-password
+</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>
+</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a><span class="c1"># HTTPS</span>
+</span><span id="__span-20-20"><a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a><span class="nv">SECURE_SSL_REDIRECT</span><span class="o">=</span>True
+</span><span id="__span-20-21"><a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a><span class="nv">SECURE_HSTS_SECONDS</span><span class="o">=</span><span class="m">31536000</span>
+</span><span id="__span-20-22"><a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a><span class="nv">SESSION_COOKIE_SECURE</span><span class="o">=</span>True
+</span><span id="__span-20-23"><a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a><span class="nv">CSRF_COOKIE_SECURE</span><span class="o">=</span>True
+</span><span id="__span-20-24"><a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a>
+</span><span id="__span-20-25"><a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a><span class="c1"># Rate Limiting</span>
+</span><span id="__span-20-26"><a id="__codelineno-20-26" name="__codelineno-20-26" href="#__codelineno-20-26"></a><span class="nv">RATELIMIT_ENABLE</span><span class="o">=</span>True
+</span><span id="__span-20-27"><a id="__codelineno-20-27" name="__codelineno-20-27" href="#__codelineno-20-27"></a>
+</span><span id="__span-20-28"><a id="__codelineno-20-28" name="__codelineno-20-28" href="#__codelineno-20-28"></a><span class="c1"># Server (manual override - not needed if TRIKUSEC_DOMAIN is set)</span>
+</span><span id="__span-20-29"><a id="__codelineno-20-29" name="__codelineno-20-29" href="#__codelineno-20-29"></a><span class="nv">TRIKUSEC_URL</span><span class="o">=</span>https://yourdomain.com:8000
+</span><span id="__span-20-30"><a id="__codelineno-20-30" name="__codelineno-20-30" href="#__codelineno-20-30"></a><span class="nv">TRIKUSEC_LYNIS_API_URL</span><span class="o">=</span>https://yourdomain.com:8001
 </span></code></pre></div>
 <p><em>[API]: Application Programming Interface
 </em>[HSTS]: HTTP Strict Transport Security
@@ -1824,7 +1877,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 06:32:28 UTC">November 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 15:07:55 UTC">November 24, 2025</span>
   </span>
 
     
