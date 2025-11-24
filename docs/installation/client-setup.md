@@ -20,6 +20,8 @@ This is the recommended method as it handles dependencies and configuration auto
 2. **Copy Command**: Copy the provided command snippet.
 3. **Run**: Paste it in your device terminal.
 
+
+
 ![Enrollment Command](../assets/img/trikusec-enroll-new-device.png)
 
 ### What the script does
@@ -36,9 +38,11 @@ The enrollment script performs the following actions:
 The script behavior can be fine-tuned via **Settings - Enroll script configuration** in the TrikuSec web interface.
 
 You can configure:
+
 - **Lynis plugins**: Custom plugins to download and install.
 - **Additional packages**: Extra system packages to install (e.g., `rkhunter`, `auditd`).
 - **Skip tests**: Specific Lynis tests to skip during audits.
+
 
 ![Enrollment Configuration](../assets/img/trikusec-enrollment-configuration.png)
 
