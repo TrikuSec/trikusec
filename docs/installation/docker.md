@@ -37,8 +37,12 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 **Create your `.env` file:**
 
 ```bash
+# Required environment variables
 SECRET_KEY=your-generated-secret-key-here
 TRIKUSEC_DOMAIN=trikusec.yourdomain.com
+
+# Set admin password (recommended for first run, otherwise it will be set to 'trikusec')
+TRIKUSEC_ADMIN_PASSWORD=your-secure-password
 ```
 
 The following environment variables are **recommended**:
@@ -49,18 +53,6 @@ The following environment variables are **recommended**:
     - API URL: `https://trikusec.yourdomain.com:8001`
     - SSL Certificates
     - Allowed Hosts
-
-
-```
-# Filename: .env
-
-# Required variables
-SECRET_KEY=your-generated-secret-key-here
-TRIKUSEC_DOMAIN=trikusec.yourdomain.com
-
-# Set admin password (recommended for first run, otherwise it will be set to 'trikusec')
-TRIKUSEC_ADMIN_PASSWORD=your-secure-password
-```
 
 Other environment variables are optional. See the [Configuration Guide](../configuration/environment-variables.md) for all available options.
 
