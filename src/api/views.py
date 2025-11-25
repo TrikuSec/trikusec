@@ -217,6 +217,7 @@ def enroll_sh(request):
         'licensekey': licensekey,
         'ignore_ssl_errors': enrollment_settings.ignore_ssl_errors,
         'overwrite_lynis_profile': enrollment_settings.overwrite_lynis_profile,
+        'use_cisofy_repo': enrollment_settings.use_cisofy_repo,
         'additional_packages': additional_packages,
         'skip_tests': skip_tests,
         'plugin_urls': plugin_urls,

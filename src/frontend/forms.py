@@ -219,7 +219,7 @@ class ActivityIgnorePatternForm(forms.ModelForm):
 class EnrollmentSettingsForm(forms.ModelForm):
     class Meta:
         model = EnrollmentSettings
-        fields = ['ignore_ssl_errors', 'overwrite_lynis_profile']
+        fields = ['ignore_ssl_errors', 'overwrite_lynis_profile', 'use_cisofy_repo']
         widgets = {
             'ignore_ssl_errors': forms.CheckboxInput(attrs={
                 'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
@@ -227,12 +227,16 @@ class EnrollmentSettingsForm(forms.ModelForm):
             'overwrite_lynis_profile': forms.CheckboxInput(attrs={
                 'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus-border-indigo-500 text-gray-800',
             }),
+            'use_cisofy_repo': forms.CheckboxInput(attrs={
+                'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['ignore_ssl_errors'].help_text = 'Skip downloading and trusting the server certificate. Enable this only if the servers certificate is self-signed and you don\'t want to install the certificate into the system truststore.'
         self.fields['overwrite_lynis_profile'].help_text = 'Allow the installer to replace /etc/lynis/custom.prf even if it already exists.'
+        self.fields['use_cisofy_repo'].help_text = 'Install Lynis from the official CISOfy repository instead of the system repository. This ensures you get the latest version of Lynis.'
 
 class EnrollmentPluginForm(forms.ModelForm):
     class Meta:
