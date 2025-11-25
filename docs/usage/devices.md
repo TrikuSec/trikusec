@@ -35,12 +35,41 @@ The list of devices is the main page of the manager.
 Click on a device to view:
 
 - **Compliance Status** - Current compliance percentage
+- **Hardening Index** - Lynis hardening score (0-100)
 - **Last Report** - Date and time of last audit
 - **Warnings** - Security warnings and recommendations
 - **Suggestions** - Improvement suggestions
 - **Report History** - Historical compliance data
 
 ![Device Detail Page](../assets/img/trikusec-device-detail.png)
+
+### Hardening Index
+
+The **Lynis Hardening Index** is a unique security metric displayed for each device, calculated by Lynis during each audit scan. This index provides an indicator of how well a system has been hardened with security safeguards.
+
+**Key Points:**
+
+- **Range**: The index ranges from 0 to 100, displayed as `X/100` in the device details
+- **Purpose**: It reflects the number of security measures implemented on the system
+- **Not a Safety Percentage**: The index is an indicator of taken security measures, not a percentage of how "safe" a system might be
+- **Updated Per Scan**: The hardening index is recalculated with each Lynis audit report upload
+
+**How to Increase the Hardening Index:**
+
+The best way to improve your hardening index is to implement the security safeguards recommended by Lynis:
+
+1. **Review Warnings and Suggestions** - Check the device detail page for security warnings and improvement suggestions
+2. **Apply Security Measures** - Implement the recommended security configurations
+3. **Re-run Audits** - After making changes, have Lynis perform another audit to see the updated index
+
+**Using the Hardening Index:**
+
+- **Device Comparison**: Sort devices by hardening index to identify systems that need attention
+- **Policy Rules**: Use the hardening index in policy queries to automatically identify devices below a certain threshold (e.g., `hardening_index < 60`)
+- **Compliance Tracking**: Monitor how the hardening index changes over time in the report history
+
+!!! tip "Learn More"
+    For more information about the Lynis Hardening Index, see the [official Lynis documentation](https://linux-audit.com/lynis/lynis-hardening-index/).
 
 ### Device Actions
 
