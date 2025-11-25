@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from django.db import DatabaseError
+from django.db.models import Q
 from django.conf import settings
 from .models import LicenseKey, Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings
 from .forms import ReportUploadForm
@@ -55,15 +56,78 @@ def upload_report(request):
                 logging.error('No report found')
                 return HttpResponse('No report found', status=400)
 
-            # Check if the device already exists
+            # Parse the report FIRST to extract all identifiers for device matching
             try:
-                # First, try to find device by hostid/hostid2 (regardless of license)
-                device = Device.objects.filter(hostid=post_hostid, hostid2=post_hostid2).first()
-                created = device is None
+                report = LynisReport(report_data)
+            except Exception as e:
+                logging.error(f'Error parsing report: {e}')
+                return internal_error('Error parsing report data')
+
+            # Extract all 5 identifiers for device matching
+            primary_ips = report.get('primary_ipv4_addresses') or []
+            primary_ip = primary_ips[0] if isinstance(primary_ips, list) and len(primary_ips) > 0 and primary_ips[0] != '-' else None
+            
+            candidate_identifiers = {
+                'hostid': post_hostid,
+                'hostid2': post_hostid2,
+                'hostname': report.get('hostname'),
+                'ip_address': primary_ip,
+                'mac_address': report.get('primary_mac_address'),
+            }
+            
+            logging.debug(f'Device identification factors: {candidate_identifiers}')
+
+            # 5-Factor Device Identification Algorithm
+            # Find candidate devices that match ANY single identifier (scoped by license key)
+            try:
+                q_objects = Q()
+                if candidate_identifiers['hostid']:
+                    q_objects |= Q(hostid=candidate_identifiers['hostid'])
+                if candidate_identifiers['hostid2']:
+                    q_objects |= Q(hostid2=candidate_identifiers['hostid2'])
+                if candidate_identifiers['hostname']:
+                    q_objects |= Q(hostname=candidate_identifiers['hostname'])
+                if candidate_identifiers['ip_address']:
+                    q_objects |= Q(ip_address=candidate_identifiers['ip_address'])
+                if candidate_identifiers['mac_address']:
+                    q_objects |= Q(mac_address=candidate_identifiers['mac_address'])
+
+                # Get all candidate devices (matching any identifier, same license)
+                candidates = Device.objects.filter(licensekey=licensekey).filter(q_objects).distinct()
+
+                # Score each candidate device by counting matching factors
+                best_device = None
+                best_score = 0
+                
+                for candidate in candidates:
+                    score = 0
+                    if candidate_identifiers['hostid'] and candidate.hostid == candidate_identifiers['hostid']:
+                        score += 1
+                    if candidate_identifiers['hostid2'] and candidate.hostid2 == candidate_identifiers['hostid2']:
+                        score += 1
+                    if candidate_identifiers['hostname'] and candidate.hostname == candidate_identifiers['hostname']:
+                        score += 1
+                    if candidate_identifiers['ip_address'] and candidate.ip_address == candidate_identifiers['ip_address']:
+                        score += 1
+                    if candidate_identifiers['mac_address'] and candidate.mac_address == candidate_identifiers['mac_address']:
+                        score += 1
+                    
+                    logging.debug(f'Candidate device {candidate.id} ({candidate.hostname or candidate.hostid}): score {score}/5')
+                    
+                    if score > best_score:
+                        best_score = score
+                        best_device = candidate
+
+                # Decision: Match if score >= 2 (at least 2 factors coincide)
+                created = False
                 license_changed = False
                 
-                if device:
-                    # Device exists - check if license changed
+                if best_score >= 2:
+                    device = best_device
+                    created = False
+                    logging.info(f'Device identified with score {best_score}/5. Device ID: {device.id}, Hostname: {device.hostname or device.hostid}')
+                    
+                    # Check if license changed (shouldn't happen since we filter by licensekey, but keep for safety)
                     old_license = device.licensekey
                     if old_license != licensekey:
                         license_changed = True
@@ -72,19 +136,30 @@ def upload_report(request):
                         if not has_capacity:
                             logging.error(f'License capacity check failed: {capacity_error}')
                             return HttpResponse(capacity_error or 'License has reached maximum device limit', status=403)
-                
-                # If device doesn't exist, check license capacity before creating
-                if created:
+                else:
+                    # New device - no match found (score < 2)
+                    created = True
+                    logging.info(f'No matching device found (best score: {best_score}/5). Creating new device.')
+                    
+                    # Check license capacity before creating
                     has_capacity, capacity_error = check_license_capacity(post_licensekey)
                     if not has_capacity:
                         logging.error(f'License capacity check failed: {capacity_error}')
                         return HttpResponse(capacity_error or 'License has reached maximum device limit', status=403)
                     
                     # Create the new device
-                    device = Device.objects.create(hostid=post_hostid, hostid2=post_hostid2, licensekey=licensekey)
+                    device = Device.objects.create(
+                        hostid=post_hostid,
+                        hostid2=post_hostid2,
+                        licensekey=licensekey,
+                        hostname=candidate_identifiers['hostname'],
+                        ip_address=candidate_identifiers['ip_address'],
+                        mac_address=candidate_identifiers['mac_address']
+                    )
                     DeviceEvent.objects.create(device=device, event_type='enrolled')
-                elif license_changed:
-                    # Create license change event
+                
+                # Handle license change event
+                if license_changed:
                     DeviceEvent.objects.create(
                         device=device,
                         event_type='license_changed',
@@ -95,6 +170,7 @@ def upload_report(request):
                             'new_license_name': licensekey.name,
                         }
                     )
+                    
             except DatabaseError as e:
                 logging.error(f'Database error creating/retrieving device: {e}')
                 return internal_error('Database error while processing device')
@@ -116,7 +192,7 @@ def upload_report(request):
                     # Generate structured diff (without ignore_keys - store all activities)
                     diff_data = latest_lynis.compare_reports(report_data, [])
                     # Store hostname to preserve it even if device is deleted
-                    hostname = device.hostname or report.get('hostname') or device.hostid
+                    hostname = device.hostname or candidate_identifiers['hostname'] or device.hostid
                     DiffReport.objects.create(device=device, hostname=hostname, diff_report=diff_data)
                     logging.info(f'Diff created for device {post_hostid}')
                     logging.debug('Changed items: %s', diff_data)
@@ -132,18 +208,18 @@ def upload_report(request):
             except DatabaseError as e:
                 logging.error(f'Database error saving full report: {e}')
                 return internal_error('Database error while saving report')
-
-            # Parse the new report
-            try:
-                report = LynisReport(report_data)
-            except Exception as e:
-                logging.error(f'Error parsing report: {e}')
-                return internal_error('Error parsing report data')
             
-            # Update device information (get most important keys)
+            # Update device information with latest values from report
             try:
                 device.licensekey = licensekey
-                device.hostname = report.get('hostname')    
+                # Update HostIDs in case they changed (e.g., re-enrollment)
+                device.hostid = post_hostid
+                device.hostid2 = post_hostid2
+                # Update all identifiers
+                device.hostname = candidate_identifiers['hostname']
+                device.ip_address = candidate_identifiers['ip_address']
+                device.mac_address = candidate_identifiers['mac_address']
+                # Update other device attributes
                 device.os = report.get('os')
                 device.distro = report.get('os_fullname')
                 device.distro_version = report.get('os_version')
