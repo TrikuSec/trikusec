@@ -92,6 +92,9 @@ vulnerable_packages_found == `0`
 ```
 contains(automation_tool_running, 'ansible')
 contains(vulnerable_package, 'libc6')
+contains(installed_package_names, 'fail2ban')
+contains(installed_package_names, 'unattended-upgrades')
+contains(installed_package_names, 'ufw')
 ```
 
 **Not equals:**
@@ -135,6 +138,8 @@ Common fields available in Lynis reports include:
 **Package Management:**
 
 - `installed_packages` - Number of installed packages
+- `installed_package_names` - List of installed package names (without versions, use `contains()` function)
+- `installed_packages_array` - Raw array of package entries in 'package,version' format
 - `vulnerable_package` - List of vulnerable packages (use `contains()` function)
 
 **Network:**
@@ -278,6 +283,26 @@ openssh_daemon_running == `1`
 ```
 
 **Description:** Ensures OpenSSH daemon is active for remote access.
+
+### Installed Package Check
+
+Check if specific packages are installed:
+
+**Query:**
+```
+contains(installed_package_names, 'fail2ban')
+contains(installed_package_names, 'unattended-upgrades')
+contains(installed_package_names, 'ufw')
+```
+
+**Description:** Verifies that required security packages are installed. The `installed_package_names` variable provides a simple list of package names (without versions) for easy checking.
+
+**Multiple packages:**
+```
+contains(installed_package_names, 'fail2ban') && contains(installed_package_names, 'ufw')
+```
+
+**Description:** Ensures both fail2ban and ufw are installed. This example shows how to check for multiple required packages using the `&&` (AND) operator.
 
 ## Compliance Tracking
 
