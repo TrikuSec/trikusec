@@ -17,6 +17,7 @@ TRIKUSEC_CERT_TMP=/tmp/trikusec.crt
 TRIKUSEC_LICENSEKEY={{ licensekey }}
 IGNORE_SSL_ERRORS={% if ignore_ssl_errors %}true{% else %}false{% endif %}
 OVERWRITE_LYNIS_PROFILE={% if overwrite_lynis_profile %}true{% else %}false{% endif %}
+USE_CISOFY_REPO={% if use_cisofy_repo %}true{% else %}false{% endif %}
 ADDITIONAL_PACKAGES="{% if additional_packages %}{{ additional_packages }}{% endif %}"
 SKIP_TESTS="{% if skip_tests %}{{ skip_tests }}{% endif %}"
 {% if plugin_urls %}
@@ -80,6 +81,7 @@ show_overview() {
     
     echo "Lynis Configuration:"
     echo "  - Overwrite Profile:     $([ "$OVERWRITE_LYNIS_PROFILE" = "true" ] && echo "Yes" || echo "No")"
+    echo "  - Lynis Source:          $([ "$USE_CISOFY_REPO" = "true" ] && echo "CISOfy Repository" || echo "System Repository")"
     if [ -n "$ADDITIONAL_PACKAGES" ]; then
         echo "  - Additional Packages:   ${ADDITIONAL_PACKAGES}"
     fi
@@ -174,6 +176,16 @@ setup_ssl_certificate() {
 
 install_packages() {
     print_header "Installing Required Packages"
+    
+    # Set up CISOfy repository if enabled
+    if [ "$USE_CISOFY_REPO" = "true" ]; then
+        print_info "Setting up CISOfy Lynis repository..."
+        curl -fsSL https://packages.cisofy.com/keys/cisofy-software-public.key | \
+            ${SUDO} gpg --dearmor -o /etc/apt/trusted.gpg.d/cisofy-software-public.gpg
+        echo "deb [arch=amd64,arm64 signed-by=/etc/apt/trusted.gpg.d/cisofy-software-public.gpg] https://packages.cisofy.com/community/lynis/deb/ stable main" | \
+            ${SUDO} tee /etc/apt/sources.list.d/cisofy-lynis.list
+        print_success "CISOfy repository configured"
+    fi
     
     print_info "Updating package lists..."
     ${SUDO} apt-get update -qq
