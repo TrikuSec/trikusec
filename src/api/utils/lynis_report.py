@@ -199,6 +199,9 @@ class LynisReport:
 
         # Generate dynamic audit timing helper
         self._add_days_since_audit_variable()
+        
+        # Generate installed package names list for easier rule evaluation
+        self._generate_installed_package_names()
 
     def get_parsed_report(self) -> Dict[str, Any]:
         """Return the parsed report."""
@@ -298,4 +301,38 @@ class LynisReport:
 
         logging.debug('Unsupported report_datetime_end type: %s', type(value))
         return None
+
+    def _generate_installed_package_names(self) -> None:
+        """
+        Generate a flat list of installed package names for easier rule evaluation.
+        
+        The installed_packages_array contains strings like 'package_name,version'
+        (e.g., 'fail2ban,0.11.1-1', 'apache2,2.4.41-4ubuntu3.23').
+        
+        This method creates installed_package_names as a simple list of package names:
+        ['fail2ban', 'apache2', ...]
+        
+        This allows simpler policy rules like:
+            contains(installed_package_names, 'fail2ban')
+        
+        Instead of the more complex:
+            installed_packages_array[?starts_with(@, 'fail2ban,')] | length(@) > `0`
+        """
+        packages_array = self.get('installed_packages_array')
+        if not packages_array:
+            self.set('installed_package_names', [])
+            return
+        
+        package_names = []
+        for entry in packages_array:
+            if isinstance(entry, str) and ',' in entry:
+                # Entry is 'package_name,version', extract package name
+                package_name = entry.split(',', 1)[0]
+                package_names.append(package_name)
+            elif isinstance(entry, str):
+                # Entry is a simple string (no version), use as-is
+                package_names.append(entry)
+        
+        self.set('installed_package_names', package_names)
+        logging.debug(f'Generated installed_package_names with {len(package_names)} entries')
 

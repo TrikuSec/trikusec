@@ -26,6 +26,7 @@ This document explains how TrikuSec ingests raw Lynis reports and where custom, 
 | `<list>_count` | Number of elements for any list-type key | `_generate_count_variables()` |
 | `primary_ipv4_addresses` | IPv4 addresses that share a /24 with the default gateway(s) | `_get_filtered_ipv4_addresses()` |
 | `days_since_audit` | Whole days elapsed since the last `report_datetime_end` | `_add_days_since_audit_variable()` |
+| `installed_package_names` | Flat list of installed package names (without versions) | `_generate_installed_package_names()` |
 
 ### `days_since_audit`
 
@@ -34,6 +35,33 @@ This document explains how TrikuSec ingests raw Lynis reports and where custom, 
 * Uses `django.utils.timezone.now()` to keep values timezone-aware.  
 * Negative differences (future timestamps / clock skew) clamp to `0`.  
 * Exposed to policy queries, templates, PDFs, and exported JSON via `report['days_since_audit']`.
+
+### `installed_package_names`
+
+The raw `installed_packages_array` from Lynis contains package entries in the format `'package_name,version'` (e.g., `'fail2ban,0.11.1-1'`). This makes it difficult to check for package presence using simple JMESPath queries like `contains(installed_packages_array, 'fail2ban')` because the array elements include version strings.
+
+The `installed_package_names` variable provides a flat list of just the package names (without versions):
+
+```python
+# installed_packages_array (raw from Lynis):
+['fail2ban,0.11.1-1', 'apache2,2.4.41-4ubuntu3.23', 'nginx,1.18.0-0ubuntu1', ...]
+
+# installed_package_names (generated):
+['fail2ban', 'apache2', 'nginx', ...]
+```
+
+**Policy Rule Examples:**
+
+```jmespath
+# Simple package check (recommended)
+contains(installed_package_names, 'fail2ban')
+
+# Check for multiple packages
+contains(installed_package_names, 'fail2ban') && contains(installed_package_names, 'ufw')
+
+# Alternative using raw array (more complex)
+installed_packages_array[?starts_with(@, 'fail2ban,')] | length(@) > `0`
+```
 
 ## Adding New Custom Fields
 

@@ -947,6 +947,36 @@ class TestLynisReportCustomVariables:
 
         assert parsed['days_since_audit'] is None
 
+    def test_installed_package_names_generated_from_packages_array(self):
+        """Test that installed_package_names extracts package names without versions."""
+        report_data = "installed_packages_array=|fail2ban,0.11.1-1|apache2,2.4.41-4ubuntu3.23|nginx,1.18.0"
+        parsed = LynisReport(report_data).get_parsed_report()
+        
+        assert 'installed_package_names' in parsed
+        assert parsed['installed_package_names'] == ['fail2ban', 'apache2', 'nginx']
+
+    def test_installed_package_names_works_with_jmespath_contains(self):
+        """Test that installed_package_names works with JMESPath contains() function."""
+        import jmespath
+        
+        report_data = "installed_packages_array=|fail2ban,0.11.1-1|apache2,2.4.41-4ubuntu3.23|clamav,0.103.12"
+        parsed = LynisReport(report_data).get_parsed_report()
+        
+        # Should find installed package
+        result = jmespath.search("contains(installed_package_names, 'fail2ban')", parsed)
+        assert result is True
+        
+        # Should not find missing package
+        result = jmespath.search("contains(installed_package_names, 'notinstalled')", parsed)
+        assert result is False
+
+    def test_installed_package_names_empty_when_no_packages(self):
+        """Test that installed_package_names is empty list when no packages exist."""
+        report_data = "some_other_key=value"
+        parsed = LynisReport(report_data).get_parsed_report()
+        
+        assert parsed['installed_package_names'] == []
+
 
 @pytest.mark.django_db
 class TestActivityIgnorePattern:
