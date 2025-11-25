@@ -359,7 +359,7 @@ class TestEnrollScript:
         
         # Verify actual commands exist (not just in comments)
         assert 'apt-get install -y' in body  # The actual command pattern
-        assert 'test_skip_always=' in body  # The actual lynis configure command
+        assert 'skip-test=' in body  # The actual lynis configure command
         
         # Verify plugin installation function exists and is called
         assert 'install_plugins' in body

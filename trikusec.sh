@@ -148,12 +148,12 @@ echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" >> /etc/lynis/cus
 ${SUDO} lynis configure settings upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis auditor=TrikuSec
 
 
-# If lynis version is older than 3.0.0, add test_skip_always=CRYP-7902 to the custom profile
+# If lynis version is older than 3.0.0, add skip-test=CRYP-7902 to the custom profile
 # Extract major version number for comparison
 LYNIS_MAJOR=$(echo "$LYNIS_VERSION" | awk -F. '{print $1}')
 # Add test skip if major version is less than 3 (i.e., version < 3.0.0)
 if [ "$LYNIS_MAJOR" -lt 3 ]; then
-    ${SUDO} lynis configure settings test_skip_always=CRYP-7902
+    ${SUDO} lynis configure settings skip-test=CRYP-7902
 fi
 
 

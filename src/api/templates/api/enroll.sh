@@ -278,14 +278,14 @@ configure_lynis() {
         LYNIS_MAJOR=$(echo "$LYNIS_VERSION" | awk -F. '{print $1}')
         if [ "$LYNIS_MAJOR" -lt 3 ]; then
             print_info "Lynis version < 3.0.0 detected, adding CRYP-7902 to skip list"
-            ${SUDO} lynis configure settings "test_skip_always=CRYP-7902"
+            ${SUDO} lynis configure settings "skip-test=CRYP-7902"
         fi
     fi
     
     # Configure tests to skip
     if [ -n "$SKIP_TESTS" ]; then
         print_info "Configuring Lynis to skip tests: ${SKIP_TESTS}"
-        ${SUDO} lynis configure settings "test_skip_always=${SKIP_TESTS}"
+        ${SUDO} lynis configure settings "skip-test=${SKIP_TESTS}"
     fi
     
     print_success "Lynis configured successfully"
