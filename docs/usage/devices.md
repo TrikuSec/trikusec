@@ -22,6 +22,17 @@ The list of devices is the main page of the manager.
 - **Reports** - View detailed audit reports
 - **Activity** - Recent activity log
 
+## Device Identification
+
+TrikuSec uses **5-factor device identification** to prevent duplicates when identifiers change (e.g., after re-imaging or Lynis updates). Devices are matched using:
+
+1. HostID / HostID2 (Lynis identifiers)
+2. Hostname
+3. Primary IP Address (on gateway network)
+4. Primary MAC Address
+
+A device is matched if **2+ factors coincide** (same license key). When matched, the existing device is updated instead of creating a duplicate, preserving historical data.
+
 ## Device Management
 
 ### Viewing Devices
