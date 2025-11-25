@@ -180,6 +180,14 @@ install_packages() {
     # Set up CISOfy repository if enabled
     if [ "$USE_CISOFY_REPO" = "true" ]; then
         print_info "Setting up CISOfy Lynis repository..."
+        
+        # Check if gpg is installed, install if needed
+        if [ ! -x "$(command -v gpg)" ]; then
+            print_info "Installing gpg..."
+            ${SUDO} apt-get update -qq
+            ${SUDO} apt-get install -y gpg
+        fi
+        
         curl -fsSL https://packages.cisofy.com/keys/cisofy-software-public.key | \
             ${SUDO} gpg --dearmor -o /etc/apt/trusted.gpg.d/cisofy-software-public.gpg
         echo "deb [arch=amd64,arm64 signed-by=/etc/apt/trusted.gpg.d/cisofy-software-public.gpg] https://packages.cisofy.com/community/lynis/deb/ stable main" | \
