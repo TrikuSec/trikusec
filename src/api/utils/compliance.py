@@ -31,7 +31,8 @@ def check_device_compliance(device, report):
                 'alert': rule.alert,
                 'compliant': rule_compliant
             })
-            if not rule_compliant:
+            # Only enabled rules affect ruleset compliance status
+            if rule.enabled and not rule_compliant:
                 ruleset_compliant = False
         
         ruleset_dict['compliant'] = ruleset_compliant
