@@ -196,6 +196,9 @@ class LynisReport:
         # Generate filtered IPv4 addresses
         # The one(s) connected to the default gateway(s)
         self.set('primary_ipv4_addresses', self._get_filtered_ipv4_addresses())
+        
+        # Extract primary MAC address (corresponding to primary IP on gateway network)
+        self.set('primary_mac_address', self._get_primary_mac_address())
 
         # Generate dynamic audit timing helper
         self._add_days_since_audit_variable()
@@ -250,6 +253,59 @@ class LynisReport:
         # Convert list to string
         logging.debug(f'Filtered IPv4 addresses: {filtered_addresses}')
         return filtered_addresses
+
+    def _get_primary_mac_address(self) -> str:
+        """
+        Get the MAC address corresponding to the primary IP address (on gateway network).
+        
+        The MAC address arrays are parallel to IP address arrays in Lynis reports.
+        We find the primary IP (on gateway network) and return its corresponding MAC.
+        """
+        mac_addresses = self.get('network_mac_address')
+        ipv4_addresses = self.get('network_ipv4_address')
+        primary_ips = self.get('primary_ipv4_addresses')
+        
+        if not mac_addresses or not isinstance(mac_addresses, list) or len(mac_addresses) == 0:
+            return None
+        
+        if not ipv4_addresses or not isinstance(ipv4_addresses, list) or len(ipv4_addresses) == 0:
+            return None
+        
+        if not primary_ips or primary_ips == ['-']:
+            # No primary IP found, return first non-loopback MAC if available
+            # Skip loopback interface (usually first)
+            for i, mac in enumerate(mac_addresses):
+                if i < len(ipv4_addresses):
+                    ip = ipv4_addresses[i]
+                    # Skip loopback addresses
+                    if ip and ip != '127.0.0.1' and not ip.startswith('127.'):
+                        return mac
+            # Fallback to first MAC if no non-loopback found
+            return mac_addresses[0] if mac_addresses else None
+        
+        # Find the index of the primary IP in the IP addresses array
+        # Use the first primary IP if multiple exist
+        primary_ip = primary_ips[0] if isinstance(primary_ips, list) else primary_ips
+        
+        try:
+            ip_index = ipv4_addresses.index(primary_ip)
+            # Return MAC at the same index
+            if ip_index < len(mac_addresses):
+                mac = mac_addresses[ip_index]
+                logging.debug(f'Primary MAC address: {mac} (for IP {primary_ip})')
+                return mac
+        except ValueError:
+            # Primary IP not found in IP addresses array (shouldn't happen)
+            logging.warning(f'Primary IP {primary_ip} not found in network_ipv4_address array')
+        
+        # Fallback: return first non-loopback MAC
+        for i, mac in enumerate(mac_addresses):
+            if i < len(ipv4_addresses):
+                ip = ipv4_addresses[i]
+                if ip and ip != '127.0.0.1' and not ip.startswith('127.'):
+                    return mac
+        
+        return mac_addresses[0] if mac_addresses else None
 
     def _add_days_since_audit_variable(self) -> None:
         """Add days_since_audit key calculated from report_datetime_end."""
