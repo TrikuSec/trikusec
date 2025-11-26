@@ -142,6 +142,16 @@ If not set, defaults to `trikusec`. The password is used to create the initial a
 
 ## HTTPS Security
 
+### SSL_CERT_DAYS
+
+Overrides the validity period (in days) for the self-signed SSL certificates generated.
+
+```bash
+SSL_CERT_DAYS=365    # example: 1-year validity
+```
+
+If not set, defaults to 1825 days.
+
 ### SECURE_SSL_REDIRECT
 
 Redirect all HTTP traffic to HTTPS.

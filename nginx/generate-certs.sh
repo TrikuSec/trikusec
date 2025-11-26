@@ -17,6 +17,9 @@ SUBJECT="/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=${CERT_SUBJ_CN}"
 # Create the certificates directory if it doesn't exist
 mkdir -p "$CERT_DIR"
 
+# Pick validity period (default ~5 years)
+CERT_DAYS="${SSL_CERT_DAYS:-${NGINX_CERT_DAYS:-1825}}"
+
 # Generate certificates if they do not exist
 if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
     echo "Generating self-signed certificates for CN=${CERT_SUBJ_CN}..."
@@ -27,7 +30,7 @@ if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
         exit 1
     fi
 
-    openssl req -new -x509 -nodes -days 365 -newkey rsa:2048 \
+    openssl req -new -x509 -nodes -days "$CERT_DAYS" -newkey rsa:2048 \
         -keyout "$KEY_FILE" \
         -out "$CERT_FILE" \
         -subj "$SUBJECT"
