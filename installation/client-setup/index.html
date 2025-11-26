@@ -1656,6 +1656,33 @@
 <p>You can also specify a profile explicitly if needed:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>lynis<span class="w"> </span>audit<span class="w"> </span>system<span class="w"> </span>--upload<span class="w"> </span>--quick<span class="w"> </span>--profile<span class="w"> </span>/etc/lynis/custom.prf
 </span></code></pre></div>
+<h4 id="5-automate-daily-runs-systemd">5. Automate Daily Runs (systemd)<a class="headerlink" href="#5-automate-daily-runs-systemd" title="Permanent link">&para;</a></h4>
+<p>Keep Lynis results current by scheduling a daily execution through <code>systemd</code> timers:</p>
+<ol>
+<li><strong>Create service and timer files</strong>:</li>
+<li><code>/etc/systemd/system/lynis.service</code></li>
+<li><code>/etc/systemd/system/lynis.timer</code></li>
+</ol>
+<p>You can copy the reference units shipped by the Lynis project and adapt them to your paths and options as needed.<br />
+   Source: <a href="https://github.com/CISOfy/lynis/tree/master/extras/systemd">Lynis systemd units</a></p>
+<ol>
+<li><strong>Reload systemd to pick up the new units</strong>:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+</span></code></pre></div>
+<ol>
+<li><strong>Enable and start the timer</strong> so it persists across reboots and begins immediately:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>lynis.timer
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>lynis.timer
+</span></code></pre></div>
+<ol>
+<li><strong>Verify the timer status</strong>:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>lynis.timer
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>list-timers<span class="w"> </span>lynis.timer
+</span></code></pre></div>
+<p>The timer triggers the service once per day by default (adjust <code>OnCalendar</code> in the timer if you need a different cadence), ensuring each client uploads a fresh report to TrikuSec without manual intervention.</p>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <h4 id="connection-issues">Connection Issues<a class="headerlink" href="#connection-issues" title="Permanent link">&para;</a></h4>
 <p>If you're having trouble connecting to the server:</p>
@@ -1700,7 +1727,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2025 20:26:38 UTC">November 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 26, 2025 15:25:13 UTC">November 26, 2025</span>
   </span>
 
     
