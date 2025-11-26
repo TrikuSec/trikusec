@@ -98,6 +98,39 @@ You can also specify a profile explicitly if needed:
 lynis audit system --upload --quick --profile /etc/lynis/custom.prf
 ```
 
+### 5. Automate Daily Runs (systemd)
+
+Keep Lynis results current by scheduling a daily execution through `systemd` timers:
+
+1. **Create service and timer files**:
+   - `/etc/systemd/system/lynis.service`
+   - `/etc/systemd/system/lynis.timer`
+
+   You can copy the reference units shipped by the Lynis project and adapt them to your paths and options as needed.  
+   Source: [Lynis systemd units](https://github.com/CISOfy/lynis/tree/master/extras/systemd)
+
+2. **Reload systemd to pick up the new units**:
+
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+3. **Enable and start the timer** so it persists across reboots and begins immediately:
+
+   ```bash
+   sudo systemctl enable lynis.timer
+   sudo systemctl start lynis.timer
+   ```
+
+4. **Verify the timer status**:
+
+   ```bash
+   sudo systemctl status lynis.timer
+   sudo systemctl list-timers lynis.timer
+   ```
+
+The timer triggers the service once per day by default (adjust `OnCalendar` in the timer if you need a different cadence), ensuring each client uploads a fresh report to TrikuSec without manual intervention.
+
 ## Troubleshooting
 
 ### Connection Issues
