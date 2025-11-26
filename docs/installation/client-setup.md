@@ -98,7 +98,7 @@ You can also specify a profile explicitly if needed:
 lynis audit system --upload --quick --profile /etc/lynis/custom.prf
 ```
 
-### 5. Automate Daily Runs (systemd)
+## Automate Daily Runs (systemd)
 
 Keep Lynis results current by scheduling a daily execution through `systemd` timers:
 
