@@ -219,7 +219,12 @@ class ActivityIgnorePatternForm(forms.ModelForm):
 class EnrollmentSettingsForm(forms.ModelForm):
     class Meta:
         model = EnrollmentSettings
-        fields = ['ignore_ssl_errors', 'overwrite_lynis_profile', 'use_cisofy_repo']
+        fields = [
+            'ignore_ssl_errors',
+            'overwrite_lynis_profile',
+            'use_cisofy_repo',
+            'enable_daily_reports',
+        ]
         widgets = {
             'ignore_ssl_errors': forms.CheckboxInput(attrs={
                 'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
@@ -230,6 +235,9 @@ class EnrollmentSettingsForm(forms.ModelForm):
             'use_cisofy_repo': forms.CheckboxInput(attrs={
                 'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
             }),
+            'enable_daily_reports': forms.CheckboxInput(attrs={
+                'class': 'mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -237,6 +245,7 @@ class EnrollmentSettingsForm(forms.ModelForm):
         self.fields['ignore_ssl_errors'].help_text = 'Skip downloading and trusting the server certificate. Enable this only if the servers certificate is self-signed and you don\'t want to install the certificate into the system truststore.'
         self.fields['overwrite_lynis_profile'].help_text = 'Allow the installer to replace /etc/lynis/custom.prf even if it already exists.'
         self.fields['use_cisofy_repo'].help_text = 'Install Lynis from the official CISOfy repository instead of the system repository. This ensures you get the latest version of Lynis.'
+        self.fields['enable_daily_reports'].help_text = 'Install and enable the upstream Lynis systemd service/timer so clients upload a report every day.'
 
 class EnrollmentPluginForm(forms.ModelForm):
     class Meta:

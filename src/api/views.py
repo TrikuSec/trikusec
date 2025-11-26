@@ -294,6 +294,7 @@ def enroll_sh(request):
         'ignore_ssl_errors': enrollment_settings.ignore_ssl_errors,
         'overwrite_lynis_profile': enrollment_settings.overwrite_lynis_profile,
         'use_cisofy_repo': enrollment_settings.use_cisofy_repo,
+        'enable_daily_reports': enrollment_settings.enable_daily_reports,
         'additional_packages': additional_packages,
         'skip_tests': skip_tests,
         'plugin_urls': plugin_urls,

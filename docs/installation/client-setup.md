@@ -32,6 +32,7 @@ The enrollment script performs the following actions:
 - **Dependencies**: Installs required packages (Lynis, etc.).
 - **Configuration**: Configures the Lynis custom profile (`custom.prf`) with the correct server URL and license key.
 - **First Audit**: Performs the first audit with upload enabled (results will appear in TrikuSec).
+- **Daily timer (optional)**: When **Enable daily reports (systemd)** is toggled on (enabled by default), the script installs the upstream `lynis.service`/`lynis.timer` units and enables the timer so reports continue every day.
 
 ### Configuration
 
@@ -102,12 +103,16 @@ lynis audit system --upload --quick --profile /etc/lynis/custom.prf
 
 Keep Lynis results current by scheduling a daily execution through `systemd` timers:
 
+> **Tip:** If you leave the **Enable daily reports (systemd)** toggle enabled in *Settings → Enrollment configuration*, the automatic enroll script performs steps 1–3 below for you. Use the manual steps only when configuring hosts by hand or after disabling that toggle.
+
 1. **Create service and timer files**:
    - `/etc/systemd/system/lynis.service`
    - `/etc/systemd/system/lynis.timer`
 
    You can copy the reference units shipped by the Lynis project and adapt them to your paths and options as needed.  
    Source: [Lynis systemd units](https://github.com/CISOfy/lynis/tree/master/extras/systemd)
+   
+   TrikuSec also ships copies under `docs/reference/systemd/` for convenience.
 
 2. **Reload systemd to pick up the new units**:
 
