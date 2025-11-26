@@ -2,6 +2,25 @@
 
 Complete reference of all environment variables used by TrikuSec.
 
+| Variable | Purpose |
+| --- | --- |
+| `TRIKUSEC_DOMAIN` | Single domain input that auto-derives related URLs and hosts |
+| `SECRET_KEY` | Django cryptographic signing key |
+| `DJANGO_DEBUG` | Enables verbose Django debug mode for development |
+| `DJANGO_ALLOWED_HOSTS` | Whitelisted hostnames served by Django |
+| `DJANGO_ENV` | Switches between development, production, or testing settings |
+| `DATABASE_URL` | Connection string for the application database |
+| `TRIKUSEC_ADMIN_USERNAME` | Username for the bootstrap admin account |
+| `TRIKUSEC_ADMIN_PASSWORD` | Password management for the bootstrap admin account |
+| `SSL_CERT_DAYS` | Validity period for generated self-signed certificates |
+| `SECURE_SSL_REDIRECT` | Forces HTTP traffic to redirect to HTTPS |
+| `SECURE_HSTS_SECONDS` | Duration for the HTTP Strict Transport Security header |
+| `SESSION_COOKIE_SECURE` | Restricts session cookies to HTTPS requests |
+| `CSRF_COOKIE_SECURE` | Restricts CSRF cookies to HTTPS requests |
+| `RATELIMIT_ENABLE` | Toggles rate limiting on API endpoints |
+| `TRIKUSEC_URL` | Base URL for the admin UI |
+| `TRIKUSEC_LYNIS_API_URL` | Base URL for the Lynis API used by devices |
+
 ## Simplified Configuration (Recommended)
 
 ### TRIKUSEC_DOMAIN
