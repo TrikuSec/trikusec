@@ -1,6 +1,3 @@
 # Frontend dependencies
 -r requirements-api.txt
 weasyprint==66.0
-
-
-

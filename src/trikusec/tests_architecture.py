@@ -40,6 +40,3 @@ class TestSplitArchitecture:
         
         has_api_v1 = any(p.pattern.match('api/v1/') for p in urls_api.urlpatterns if hasattr(p, 'pattern'))
         assert has_api_v1, "API URLs should include api/v1/"
-
-
-

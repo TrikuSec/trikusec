@@ -7,6 +7,3 @@ urlpatterns = [
     path('api/v1/', include('api.urls', namespace='api_v1')),
     path('api/', include('api.urls_legacy')),
 ]
-
-
-
