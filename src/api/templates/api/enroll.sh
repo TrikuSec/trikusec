@@ -18,6 +18,7 @@ TRIKUSEC_LICENSEKEY={{ licensekey }}
 IGNORE_SSL_ERRORS={% if ignore_ssl_errors %}true{% else %}false{% endif %}
 OVERWRITE_LYNIS_PROFILE={% if overwrite_lynis_profile %}true{% else %}false{% endif %}
 USE_CISOFY_REPO={% if use_cisofy_repo %}true{% else %}false{% endif %}
+ENABLE_DAILY_REPORTS={% if enable_daily_reports %}true{% else %}false{% endif %}
 ADDITIONAL_PACKAGES="{% if additional_packages %}{{ additional_packages }}{% endif %}"
 SKIP_TESTS="{% if skip_tests %}{{ skip_tests }}{% endif %}"
 {% if plugin_urls %}
@@ -91,6 +92,7 @@ show_overview() {
     if [ ${#PLUGIN_URLS[@]} -gt 0 ]; then
         echo "  - Plugins to Install:    ${#PLUGIN_URLS[@]}"
     fi
+    echo "  - Daily systemd timer:   $([ \"$ENABLE_DAILY_REPORTS\" = \"true\" ] && echo \"Enabled\" || echo \"Disabled\")"
     echo ""
     
     echo "Press ENTER to continue or CTRL+C to abort..."
@@ -366,6 +368,110 @@ install_plugins() {
 }
 
 #==============================================================================
+# Daily systemd Timer
+#==============================================================================
+
+setup_daily_reports() {
+    if [ "$ENABLE_DAILY_REPORTS" != "true" ]; then
+        print_info "Daily Lynis systemd timer disabled in TrikuSec settings."
+        return 0
+    fi
+
+    if ! command -v systemctl >/dev/null 2>&1; then
+        print_warning "systemctl not found. Skipping daily timer configuration."
+        return 0
+    fi
+
+    print_header "Configuring Daily Lynis systemd timer"
+
+    local service_path="/etc/systemd/system/lynis.service"
+    local timer_path="/etc/systemd/system/lynis.timer"
+
+    print_info "Installing reference Lynis service unit at ${service_path}"
+    cat <<'SERVICE_UNIT' | ${SUDO} tee "${service_path}" > /dev/null
+#################################################################################
+#
+# Lynis service file for systemd
+#
+#################################################################################
+#
+# - Adjust path to link to location where Lynis binary is installed
+#
+# - Place this file together with the lynis.timer file in the related
+#   systemd directory (e.g. /etc/systemd/system/)
+#
+# - See details in lynis.timer file
+#
+#################################################################################
+
+[Unit]
+Description=Security audit and vulnerability scanner
+Documentation=https://cisofy.com/docs/
+
+[Service]
+Nice=19
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+Type=simple
+ExecStart=/usr/sbin/lynis audit system --cronjob
+
+[Install]
+WantedBy=multi-user.target
+
+#EOF
+SERVICE_UNIT
+    ${SUDO} chmod 644 "${service_path}"
+
+    print_info "Installing reference Lynis timer unit at ${timer_path}"
+    cat <<'TIMER_UNIT' | ${SUDO} tee "${timer_path}" > /dev/null
+#################################################################################
+#
+# Lynis timer file for systemd
+#
+#################################################################################
+#
+# - Place this file together with the lynis.service file in the related
+#   systemd directory (e.g. /etc/systemd/system)
+#
+# - Tell systemd you made changes
+#   systemctl daemon-reload
+#
+# - Enable and start the timer (so no reboot is needed):
+#   systemctl enable --now lynis.timer
+#
+#################################################################################
+
+[Unit]
+Description=Daily timer for the Lynis security audit and vulnerability scanner
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1800
+Persistent=false
+
+[Install]
+WantedBy=timers.target
+
+#EOF
+TIMER_UNIT
+    ${SUDO} chmod 644 "${timer_path}"
+
+    print_info "Reloading systemd units..."
+    if ! ${SUDO} systemctl daemon-reload; then
+        print_error "Failed to reload systemd units."
+        exit 1
+    fi
+
+    print_info "Enabling and starting lynis.timer..."
+    if ${SUDO} systemctl enable --now lynis.timer; then
+        print_success "Daily Lynis timer enabled (systemctl enable --now lynis.timer)."
+    else
+        print_error "Failed to enable lynis.timer. Please inspect systemctl output."
+        exit 1
+    fi
+}
+
+#==============================================================================
 # First Audit
 #==============================================================================
 
@@ -394,6 +500,7 @@ main() {
     setup_host_identifiers
     configure_lynis
     install_plugins
+    setup_daily_reports
     run_first_audit
     
     print_header "Enrollment Complete"

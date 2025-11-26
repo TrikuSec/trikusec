@@ -95,6 +95,23 @@
                     </div>
                 </div>
 
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        {{ settings_form.enable_daily_reports }}
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="{{ settings_form.enable_daily_reports.id_for_label }}" class="font-medium text-gray-900">
+                            Enable daily Lynis systemd timer
+                        </label>
+                        <p class="text-gray-500">
+                            {{ settings_form.enable_daily_reports.help_text }}
+                        </p>
+                        {% if settings_form.enable_daily_reports.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ settings_form.enable_daily_reports.errors|first }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <div>
                     <button type="button" class="w-full flex items-center justify-between text-left bg-gray-50 border border-gray-200 rounded-md p-4 hover:bg-gray-100 transition-colors" data-packages-toggle>
                         <div class="flex items-center space-x-2">

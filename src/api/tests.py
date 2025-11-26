@@ -374,6 +374,35 @@ class TestEnrollScript:
         # Verify the print_info statement for skip tests (actual behavior, not comment)
         assert 'print_info "Configuring Lynis to skip tests: ${SKIP_TESTS}"' in body
 
+    def test_enroll_script_daily_reports_enabled(self, test_license_key):
+        settings = EnrollmentSettings.get_settings()
+        settings.enable_daily_reports = True
+        settings.save()
+
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+
+        assert response.status_code == 200
+        body = response.content.decode()
+
+        assert 'ENABLE_DAILY_REPORTS=true' in body
+        assert 'Configuring Daily Lynis systemd timer' in body
+        assert 'systemctl enable --now lynis.timer' in body
+
+    def test_enroll_script_daily_reports_disabled(self, test_license_key):
+        settings = EnrollmentSettings.get_settings()
+        settings.enable_daily_reports = False
+        settings.save()
+
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+
+        assert response.status_code == 200
+        body = response.content.decode()
+
+        assert 'ENABLE_DAILY_REPORTS=false' in body
+        assert 'Daily Lynis systemd timer disabled in TrikuSec settings.' in body
+
     def test_check_license_invalid_method_put(self):
         """Test PUT method returns 405."""
         client = Client()
