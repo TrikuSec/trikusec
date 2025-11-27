@@ -1621,7 +1621,7 @@
 <h4 id="what-the-script-does">What the script does<a class="headerlink" href="#what-the-script-does" title="Permanent link">&para;</a></h4>
 <p>The enrollment script performs the following actions:</p>
 <ul>
-<li><strong><abbr title="Secure Sockets Layer">SSL</abbr> Configuration</strong>: Adds the Lynis <abbr title="Application Programming Interface">API</abbr> <abbr title="Secure Sockets Layer">SSL</abbr> certificate to the trust store (only when using self-signed certificates).</li>
+<li><strong><abbr title="Secure Sockets Layer">SSL</abbr> Configuration</strong>: Downloads the Lynis <abbr title="Application Programming Interface">API</abbr> <abbr title="Secure Sockets Layer">SSL</abbr> certificate and saves it to <code>/etc/lynis/trikusec.crt</code> for Lynis client use only (not added to system-wide trust store). Lynis is configured to use this certificate via <code>upload-options=--cacert</code>.</li>
 <li><strong>Dependencies</strong>: Installs required packages (Lynis, etc.).</li>
 <li><strong>Configuration</strong>: Configures the Lynis custom profile (<code>custom.prf</code>) with the correct server URL and license key.</li>
 <li><strong>First Audit</strong>: Performs the first audit with upload enabled (results will appear in TrikuSec).</li>
@@ -1640,8 +1640,9 @@
 <p>If you prefer to configure the client manually, follow these steps.</p>
 <h4 id="1-handle-ssl-certificates">1. Handle <abbr title="Secure Sockets Layer">SSL</abbr> Certificates<a class="headerlink" href="#1-handle-ssl-certificates" title="Permanent link">&para;</a></h4>
 <p>If your TrikuSec server uses self-signed certificates, you have two options:
-*   <strong>Trust the Certificate</strong>: Download the server certificate and add it to the device's trust store.
+*   <strong>Scope to Lynis (Recommended)</strong>: Download the server certificate to <code>/etc/lynis/trikusec.crt</code> and configure Lynis to use it via <code>upload-options=--cacert /etc/lynis/trikusec.crt</code>. This limits certificate trust to only the Lynis client.
 *   <strong>Ignore Errors</strong>: Configure Lynis to ignore <abbr title="Secure Sockets Layer">SSL</abbr> errors by adding <code>upload-options=--insecure</code> to the custom profile (see step 3).</p>
+<p><strong>Note</strong>: These two options are mutually exclusive - use only one of them.</p>
 <h4 id="2-install-lynis">2. Install Lynis<a class="headerlink" href="#2-install-lynis" title="Permanent link">&para;</a></h4>
 <p>Install Lynis using your package manager:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>lynis
@@ -1658,8 +1659,11 @@
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Point to the TrikuSec Lynis API server</span>
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="na">upload-server</span><span class="o">=</span><span class="s">YOUR_SERVER_ADDRESS</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># If using self-signed certs and you didn&#39;t add cert to trust store:</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># upload-options=--insecure</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Option 1: Use scoped certificate (recommended for self-signed certs)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="na">upload-options</span><span class="o">=</span><span class="s">--cacert /etc/lynis/trikusec.crt</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Option 2: Ignore SSL errors (alternative, less secure)</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># upload-options=--insecure</span>
 </span></code></pre></div>
 <h4 id="4-perform-first-audit">4. Perform First Audit<a class="headerlink" href="#4-perform-first-audit" title="Permanent link">&para;</a></h4>
 <p>Run the audit command to generate and upload the first report:</p>
@@ -1743,7 +1747,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 26, 2025 22:38:30 UTC">November 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 27, 2025 14:04:36 UTC">November 27, 2025</span>
   </span>
 
     
