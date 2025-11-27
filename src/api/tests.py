@@ -374,6 +374,60 @@ class TestEnrollScript:
         # Verify the print_info statement for skip tests (actual behavior, not comment)
         assert 'print_info "Configuring Lynis to skip tests: ${SKIP_TESTS}"' in body
 
+    def test_enroll_script_certificate_scoping(self, test_license_key):
+        """Test that enrollment script scopes certificate to Lynis client only."""
+        # Get enrollment settings
+        settings = EnrollmentSettings.get_settings()
+        
+        # Test with ignore_ssl_errors=False (certificate should be scoped)
+        settings.ignore_ssl_errors = False
+        settings.save()
+        
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+        
+        assert response.status_code == 200
+        body = response.content.decode()
+        
+        # Verify certificate configuration variable is defined
+        assert 'TRIKUSEC_CERT_FINAL=/etc/lynis/trikusec.crt' in body
+        
+        # Verify certificate is saved to Lynis-specific path, not system-wide
+        assert '${TRIKUSEC_CERT_FINAL}' in body or '"${TRIKUSEC_CERT_FINAL}"' in body
+        assert '/usr/local/share/ca-certificates/trikusec.crt' not in body
+        
+        # Verify system-wide certificate installation is removed
+        assert 'update-ca-certificates' not in body
+        
+        # Verify function is renamed to download_ssl_certificate
+        assert 'download_ssl_certificate()' in body
+        assert 'setup_ssl_certificate()' not in body
+        
+        # Verify upload-options uses --cacert with the variable
+        assert 'upload-options=--cacert ${TRIKUSEC_CERT_FINAL}' in body
+        
+        # Verify --insecure is NOT in the script when ignore_ssl_errors=False
+        # Count occurrences - should only be in the if condition, not set
+        insecure_occurrences = body.count('upload-options=--insecure')
+        assert insecure_occurrences == 1, "Should have only 1 occurrence (in the conditional block)"
+        
+        # Test with ignore_ssl_errors=True (should use --insecure, not --cacert)
+        settings.ignore_ssl_errors = True
+        settings.save()
+        
+        response2 = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+        assert response2.status_code == 200
+        body2 = response2.content.decode()
+        
+        # Verify --insecure is set (appears twice: in condition and in echo)
+        assert 'upload-options=--insecure' in body2
+        
+        # Verify --cacert is NOT set when using --insecure
+        # The variable should still appear in the script logic, but not in an echo command with --cacert
+        cacert_option_occurrences = body2.count('upload-options=--cacert')
+        assert cacert_option_occurrences == 1, "Should only appear in the else block, not executed"
+
+
     def test_enroll_script_daily_reports_enabled(self, test_license_key):
         settings = EnrollmentSettings.get_settings()
         settings.enable_daily_reports = True

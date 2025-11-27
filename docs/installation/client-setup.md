@@ -28,7 +28,7 @@ This is the recommended method as it handles dependencies and configuration auto
 
 The enrollment script performs the following actions:
 
-- **SSL Configuration**: Adds the Lynis API SSL certificate to the trust store (only when using self-signed certificates).
+- **SSL Configuration**: Downloads the Lynis API SSL certificate and saves it to `/etc/lynis/trikusec.crt` for Lynis client use only (not added to system-wide trust store). Lynis is configured to use this certificate via `upload-options=--cacert`.
 - **Dependencies**: Installs required packages (Lynis, etc.).
 - **Configuration**: Configures the Lynis custom profile (`custom.prf`) with the correct server URL and license key.
 - **First Audit**: Performs the first audit with upload enabled (results will appear in TrikuSec).
@@ -54,8 +54,10 @@ If you prefer to configure the client manually, follow these steps.
 ### 1. Handle SSL Certificates
 
 If your TrikuSec server uses self-signed certificates, you have two options:
-*   **Trust the Certificate**: Download the server certificate and add it to the device's trust store.
+*   **Scope to Lynis (Recommended)**: Download the server certificate to `/etc/lynis/trikusec.crt` and configure Lynis to use it via `upload-options=--cacert /etc/lynis/trikusec.crt`. This limits certificate trust to only the Lynis client.
 *   **Ignore Errors**: Configure Lynis to ignore SSL errors by adding `upload-options=--insecure` to the custom profile (see step 3).
+
+**Note**: These two options are mutually exclusive - use only one of them.
 
 ### 2. Install Lynis
 
@@ -81,7 +83,10 @@ license-key=YOUR_LICENSE_KEY
 # Point to the TrikuSec Lynis API server
 upload-server=YOUR_SERVER_ADDRESS
 
-# If using self-signed certs and you didn't add cert to trust store:
+# Option 1: Use scoped certificate (recommended for self-signed certs)
+upload-options=--cacert /etc/lynis/trikusec.crt
+
+# Option 2: Ignore SSL errors (alternative, less secure)
 # upload-options=--insecure
 ```
 
