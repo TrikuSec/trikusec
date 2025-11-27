@@ -403,6 +403,58 @@ class TestEnrollScript:
         assert 'ENABLE_DAILY_REPORTS=false' in body
         assert 'Daily Lynis systemd timer disabled in TrikuSec settings.' in body
 
+    def test_enroll_script_scoped_certificate_variables(self, test_license_key):
+        """Test that the enroll script includes scoped certificate variables."""
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+
+        assert response.status_code == 200
+        body = response.content.decode()
+
+        # Verify scoped certificate path is defined
+        assert 'TRIKUSEC_CERT_PATH=/etc/lynis/trikusec.crt' in body
+        # Verify USE_SCOPED_CERT flag is initialized
+        assert 'USE_SCOPED_CERT=false' in body
+        # Verify certificate is saved to Lynis-scoped path
+        assert '${SUDO} cp "${TRIKUSEC_CERT_TMP}" "${TRIKUSEC_CERT_PATH}"' in body
+        # Verify certificate is NOT added to system CA store
+        assert '/usr/local/share/ca-certificates/trikusec.crt' not in body
+        assert 'update-ca-certificates' not in body
+
+    def test_enroll_script_cacert_upload_option(self, test_license_key):
+        """Test that the enroll script uses --cacert for scoped certificate."""
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+
+        assert response.status_code == 200
+        body = response.content.decode()
+
+        # Verify upload-options with --cacert is configured when scoped cert is used
+        assert 'upload-options=--cacert ${TRIKUSEC_CERT_PATH}' in body
+        # Verify the condition checks USE_SCOPED_CERT
+        assert 'if [ "$USE_SCOPED_CERT" = "true" ]' in body or 'elif [ "$USE_SCOPED_CERT" = "true" ]' in body
+
+    def test_enroll_script_ssl_options_mutual_exclusivity(self, test_license_key):
+        """Test that --insecure and --cacert are mutually exclusive in the script."""
+        client = Client()
+        response = client.get(reverse('enroll_sh'), {'licensekey': test_license_key.licensekey})
+
+        assert response.status_code == 200
+        body = response.content.decode()
+
+        # Find the configure_lynis function
+        configure_start = body.find('configure_lynis()')
+        assert configure_start != -1, "configure_lynis function should exist"
+        
+        # Extract the configure_lynis function body (until the next function or end)
+        configure_end = body.find('\n}', configure_start)
+        configure_body = body[configure_start:configure_end]
+        
+        # Verify the if-elif structure exists for SSL options (mutual exclusivity)
+        assert 'if [ "$IGNORE_SSL_ERRORS" = "true" ]' in configure_body
+        assert 'elif [ "$USE_SCOPED_CERT" = "true" ]' in configure_body
+        # The elif structure ensures mutual exclusivity - only one option can be set
+
     def test_check_license_invalid_method_put(self):
         """Test PUT method returns 405."""
         client = Client()

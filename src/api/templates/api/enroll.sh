@@ -14,7 +14,9 @@ set -o pipefail  # Exit on pipe failure
 
 TRIKUSEC_LYNIS_UPLOAD_SERVER={{ trikusec_lynis_upload_server }}
 TRIKUSEC_CERT_TMP=/tmp/trikusec.crt
+TRIKUSEC_CERT_PATH=/etc/lynis/trikusec.crt
 TRIKUSEC_LICENSEKEY={{ licensekey }}
+USE_SCOPED_CERT=false
 IGNORE_SSL_ERRORS={% if ignore_ssl_errors %}true{% else %}false{% endif %}
 OVERWRITE_LYNIS_PROFILE={% if overwrite_lynis_profile %}true{% else %}false{% endif %}
 USE_CISOFY_REPO={% if use_cisofy_repo %}true{% else %}false{% endif %}
@@ -147,22 +149,25 @@ setup_ssl_certificate() {
     
     # Check if the server is reachable and has a valid certificate
     if ! curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null; then
-        print_warning "Server certificate is self-signed. Adding it to the trusted certificates."
+        print_warning "Server certificate is self-signed. Saving it for Lynis use only."
         
-        # Check if openssl and ca-certificates are installed
-        if [ ! -x "$(command -v openssl)" ] || [ ! -x "$(command -v update-ca-certificates)" ]; then
-            print_info "Installing openssl and ca-certificates..."
+        # Check if openssl is installed
+        if [ ! -x "$(command -v openssl)" ]; then
+            print_info "Installing openssl..."
             ${SUDO} apt-get update -qq
-            ${SUDO} apt-get install -y openssl ca-certificates
+            ${SUDO} apt-get install -y openssl
         fi
         
         print_info "Downloading server certificate..."
         if openssl s_client -showcerts -connect "${TRIKUSEC_LYNIS_UPLOAD_SERVER}" </dev/null 2>/dev/null | \
            sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' > "${TRIKUSEC_CERT_TMP}"; then
-            ${SUDO} cp "${TRIKUSEC_CERT_TMP}" /usr/local/share/ca-certificates/trikusec.crt
-            ${SUDO} update-ca-certificates
+            # Save certificate to Lynis-scoped path instead of system CA store
+            ${SUDO} mkdir -p /etc/lynis
+            ${SUDO} cp "${TRIKUSEC_CERT_TMP}" "${TRIKUSEC_CERT_PATH}"
+            ${SUDO} chmod 644 "${TRIKUSEC_CERT_PATH}"
             rm -f "${TRIKUSEC_CERT_TMP}"
-            print_success "Server certificate installed and trusted"
+            USE_SCOPED_CERT=true
+            print_success "Server certificate saved to ${TRIKUSEC_CERT_PATH}"
         else
             print_error "Failed to download server certificate"
             exit 1
@@ -290,9 +295,13 @@ configure_lynis() {
         "upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" \
         "auditor=TrikuSec"
     
+    # Configure SSL options (mutually exclusive: --insecure OR --cacert, never both)
     if [ "$IGNORE_SSL_ERRORS" = "true" ]; then
         print_warning "Configuring Lynis to ignore SSL errors"
         echo "upload-options=--insecure" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
+    elif [ "$USE_SCOPED_CERT" = "true" ]; then
+        print_info "Configuring Lynis to use scoped certificate"
+        echo "upload-options=--cacert ${TRIKUSEC_CERT_PATH}" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
     fi
     
     # Handle version-specific configuration

@@ -28,7 +28,7 @@ This is the recommended method as it handles dependencies and configuration auto
 
 The enrollment script performs the following actions:
 
-- **SSL Configuration**: Adds the Lynis API SSL certificate to the trust store (only when using self-signed certificates).
+- **SSL Configuration**: When using self-signed certificates, saves the TrikuSec server certificate to `/etc/lynis/trikusec.crt` and configures Lynis to use it (via `upload-options=--cacert`). This scopes the certificate to Lynis only, rather than adding it to the system-wide CA store.
 - **Dependencies**: Installs required packages (Lynis, etc.).
 - **Configuration**: Configures the Lynis custom profile (`custom.prf`) with the correct server URL and license key.
 - **First Audit**: Performs the first audit with upload enabled (results will appear in TrikuSec).
@@ -54,8 +54,12 @@ If you prefer to configure the client manually, follow these steps.
 ### 1. Handle SSL Certificates
 
 If your TrikuSec server uses self-signed certificates, you have two options:
-*   **Trust the Certificate**: Download the server certificate and add it to the device's trust store.
+
+*   **Scoped Certificate (Recommended)**: Download the server certificate to `/etc/lynis/trikusec.crt` and configure Lynis to use it with `upload-options=--cacert /etc/lynis/trikusec.crt`. This limits the certificate trust to Lynis only.
 *   **Ignore Errors**: Configure Lynis to ignore SSL errors by adding `upload-options=--insecure` to the custom profile (see step 3).
+
+!!! warning "Mutual Exclusivity"
+    Use either `--cacert` or `--insecure`, but never both. These options are mutually exclusive.
 
 ### 2. Install Lynis
 
@@ -81,7 +85,11 @@ license-key=YOUR_LICENSE_KEY
 # Point to the TrikuSec Lynis API server
 upload-server=YOUR_SERVER_ADDRESS
 
-# If using self-signed certs and you didn't add cert to trust store:
+# If using self-signed certs, choose ONE of the following options:
+# Option 1 (recommended): Use scoped certificate
+# upload-options=--cacert /etc/lynis/trikusec.crt
+#
+# Option 2: Skip certificate validation (less secure)
 # upload-options=--insecure
 ```
 
