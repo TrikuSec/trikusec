@@ -14,6 +14,7 @@ set -o pipefail  # Exit on pipe failure
 
 TRIKUSEC_LYNIS_UPLOAD_SERVER={{ trikusec_lynis_upload_server }}
 TRIKUSEC_CERT_TMP=/tmp/trikusec.crt
+TRIKUSEC_CERT_FINAL=/etc/lynis/trikusec.crt
 TRIKUSEC_LICENSEKEY={{ licensekey }}
 IGNORE_SSL_ERRORS={% if ignore_ssl_errors %}true{% else %}false{% endif %}
 OVERWRITE_LYNIS_PROFILE={% if overwrite_lynis_profile %}true{% else %}false{% endif %}
@@ -132,11 +133,11 @@ setup_sudo() {
 }
 
 #==============================================================================
-# SSL Certificate Handling
+# SSL Certificate Download
 #==============================================================================
 
-setup_ssl_certificate() {
-    print_header "SSL Certificate Setup"
+download_ssl_certificate() {
+    print_header "SSL Certificate Download"
     
     if [ "$IGNORE_SSL_ERRORS" = "true" ]; then
         print_warning "Skipping server certificate validation (configured)."
@@ -147,22 +148,19 @@ setup_ssl_certificate() {
     
     # Check if the server is reachable and has a valid certificate
     if ! curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null; then
-        print_warning "Server certificate is self-signed. Adding it to the trusted certificates."
+        print_warning "Server certificate is self-signed. Downloading for Lynis client use."
         
-        # Check if openssl and ca-certificates are installed
-        if [ ! -x "$(command -v openssl)" ] || [ ! -x "$(command -v update-ca-certificates)" ]; then
-            print_info "Installing openssl and ca-certificates..."
+        # Check if openssl is installed
+        if [ ! -x "$(command -v openssl)" ]; then
+            print_info "Installing openssl..."
             ${SUDO} apt-get update -qq
-            ${SUDO} apt-get install -y openssl ca-certificates
+            ${SUDO} apt-get install -y openssl
         fi
         
         print_info "Downloading server certificate..."
         if openssl s_client -showcerts -connect "${TRIKUSEC_LYNIS_UPLOAD_SERVER}" </dev/null 2>/dev/null | \
            sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' > "${TRIKUSEC_CERT_TMP}"; then
-            ${SUDO} cp "${TRIKUSEC_CERT_TMP}" /usr/local/share/ca-certificates/trikusec.crt
-            ${SUDO} update-ca-certificates
-            rm -f "${TRIKUSEC_CERT_TMP}"
-            print_success "Server certificate installed and trusted"
+            print_success "Server certificate downloaded (will be configured for Lynis client)"
         else
             print_error "Failed to download server certificate"
             exit 1
@@ -235,6 +233,16 @@ setup_lynis_profile() {
     ${SUDO} mkdir -p /etc/lynis
     ${SUDO} touch /etc/lynis/custom.prf
     print_success "Lynis custom profile created"
+    
+    # Copy SSL certificate to Lynis directory if it was downloaded
+    if [ "$IGNORE_SSL_ERRORS" != "true" ] && [ -f "${TRIKUSEC_CERT_TMP}" ]; then
+        print_info "Installing SSL certificate for Lynis client..."
+        ${SUDO} cp "${TRIKUSEC_CERT_TMP}" "${TRIKUSEC_CERT_FINAL}"
+        ${SUDO} chmod 644 "${TRIKUSEC_CERT_FINAL}"
+        ${SUDO} chown root:root "${TRIKUSEC_CERT_FINAL}"
+        rm -f "${TRIKUSEC_CERT_TMP}"
+        print_success "SSL certificate installed to ${TRIKUSEC_CERT_FINAL}"
+    fi
 }
 
 #==============================================================================
@@ -290,9 +298,16 @@ configure_lynis() {
         "upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" \
         "auditor=TrikuSec"
     
+    # Configure SSL validation method (mutually exclusive options)
     if [ "$IGNORE_SSL_ERRORS" = "true" ]; then
         print_warning "Configuring Lynis to ignore SSL errors"
         echo "upload-options=--insecure" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
+    else
+        # Use the scoped certificate for Lynis client only
+        if [ -f "${TRIKUSEC_CERT_FINAL}" ]; then
+            print_info "Configuring Lynis to use scoped SSL certificate"
+            echo "upload-options=--cacert ${TRIKUSEC_CERT_FINAL}" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
+        fi
     fi
     
     # Handle version-specific configuration
@@ -494,7 +509,7 @@ run_first_audit() {
 main() {
     show_overview
     check_prerequisites
-    setup_ssl_certificate
+    download_ssl_certificate
     install_packages
     setup_lynis_profile
     setup_host_identifiers
