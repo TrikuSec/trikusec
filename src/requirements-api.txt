@@ -1,5 +1,5 @@
 # API dependencies
-Django==4.2.16
+Django==4.2.26
 pyyaml==6.0.2
 jmespath>=1.0.1
 django-ratelimit==4.1.0
