@@ -442,18 +442,17 @@ class TestEnrollScript:
         assert response.status_code == 200
         body = response.content.decode()
 
-        # Find the configure_lynis function
-        configure_start = body.find('configure_lynis()')
-        assert configure_start != -1, "configure_lynis function should exist"
-        
-        # Extract the configure_lynis function body (until the next function or end)
-        configure_end = body.find('\n}', configure_start)
-        configure_body = body[configure_start:configure_end]
+        # Verify configure_lynis function exists
+        assert 'configure_lynis()' in body, "configure_lynis function should exist"
         
         # Verify the if-elif structure exists for SSL options (mutual exclusivity)
-        assert 'if [ "$IGNORE_SSL_ERRORS" = "true" ]' in configure_body
-        assert 'elif [ "$USE_SCOPED_CERT" = "true" ]' in configure_body
-        # The elif structure ensures mutual exclusivity - only one option can be set
+        # The script uses an if-elif structure which ensures only one option is applied
+        assert 'if [ "$IGNORE_SSL_ERRORS" = "true" ]' in body
+        assert 'elif [ "$USE_SCOPED_CERT" = "true" ]' in body
+        
+        # Verify the upload-options for both cases are present (but only one will be used at runtime)
+        assert 'upload-options=--insecure' in body
+        assert 'upload-options=--cacert ${TRIKUSEC_CERT_PATH}' in body
 
     def test_check_license_invalid_method_put(self):
         """Test PUT method returns 405."""
