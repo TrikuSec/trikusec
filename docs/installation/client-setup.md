@@ -28,7 +28,7 @@ This is the recommended method as it handles dependencies and configuration auto
 
 The enrollment script performs the following actions:
 
-- **SSL Configuration**: When using self-signed certificates, saves the TrikuSec server certificate to `/etc/lynis/trikusec.crt` and configures Lynis to use it (via `upload-options=--cacert`). This scopes the certificate to Lynis only, rather than adding it to the system-wide CA store.
+- **SSL Configuration**: When using self-signed certificates, saves the TrikuSec server certificate to `/etc/lynis/trikusec.crt` and configures Lynis to use it (via `upload-options=--cacert`). This scopes the certificate to Lynis only—other applications on the system will not trust the TrikuSec server.
 - **Dependencies**: Installs required packages (Lynis, etc.).
 - **Configuration**: Configures the Lynis custom profile (`custom.prf`) with the correct server URL and license key.
 - **First Audit**: Performs the first audit with upload enabled (results will appear in TrikuSec).

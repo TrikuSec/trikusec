@@ -161,8 +161,7 @@ setup_ssl_certificate() {
         print_info "Downloading server certificate..."
         if openssl s_client -showcerts -connect "${TRIKUSEC_LYNIS_UPLOAD_SERVER}" </dev/null 2>/dev/null | \
            sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' > "${TRIKUSEC_CERT_TMP}"; then
-            # Save certificate to Lynis-scoped path instead of system CA store
-            ${SUDO} mkdir -p /etc/lynis
+            # Save certificate to Lynis-scoped path (directory created by lynis installation)
             ${SUDO} cp "${TRIKUSEC_CERT_TMP}" "${TRIKUSEC_CERT_PATH}"
             ${SUDO} chmod 644 "${TRIKUSEC_CERT_PATH}"
             rm -f "${TRIKUSEC_CERT_TMP}"
@@ -503,8 +502,8 @@ run_first_audit() {
 main() {
     show_overview
     check_prerequisites
-    setup_ssl_certificate
     install_packages
+    setup_ssl_certificate
     setup_lynis_profile
     setup_host_identifiers
     configure_lynis
