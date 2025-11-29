@@ -290,7 +290,7 @@ class EnrollmentPackageForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
-                'placeholder': 'e.g., rkhunter',
+                'placeholder': 'e.g., fail2ban',
             }),
         }
 

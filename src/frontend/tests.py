@@ -123,7 +123,7 @@ class TestEnrollmentPackageFormSet:
         assert settings_form.is_valid()
 
         unbound_formset = EnrollmentPackageFormSet(instance=settings, prefix='package')
-        package_values = ['rkhunter', 'auditd']
+        package_values = ['fail2ban', 'aide']
         formset_data = self._build_formset_data(unbound_formset, package_values)
 
         formset = EnrollmentPackageFormSet(formset_data, instance=settings, prefix='package')
@@ -137,7 +137,7 @@ class TestEnrollmentPackageFormSet:
     def test_formset_validates_required(self):
         settings = EnrollmentSettings.get_settings()
         settings.additional_packages_entries.all().delete()
-        package = settings.additional_packages_entries.create(name='rkhunter')
+        package = settings.additional_packages_entries.create(name='fail2ban')
 
         unbound_formset = EnrollmentPackageFormSet(instance=settings, prefix='package')
         formset_data = self._build_formset_data(unbound_formset, ['  '])
@@ -150,10 +150,10 @@ class TestEnrollmentPackageFormSet:
     def test_formset_delete_existing_package(self):
         settings = EnrollmentSettings.get_settings()
         settings.additional_packages_entries.all().delete()
-        pkg = settings.additional_packages_entries.create(name='rkhunter')
+        pkg = settings.additional_packages_entries.create(name='fail2ban')
 
         unbound_formset = EnrollmentPackageFormSet(instance=settings, prefix='package')
-        formset_data = self._build_formset_data(unbound_formset, ['rkhunter'], delete_indexes={0})
+        formset_data = self._build_formset_data(unbound_formset, ['fail2ban'], delete_indexes={0})
         formset_data['package-0-id'] = str(pkg.id)
 
         formset = EnrollmentPackageFormSet(formset_data, instance=settings, prefix='package')

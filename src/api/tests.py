@@ -317,13 +317,14 @@ class TestEnrollScript:
             settings=settings,
             url='https://plugins.example.com/trikusec/plugin_trikusec_phase1'
         )
+        # Add optional packages (auditd and rkhunter are no longer defaults)
         EnrollmentPackage.objects.create(
             settings=settings,
-            name='rkhunter'
+            name='fail2ban'
         )
         EnrollmentPackage.objects.create(
             settings=settings,
-            name='auditd'
+            name='aide'
         )
         EnrollmentSkipTest.objects.create(
             settings=settings,
@@ -345,8 +346,8 @@ class TestEnrollScript:
         
         # Verify additional packages are included in ADDITIONAL_PACKAGES variable
         assert 'ADDITIONAL_PACKAGES=' in body
-        assert 'rkhunter' in body
-        assert 'auditd' in body
+        assert 'fail2ban' in body
+        assert 'aide' in body
         
         # Verify skip tests are included in SKIP_TESTS variable
         assert 'SKIP_TESTS=' in body
