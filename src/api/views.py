@@ -283,7 +283,7 @@ def enroll_sh(request):
     # Full URL with scheme for Lynis upload-server configuration
     trikusec_lynis_upload_url = f"{parsed_lynis_api_url.scheme}://{parsed_lynis_api_url.netloc}"
     enrollment_settings = EnrollmentSettings.get_settings()
-    additional_packages = enrollment_settings.additional_packages.strip()
+    additional_packages = ' '.join(enrollment_settings.additional_package_names)
     skip_tests = ','.join(enrollment_settings.skip_test_ids)
     plugin_urls = [url.strip() for url in enrollment_settings.plugin_urls if url.strip()]
 
