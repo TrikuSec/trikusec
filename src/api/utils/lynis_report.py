@@ -372,6 +372,14 @@ class LynisReport:
             if timezone.is_naive(parsed_datetime):
                 parsed_datetime = timezone.make_aware(parsed_datetime, timezone.get_current_timezone())
             
+            # Fix for Issue #89: Clamp future timestamps to now
+            # Naive timestamps from Lynis (local time) might be interpreted as UTC,
+            # resulting in future times if the device is ahead of UTC.
+            now = timezone.now()
+            if parsed_datetime > now:
+                logging.warning(f'Report timestamp {parsed_datetime} is in the future (server time: {now}). Clamping to server time.')
+                parsed_datetime = now
+
             return parsed_datetime
 
         logging.debug('Unsupported report_datetime_end type: %s', type(value))

@@ -23,7 +23,11 @@ services:
       - DJANGO_SSL_ENABLED=False
       - DJANGO_SSL_CERTFILE=/app/certs/cert.pem
       - DJANGO_SSL_KEYFILE=/app/certs/key.pem
+      - DJANGO_SSL_KEYFILE=/app/certs/key.pem
       - SKIP_COLLECTSTATIC=True
+      - TZ=${TZ:-UTC}
+      - TZ=${TZ:-UTC}
+      - DJANGO_TIME_ZONE=${DJANGO_TIME_ZONE:-UTC}
     ports:
       - 8000:8000
     restart: unless-stopped
@@ -59,6 +63,7 @@ services:
       - SSL_CN=trikusec-lynis-api-dev
       - SKIP_MIGRATIONS=True
       - SKIP_COLLECTSTATIC=True
+      - TZ=${TZ:-UTC}
     restart: unless-stopped
     depends_on:
       trikusec-manager:
@@ -91,6 +96,7 @@ services:
       - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_LYNIS_API_VERIFY_SSL=false
       - TRIKUSEC_LICENSE_KEY=${TRIKUSEC_LICENSE_KEY:-aaaaaaaa-bbbbbbbb-cccccccc}
+      - TZ=${TZ:-UTC}
     working_dir: /app
     command: ["pytest", "-v", "--cov=api", "--cov=frontend", "--cov-report=term-missing"]
     profiles:
@@ -120,6 +126,7 @@ services:
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       - TRIKUSEC_URL=http://trikusec-manager-dev:8000
       - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
+      - TZ=${TZ:-UTC}
     working_dir: /app
     command: ["pytest", "-v", "-m", "e2e"]
     profiles:
