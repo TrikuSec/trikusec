@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('ignore_ssl_errors', models.BooleanField(default=False)),
                 ('overwrite_lynis_profile', models.BooleanField(default=False)),
-                ('additional_packages', models.CharField(default='rkhunter auditd', max_length=255)),
+                ('additional_packages', models.CharField(blank=True, default='', max_length=255)),
                 ('skip_tests', models.CharField(blank=True, default='', max_length=255)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],

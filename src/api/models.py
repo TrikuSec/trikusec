@@ -176,7 +176,7 @@ class EnrollmentSettings(models.Model):
     overwrite_lynis_profile = models.BooleanField(default=False)
     use_cisofy_repo = models.BooleanField(default=False)
     enable_daily_reports = models.BooleanField(default=True)
-    additional_packages = models.CharField(max_length=255, default='rkhunter auditd')
+    additional_packages = models.CharField(max_length=255, default='', blank=True)
     skip_tests = models.CharField(max_length=255, blank=True, default='')
     updated_at = models.DateTimeField(auto_now=True)
 

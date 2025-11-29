@@ -41,7 +41,7 @@ The script behavior can be fine-tuned via **Settings - Enroll script configurati
 You can configure:
 
 - **Lynis plugins**: Custom plugins to download and install.
-- **Additional packages**: Extra system packages to install (e.g., `rkhunter`, `auditd`).
+- **Additional packages**: Optional system packages to install (e.g., `fail2ban`, `aide`). By default, no additional packages are installed.
 - **Skip tests**: Specific Lynis tests to skip during audits.
 
 
