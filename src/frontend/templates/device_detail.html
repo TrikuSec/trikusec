@@ -73,15 +73,15 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">IP Address</div>
                     <div class="text-left w-96 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.primary_ipv4_addresses|format_csv_line:" /
-                            "|default_styled }}</span>
+                        <span class="ml-2 font-mono">{{
+                            report.primary_ipv4_addresses|default_if_none:"-"|format_csv_line:" / " }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Enrolled by</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email|default_styled }}</span>
+                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email }}</span>
                     </div>
                 </div>
 
@@ -89,7 +89,7 @@
                     <div class="text-left text-gray-600 mt-2">MAC Address</div>
                     <div class="text-left w-80 text-gray-900">:
                         <span class="ml-2 font-mono">
-                            {{ report.network_mac_address.0|default_styled }}
+                            {{ report.network_mac_address.0 }}
                         </span>
                     </div>
                 </div>
@@ -97,14 +97,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Enrollment Date</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ device.created_at|date:'Y-m-d H:i'|default_styled }}</span>
+                        <span class="ml-2 italic">{{ device.created_at|date:'Y-m-d H:i' }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Hostid</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.hostid|shorten_string:10|default_styled }}</span>
+                        <span class="ml-2 font-mono">{{ report.hostid|shorten_string:10 }}</span>
                     </div>
                 </div>
 
@@ -112,7 +112,7 @@
                     <div class="text-left text-gray-600 mt-2">Hostid2</div>
                     <div class="text-left w-80 text-gray-900">:
                         <span class="ml-2 font-mono">
-                            {{ report.hostid2|shorten_string:10|default_styled }}
+                            {{ report.hostid2|shorten_string:10 }}
                         </span>
                     </div>
                 </div>
@@ -120,14 +120,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Operating System</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ report.os|default_styled }}</span>
+                        <span class="ml-2">{{ report.os }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Kernel Version</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.os_kernel_version_full|default_styled }}</span>
+                        <span class="ml-2 font-mono">{{ report.os_kernel_version_full }}</span>
                     </div>
                 </div>
 
@@ -143,15 +143,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Uptime</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{% if report.uptime_in_days %}{{ report.uptime_in_days }} days{% else
-                            %}{{ None|default_styled }}{% endif %}</span>
+                        <span class="ml-2 italic">{{ report.uptime_in_days }} days</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Last check-in time</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ device.last_update|date:'Y-m-d H:i'|default_styled }}</span>
+                        <span class="ml-2 italic">{{ device.last_update|date:'Y-m-d H:i' }}</span>
                     </div>
                 </div>
 
@@ -174,21 +173,21 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Lynis version</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ device.lynis_version|default_styled }}</span>
+                        <span class="ml-2">{{ device.lynis_version }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Audit frequency</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.lynis_timer_period|default_styled }}</span>
+                        <span class="ml-2 italic">{{ report.lynis_timer_period|default_if_none:"-" }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Last report</div>
                     <div class="text-left w-80 text-gray-900 inline-flex items-center">:
-                        <span class="ml-2 italic">{{ report.report_datetime_end|naturaltime|default_styled }}</span>
+                        <span class="ml-2 italic">{{ report.report_datetime_end|naturaltime }}</span>
                         <div class="ml-2 flex items-center space-x-1">
                             <a href="{% url 'device_report' device_id=device.id %}" class="cursor-pointer"
                                 title="View raw report (key=value format)">
@@ -215,7 +214,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Next scheduled audit</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.lynis_timer_next_trigger|naturaltime|default_styled
+                        <span class="ml-2 italic">{{ report.lynis_timer_next_trigger|default_if_none:"-"|naturaltime
                             }}</span>
                     </div>
                 </div>
@@ -223,14 +222,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Hardening index</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.hardening_index|default_styled }}/100</span>
+                        <span class="ml-2 italic">{{ report.hardening_index }}/100</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Tests performed</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.lynis_tests_done|default_styled }}</span>
+                        <span class="ml-2 italic">{{ report.lynis_tests_done }}</span>
                     </div>
                 </div>
 
@@ -251,14 +250,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Antivirus</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ report.clamav_version|default_styled }}</span>
+                        <span class="ml-2">{{ report.clamav_version|default_if_none:"-" }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Last AV update</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.clamav_last_update|default_styled }}</span>
+                        <span class="ml-2 italic">{{ report.clamav_last_update|default_if_none:"-" }}</span>
                     </div>
                 </div>
 
