@@ -45,6 +45,7 @@ services:
       # Domain-based configuration (automatically configures URLs and allowed hosts)
       - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
       - TRIKUSEC_ADMIN_PASSWORD=${TRIKUSEC_ADMIN_PASSWORD:-trikusec}
+      - TZ=${TZ:-UTC}
     expose:
       - "8000"
     restart: unless-stopped
@@ -68,6 +69,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       # Domain-based configuration (automatically configures URLs and allowed hosts)
       - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
+      - TZ=${TZ:-UTC}
     expose:
       - "8001"
     restart: unless-stopped
