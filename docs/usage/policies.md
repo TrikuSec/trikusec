@@ -166,7 +166,7 @@ Common fields available in Lynis reports include:
 
 TrikuSec includes pre-installed system rules and a **"Default baseline"** ruleset that provides essential security checks:
 
-- **High Hardening Index** - Requires hardening index > 70
+- **High Hardening Index** - Requires hardening index > 60
 - **No Vulnerable Packages** - Ensures no vulnerable packages detected
 - **Recent Audit** - Requires audit within last 7 days
 
