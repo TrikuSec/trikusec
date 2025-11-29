@@ -5,364 +5,384 @@
 
 {% block title %}Device {{ report.hostname }}{% endblock %}
 {% block content %}
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">TrikuSec</a></h1>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6"><a href="{% url 'index' %}">TrikuSec</a></h1>
 
-        <!-- Rule selection side-panel -->
-        {% include 'policy/ruleset_selection_sidebar.html' %}
-        
-        <!-- Ruleset and Rule edit sidebars -->
-        {% include 'policy/ruleset_edit_sidebar.html' %}
-        {% include 'policy/rule_edit_sidebar.html' %}
-        {% include 'policy/rule_selection_sidebar.html' %}
-        {% include 'device/rule_view_sidebar.html' %}
-        
-        <!-- Device details Screen -->
-        <div id="serverDetails">
-            <!--<h2 class="text-2xl font-bold mb-6">{{ report.hostname }}</h2>-->
+    <!-- Rule selection side-panel -->
+    {% include 'policy/ruleset_selection_sidebar.html' %}
 
-            <!-- Overview Section -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Overview</h3>
-                    <!-- Actions dropdown -->
-                    <div class="relative">
-                        <button type="button" class="relative flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="device-actions-button" aria-expanded="false" aria-haspopup="true" onclick="toggleActionsMenu()">
-                            <span class="sr-only">Open actions menu</span>
-                            Actions
-                            <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </button>
-                        <div id="device-actions-menu" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="device-actions-button" tabindex="-1">
-                            <a href="{% url 'device_export_pdf' device_id=device.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Export to PDF</a>
-                            <button type="button" onclick="deleteDevice({{ device.id }}, '{{ report.hostname|escapejs }}')" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-800" role="menuitem" tabindex="-1">Delete Device</button>
-                        </div>
+    <!-- Ruleset and Rule edit sidebars -->
+    {% include 'policy/ruleset_edit_sidebar.html' %}
+    {% include 'policy/rule_edit_sidebar.html' %}
+    {% include 'policy/rule_selection_sidebar.html' %}
+    {% include 'device/rule_view_sidebar.html' %}
+
+    <!-- Device details Screen -->
+    <div id="serverDetails">
+        <!--<h2 class="text-2xl font-bold mb-6">{{ report.hostname }}</h2>-->
+
+        <!-- Overview Section -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Overview</h3>
+                <!-- Actions dropdown -->
+                <div class="relative">
+                    <button type="button"
+                        class="relative flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                        id="device-actions-button" aria-expanded="false" aria-haspopup="true"
+                        onclick="toggleActionsMenu()">
+                        <span class="sr-only">Open actions menu</span>
+                        Actions
+                        <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div id="device-actions-menu"
+                        class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        role="menu" aria-orientation="vertical" aria-labelledby="device-actions-button" tabindex="-1">
+                        <a href="{% url 'device_export_pdf' device_id=device.id %}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem"
+                            tabindex="-1">Export to PDF</a>
+                        <button type="button" onclick="deleteDevice({{ device.id }}, '{{ report.hostname|escapejs }}')"
+                            class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-800"
+                            role="menuitem" tabindex="-1">Delete Device</button>
                     </div>
-                </div>
-                <div class="grid grid-cols-2">
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Device name</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2">{{ report.hostname }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Compliance</div>
-                        <div class="text-left w-80 text-gray-900 font-medium">:
-                            {% if device.compliant %}
-                            <span class="ml-2 bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Compliant</span>
-                            {% else %}
-                            <span class="ml-2 bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Non-compliant</span>
-                            {% endif %}
-                        </div>
-                    </div> 
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">IP Address</div>
-                        <div class="text-left w-96 text-gray-900">:
-                            <span class="ml-2 font-mono">{{ report.primary_ipv4_addresses|default_if_none:"-"|format_csv_line:" / " }}</span></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Enrolled by</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 font-light">{{ device.licensekey.created_by.email }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">MAC Address</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 font-mono">
-                                {{ report.network_mac_address.0 }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Enrollment Date</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ device.created_at|date:'Y-m-d H:s' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Hostid</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 font-mono">{{ report.hostid|shorten_string:10 }}</span></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Hostid2</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 font-mono">
-                                {{ report.hostid2|shorten_string:10 }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Operating System</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2">{{ report.os }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Kernel Version</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 font-mono">{{ report.os_kernel_version_full }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Distribution</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 inline-flex">{{ report.os_fullname }} {{ report.os_fullname|distro_icon }}</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Uptime</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.uptime_in_days }} days</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Last check-in time</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ device.last_update|date:'Y-m-d H:s' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">TrikuSec Lynis plugin</div>
-                        <div class="text-left w-80 text-gray-900 inline-flex">:
-                                <span class="ml-2">{{ report.trikusec_custom_tests|boolean_icon }}</span>
-                        </div>
-                    </div>
-
-
                 </div>
             </div>
+            <div class="grid grid-cols-2">
 
-            <!-- Audit Section -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
-                <h3 class="text-xl font-semibold mb-4">Audit</h3>
-                <div class="grid grid-cols-2">
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Lynis version</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2">{{ device.lynis_version }}</span>
-                        </div>
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Device name</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2">{{ report.hostname }}</span>
                     </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Audit frequency</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.lynis_timer_period|default_if_none:"-" }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Last report</div>
-                        <div class="text-left w-80 text-gray-900 inline-flex items-center">:
-                            <span class="ml-2 italic">{{ report.report_datetime_end|naturaltime }}</span>
-                            <div class="ml-2 flex items-center space-x-1">
-                                <a href="{% url 'device_report' device_id=device.id %}" class="cursor-pointer" title="View raw report (key=value format)">
-                                    <span class="sr-only">View raw report</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 hover:fill-gray-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                    </svg>
-                                </a>
-                                <a href="{% url 'device_report_json' device_id=device.id %}" class="cursor-pointer" title="View parsed report (JSON dictionary)">
-                                    <span class="sr-only">View parsed report JSON</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 hover:fill-gray-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75L3.75 12l4.5 5.25m7.5-10.5L20.25 12l-4.5 5.25M13.5 4.5l-3 15" />
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Next scheduled audit</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.lynis_timer_next_trigger|default_if_none:"-"|naturaltime }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Hardening index</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.hardening_index }}/100</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Tests performed</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.lynis_tests_done }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Failed logins</div>
-                        <div class="text-left w-80 text-gray-900 inline-flex">:
-                            <span class="ml-2">{{ report.auth_failed_logins_logged|boolean_icon }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Firewall</div>
-                        <div class="text-left w-80 text-gray-900 inline-flex">:
-                            <span class="ml-2">{{ report.firewall_active|boolean_icon }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Antivirus</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2">{{ report.clamav_version|default_if_none:"-" }}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 w-96 space-y-2">
-                        <div class="text-left text-gray-600 mt-2">Last AV update</div>
-                        <div class="text-left w-80 text-gray-900">:
-                            <span class="ml-2 italic">{{ report.clamav_last_update|default_if_none:"-" }}</span>
-                        </div>
-                    </div>
-                
                 </div>
-            </div>
 
-            <!-- Compliance Section -->
-            {% include 'device/device_compliance.html' with evaluated_rulesets=evaluated_rulesets device=device %}
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Compliance</div>
+                    <div class="text-left w-80 text-gray-900 font-medium">:
+                        {% if device.compliant %}
+                        <span class="ml-2 bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Compliant</span>
+                        {% else %}
+                        <span class="ml-2 bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Non-compliant</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-            <!-- Security Section -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
-                <h3 class="text-xl font-semibold mb-4">Security feedback</h3>
-                
-                <!-- Warnings Subsection -->
-                {% include 'device/device_warnings.html' with warnings=report.warning %}
-                
-                <!-- Suggestions Subsection -->
-                {% include 'device/device_suggestions.html' with suggestions=report.suggestion %}
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">IP Address</div>
+                    <div class="text-left w-96 text-gray-900">:
+                        <span class="ml-2 font-mono">{{
+                            report.primary_ipv4_addresses|default_if_none:"-"|format_csv_line:" / " }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Enrolled by</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">MAC Address</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 font-mono">
+                            {{ report.network_mac_address.0 }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Enrollment Date</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ device.created_at|date:'Y-m-d H:i' }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Hostid</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 font-mono">{{ report.hostid|shorten_string:10 }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Hostid2</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 font-mono">
+                            {{ report.hostid2|shorten_string:10 }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Operating System</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2">{{ report.os }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Kernel Version</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 font-mono">{{ report.os_kernel_version_full }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Distribution</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 inline-flex">{{ report.os_fullname }} {{ report.os_fullname|distro_icon
+                            }}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Uptime</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.uptime_in_days }} days</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Last check-in time</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ device.last_update|date:'Y-m-d H:i' }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">TrikuSec Lynis plugin</div>
+                    <div class="text-left w-80 text-gray-900 inline-flex">:
+                        <span class="ml-2">{{ report.trikusec_custom_tests|boolean_icon }}</span>
+                    </div>
+                </div>
+
+
             </div>
         </div>
+
+        <!-- Audit Section -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-4">
+            <h3 class="text-xl font-semibold mb-4">Audit</h3>
+            <div class="grid grid-cols-2">
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Lynis version</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2">{{ device.lynis_version }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Audit frequency</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.lynis_timer_period|default_if_none:"-" }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Last report</div>
+                    <div class="text-left w-80 text-gray-900 inline-flex items-center">:
+                        <span class="ml-2 italic">{{ report.report_datetime_end|naturaltime }}</span>
+                        <div class="ml-2 flex items-center space-x-1">
+                            <a href="{% url 'device_report' device_id=device.id %}" class="cursor-pointer"
+                                title="View raw report (key=value format)">
+                                <span class="sr-only">View raw report</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6 hover:fill-gray-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                </svg>
+                            </a>
+                            <a href="{% url 'device_report_json' device_id=device.id %}" class="cursor-pointer"
+                                title="View parsed report (JSON dictionary)">
+                                <span class="sr-only">View parsed report JSON</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6 hover:fill-gray-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8.25 6.75L3.75 12l4.5 5.25m7.5-10.5L20.25 12l-4.5 5.25M13.5 4.5l-3 15" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Next scheduled audit</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.lynis_timer_next_trigger|default_if_none:"-"|naturaltime
+                            }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Hardening index</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.hardening_index }}/100</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Tests performed</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.lynis_tests_done }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Failed logins</div>
+                    <div class="text-left w-80 text-gray-900 inline-flex">:
+                        <span class="ml-2">{{ report.auth_failed_logins_logged|boolean_icon }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Firewall</div>
+                    <div class="text-left w-80 text-gray-900 inline-flex">:
+                        <span class="ml-2">{{ report.firewall_active|boolean_icon }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Antivirus</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2">{{ report.clamav_version|default_if_none:"-" }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 w-96 space-y-2">
+                    <div class="text-left text-gray-600 mt-2">Last AV update</div>
+                    <div class="text-left w-80 text-gray-900">:
+                        <span class="ml-2 italic">{{ report.clamav_last_update|default_if_none:"-" }}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Compliance Section -->
+        {% include 'device/device_compliance.html' with evaluated_rulesets=evaluated_rulesets device=device %}
+
+        <!-- Security Section -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
+            <h3 class="text-xl font-semibold mb-4">Security feedback</h3>
+
+            <!-- Warnings Subsection -->
+            {% include 'device/device_warnings.html' with warnings=report.warning %}
+
+            <!-- Suggestions Subsection -->
+            {% include 'device/device_suggestions.html' with suggestions=report.suggestion %}
+        </div>
     </div>
+</div>
 
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        const ruleset_checkbox_elements = document.querySelectorAll('#rulesets input[type="checkbox"]');
-        const ruleset_checkbox_divs = document.querySelectorAll('#rulesets > div');
+<script>
+    const ruleset_checkbox_elements = document.querySelectorAll('#rulesets input[type="checkbox"]');
+    const ruleset_checkbox_divs = document.querySelectorAll('#rulesets > div');
 
-        function toggleDetails(element) {
-            var details = element.closest('td').querySelector('.hidden-details');
-            if (details.style.display === 'none' || details.style.display === '') {
-                details.style.display = 'block';
+    function toggleDetails(element) {
+        var details = element.closest('td').querySelector('.hidden-details');
+        if (details.style.display === 'none' || details.style.display === '') {
+            details.style.display = 'block';
+        } else {
+            details.style.display = 'none';
+        }
+    }
+    function toggleRules(element) {
+        var ruleset_id = element.closest('tr').dataset.rulesetId;
+        //var rules = document.querySelectorAll('.hidden-rule');
+        // Select only the evaluated rules that has the data-ruleset-id attribute equal to the ruleset_id
+        var rules = document.querySelectorAll('.evaluated-rule[data-ruleset-id="' + ruleset_id + '"]');
+        rules.forEach(function (rule) {
+            rule.classList.toggle('hidden');
+        });
+    }
+
+    function toggleRulesetSelectionPanel() {
+        // Toggle the hidden ruleset selection side-panel
+        document.getElementById('ruleset-selection-panel').classList.toggle('hidden');
+    }
+
+    function searchRulesetByName(name) {
+        if (!name) {
+            // Remove hidden for every ruleset checkbox element
+            ruleset_checkbox_divs.forEach(function (ruleset) {
+                ruleset.classList.remove('hidden');
+            });
+            return;
+        }
+
+        // Hide rulesets that do not match the search query
+        ruleset_checkbox_divs.forEach(function (ruleset) {
+            // The ruleset name is in the label element
+            var ruleset_name = ruleset.querySelector('label').textContent.trim();
+            if (ruleset_name.toLowerCase().includes(name.toLowerCase())) {
+                ruleset.classList.remove('hidden');
             } else {
-                details.style.display = 'none';
-            }
-        }
-        function toggleRules(element) {
-            var ruleset_id = element.closest('tr').dataset.rulesetId;
-            //var rules = document.querySelectorAll('.hidden-rule');
-            // Select only the evaluated rules that has the data-ruleset-id attribute equal to the ruleset_id
-            var rules = document.querySelectorAll('.evaluated-rule[data-ruleset-id="' + ruleset_id + '"]');
-            rules.forEach(function(rule) {
-                rule.classList.toggle('hidden');
-            });
-        }
-
-        function toggleRulesetSelectionPanel() {
-            // Toggle the hidden ruleset selection side-panel
-            document.getElementById('ruleset-selection-panel').classList.toggle('hidden');
-        }
-
-        function searchRulesetByName(name) {
-            if (!name) {
-                // Remove hidden for every ruleset checkbox element
-                ruleset_checkbox_divs.forEach(function(ruleset) {
-                    ruleset.classList.remove('hidden');
-                });
-                return;
-            }
-            
-            // Hide rulesets that do not match the search query
-            ruleset_checkbox_divs.forEach(function(ruleset) {
-                // The ruleset name is in the label element
-                var ruleset_name = ruleset.querySelector('label').textContent.trim();
-                if (ruleset_name.toLowerCase().includes(name.toLowerCase())) {
-                    ruleset.classList.remove('hidden');
-                } else {
-                    ruleset.classList.add('hidden');
-                }
-            });
-        }
-
-        function loadMoreSuggestions() {
-            var rows = document.querySelectorAll('#suggestions tr.hidden');
-            var count = 5;
-
-            for (var i = 0; i < rows.length && i < count; i++) {
-                rows[i].classList.remove('hidden');
-            }      
-
-            // If there are no more hidden rows, hide the "Load more" button
-            if (rows.length <= count) {
-                // Add class hidden
-                document.getElementById('load-more-suggestions-btn').classList.add('hidden');
-            }
-        }
-
-        // Event listeners added after DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const ruleset_selection_panel = document.getElementById('ruleset-selection-panel');
-            const device_id = ruleset_selection_panel.dataset.deviceId;
-            const ruleset_selection_panel_button = document.getElementById('button-ruleset-selection-panel');
-            const ruleset_search_input = document.getElementById('ruleset-search-input');
-            const load_more_suggestions_btn = document.getElementById('load-more-suggestions-btn');
-
-            // Add a click event listener to the hidden ruleset selection side-panel
-            document.querySelectorAll('.button-ruleset-selection-panel').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    toggleRulesetSelectionPanel();
-                    //selectRulesets(device_id);
-                });
-            });
-
-            ruleset_search_input.addEventListener('onkeyup', function() {
-                searchRulesetByName(ruleset_search_input.value);
-            });
-
-            // Add a click event listener to the load more suggestions button
-            if (load_more_suggestions_btn) {
-                load_more_suggestions_btn.addEventListener('click', function() {
-                    loadMoreSuggestions();
-                });
+                ruleset.classList.add('hidden');
             }
         });
-    </script>
-    {{ evaluated_rulesets|json_script:"evaluated-rulesets-data" }}
-    
-    <script>
-        // Pass data to JavaScript for sidebars
-        const rulesets = {{ rulesets_json|safe }};
-        const rules = {{ rules_json|safe }};
-    </script>
-    <script src="{% static 'js/policies.js' %}"></script>
-    <script src="{% static 'js/rules.js' %}"></script>
-    <script src="{% static 'js/rule_view.js' %}"></script>
-    <script src="{% static 'js/devices.js' %}"></script>
-{% endblock %}
+    }
 
+    function loadMoreSuggestions() {
+        var rows = document.querySelectorAll('#suggestions tr.hidden');
+        var count = 5;
+
+        for (var i = 0; i < rows.length && i < count; i++) {
+            rows[i].classList.remove('hidden');
+        }
+
+        // If there are no more hidden rows, hide the "Load more" button
+        if (rows.length <= count) {
+            // Add class hidden
+            document.getElementById('load-more-suggestions-btn').classList.add('hidden');
+        }
+    }
+
+    // Event listeners added after DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function () {
+        const ruleset_selection_panel = document.getElementById('ruleset-selection-panel');
+        const device_id = ruleset_selection_panel.dataset.deviceId;
+        const ruleset_selection_panel_button = document.getElementById('button-ruleset-selection-panel');
+        const ruleset_search_input = document.getElementById('ruleset-search-input');
+        const load_more_suggestions_btn = document.getElementById('load-more-suggestions-btn');
+
+        // Add a click event listener to the hidden ruleset selection side-panel
+        document.querySelectorAll('.button-ruleset-selection-panel').forEach(function (button) {
+            button.addEventListener('click', function () {
+                toggleRulesetSelectionPanel();
+                //selectRulesets(device_id);
+            });
+        });
+
+        ruleset_search_input.addEventListener('onkeyup', function () {
+            searchRulesetByName(ruleset_search_input.value);
+        });
+
+        // Add a click event listener to the load more suggestions button
+        if (load_more_suggestions_btn) {
+            load_more_suggestions_btn.addEventListener('click', function () {
+                loadMoreSuggestions();
+            });
+        }
+    });
+</script>
+{{ evaluated_rulesets|json_script:"evaluated-rulesets-data" }}
+
+<script>
+    // Pass data to JavaScript for sidebars
+    const rulesets = {{ rulesets_json| safe }};
+    const rules = {{ rules_json| safe }};
+</script>
+<script src="{% static 'js/policies.js' %}"></script>
+<script src="{% static 'js/rules.js' %}"></script>
+<script src="{% static 'js/rule_view.js' %}"></script>
+<script src="{% static 'js/devices.js' %}"></script>
+{% endblock %}
