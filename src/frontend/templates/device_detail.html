@@ -73,8 +73,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">IP Address</div>
                     <div class="text-left w-96 text-gray-900">:
-                        <span class="ml-2 font-mono">{{
-                            report.primary_ipv4_addresses|default_if_none:"-"|format_csv_line:" / " }}</span>
+                        <span class="ml-2 font-mono">{{ report.primary_ipv4_addresses|format_csv_line:" / "|default:"-" }}</span>
                     </div>
                 </div>
 
@@ -88,9 +87,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">MAC Address</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-mono">
-                            {{ report.network_mac_address.0 }}
-                        </span>
+                        <span class="ml-2 font-mono">{{ report.primary_mac_address|default:"-" }}</span>
                     </div>
                 </div>
 
@@ -134,9 +131,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Distribution</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 inline-flex">{{ report.os_fullname }} {{ report.os_fullname|distro_icon
-                            }}</span>
-                        </span>
+                        <span class="ml-2 inline-flex">{{ report.os_fullname }} {{ report.os_fullname|distro_icon }}</span>
                     </div>
                 </div>
 
@@ -187,7 +182,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Last report</div>
                     <div class="text-left w-80 text-gray-900 inline-flex items-center">:
-                        <span class="ml-2 italic">{{ report.report_datetime_end|naturaltime }}</span>
+                        <span class="ml-2 italic">{% if report.report_datetime_end %}{{ report.report_datetime_end|naturaltime }}{% else %}-{% endif %}</span>
                         <div class="ml-2 flex items-center space-x-1">
                             <a href="{% url 'device_report' device_id=device.id %}" class="cursor-pointer"
                                 title="View raw report (key=value format)">
@@ -214,8 +209,7 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Next scheduled audit</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.lynis_timer_next_trigger|default_if_none:"-"|naturaltime
-                            }}</span>
+                        <span class="ml-2 italic">{% if report.lynis_timer_next_trigger %}{{ report.lynis_timer_next_trigger|naturaltime }}{% else %}-{% endif %}</span>
                     </div>
                 </div>
 

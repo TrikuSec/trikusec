@@ -27,14 +27,20 @@ def boolean_icon(value):
 
 @register.filter(name='format_csv_line')
 def format_csv_line(value, separator=', '):
-    """ Convert a list to a string """
+    """ Convert a list to a string, filtering out None and empty values """
     if not value:
         return ''
     
     if not isinstance(value, list):
         return value
     
-    return separator.join(value)
+    # Filter out None and empty string values
+    filtered_values = [str(v) for v in value if v is not None and str(v).strip()]
+    
+    if not filtered_values:
+        return ''
+    
+    return separator.join(filtered_values)
 
 @register.filter(name='split_messages')
 def split_messages(value, arg):

@@ -265,6 +265,9 @@ class LynisReport:
                     filtered_addresses.append(ipv4_address)
         # Convert list to string
         logging.debug(f'Filtered IPv4 addresses: {filtered_addresses}')
+        # If no addresses matched, return ['-'] to indicate no matches
+        if not filtered_addresses:
+            return ['-']
         return filtered_addresses
 
     def _get_primary_mac_address(self) -> str:
@@ -273,16 +276,17 @@ class LynisReport:
         
         The MAC address arrays are parallel to IP address arrays in Lynis reports.
         We find the primary IP (on gateway network) and return its corresponding MAC.
+        Returns '-' if no MAC address is found.
         """
         mac_addresses = self.get('network_mac_address')
         ipv4_addresses = self.get('network_ipv4_address')
         primary_ips = self.get('primary_ipv4_addresses')
         
         if not mac_addresses or not isinstance(mac_addresses, list) or len(mac_addresses) == 0:
-            return None
+            return '-'
         
         if not ipv4_addresses or not isinstance(ipv4_addresses, list) or len(ipv4_addresses) == 0:
-            return None
+            return '-'
         
         if not primary_ips or primary_ips == ['-']:
             # No primary IP found, return first non-loopback MAC if available
@@ -294,7 +298,7 @@ class LynisReport:
                     if ip and ip != '127.0.0.1' and not ip.startswith('127.'):
                         return mac
             # Fallback to first MAC if no non-loopback found
-            return mac_addresses[0] if mac_addresses else None
+            return mac_addresses[0] if mac_addresses else '-'
         
         # Find the index of the primary IP in the IP addresses array
         # Use the first primary IP if multiple exist
@@ -318,7 +322,7 @@ class LynisReport:
                 if ip and ip != '127.0.0.1' and not ip.startswith('127.'):
                     return mac
         
-        return mac_addresses[0] if mac_addresses else None
+        return mac_addresses[0] if mac_addresses else '-'
 
     def _add_days_since_audit_variable(self) -> None:
         """Add days_since_audit key calculated from report_datetime_end."""
