@@ -28,6 +28,7 @@ services:
       - TZ=${TZ:-UTC}
       - TZ=${TZ:-UTC}
       - DJANGO_TIME_ZONE=${DJANGO_TIME_ZONE:-UTC}
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
     restart: unless-stopped
