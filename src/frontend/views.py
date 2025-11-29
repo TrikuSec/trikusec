@@ -516,7 +516,8 @@ def device_report_json(request, device_id):
     if not isinstance(parsed_report, dict) or not parsed_report:
         return HttpResponse('Failed to parse the report', status=500)
 
-    json_payload = json.dumps(parsed_report, indent=2, sort_keys=True)
+    from django.core.serializers.json import DjangoJSONEncoder
+    json_payload = json.dumps(parsed_report, indent=2, sort_keys=True, cls=DjangoJSONEncoder)
     return HttpResponse(json_payload, content_type='application/json')
 
 @login_required
