@@ -84,6 +84,7 @@ class DeviceEvent(models.Model):
         ('enrolled', 'Device Enrolled'),
         ('deleted', 'Device Deleted'),
         ('license_changed', 'License Changed'),
+        ('compliance_changed', 'Compliance Status Changed'),
     ]
 
     device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True, blank=True)

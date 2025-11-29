@@ -46,6 +46,11 @@
             color: #92400e;
         }
 
+        .activity-pill--compliance-changed {
+            background-color: #e9d5ff;
+            color: #6b21a8;
+        }
+
         .activity-pill--device-event {
             background-color: #e0f2fe;
             color: #0369a1;
@@ -379,6 +384,7 @@
                     <option value="enrollment" {% if request.GET.type == 'enrollment' %}selected{% endif %}>Enrollment</option>
                     <option value="device_deleted" {% if request.GET.type == 'device_deleted' %}selected{% endif %}>Device Deleted</option>
                     <option value="license_changed" {% if request.GET.type == 'license_changed' %}selected{% endif %}>License Changed</option>
+                    <option value="compliance_changed" {% if request.GET.type == 'compliance_changed' %}selected{% endif %}>Compliance Status Changed</option>
                     <option value="changed" {% if request.GET.type == 'changed' %}selected{% endif %}>Changed</option>
                     <option value="added" {% if request.GET.type == 'added' %}selected{% endif %}>Added</option>
                     <option value="removed" {% if request.GET.type == 'removed' %}selected{% endif %}>Removed</option>
@@ -474,11 +480,12 @@
                     {% if entry.summary_badges %}
                     <div class="flex flex-wrap gap-2 mt-2">
                         {% for badge in entry.summary_badges %}
-                        {% if badge.type == 'enrollment' or badge.type == 'device_deleted' or badge.type == 'license_changed' %}
+                        {% if badge.type == 'enrollment' or badge.type == 'device_deleted' or badge.type == 'license_changed' or badge.type == 'compliance_changed' %}
                         <span class="activity-pill activity-pill--device-event activity-pill--{{ badge.type|replace:"_:-" }}">
                             {% if badge.type == 'enrollment' %}New device enrolled
                             {% elif badge.type == 'device_deleted' %}Device deleted
                             {% elif badge.type == 'license_changed' %}License changed
+                            {% elif badge.type == 'compliance_changed' %}Compliance status changed
                             {% else %}{{ badge.type|replace:"_: "|capfirst }}{% endif %}
                         </span>
                         {% else %}
@@ -576,6 +583,34 @@
                                     </div>
                                     {% else %}
                                     <p class="text-sm text-gray-600">Device license was changed</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% elif block.type == 'compliance_changed' %}
+                            <div class="activity-entry">
+                                <div class="activity-entry-header">
+                                    <div class="activity-entry-title">
+                                        <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="font-semibold text-gray-900">Compliance status changed</span>
+                                    </div>
+                                    <div class="activity-entry-timestamp">{{ activity.created_at|date:"Y-m-d H:i" }}</div>
+                                </div>
+                                <div class="activity-entry-content">
+                                    {% if activity.metadata %}
+                                    <div class="activity-entry-grid">
+                                        <div class="before-card">
+                                            <p class="activity-entry-label">Previous Status</p>
+                                            <p class="activity-value {% if activity.metadata.old_status == 'Non-Compliant' %}text-red-600{% else %}text-green-600{% endif %}">{{ activity.metadata.old_status|default:"Unknown" }}</p>
+                                        </div>
+                                        <div class="now-card {% if activity.metadata.new_status == 'Compliant' %}now-card--up{% else %}now-card--down{% endif %}">
+                                            <p class="activity-entry-label">New Status</p>
+                                            <p class="activity-value {% if activity.metadata.new_status == 'Non-Compliant' %}text-red-600{% else %}text-green-600{% endif %}">{{ activity.metadata.new_status|default:"Unknown" }}</p>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-sm text-gray-600">Device compliance status changed</p>
                                     {% endif %}
                                 </div>
                             </div>
