@@ -241,6 +241,28 @@ class TestUploadReport:
         assert parsed_report.keys is not None
         assert len(parsed_report.keys) > 0
 
+    def test_device_last_update_is_timezone_aware(self, test_license_key, sample_lynis_report):
+        """Test that device.last_update is timezone-aware after report upload (fixes issue #80)."""
+        from django.test import Client
+        from django.urls import reverse
+        from django.utils import timezone
+        
+        client = Client()
+        url = reverse('upload_report')
+        
+        response = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'tz-test-host',
+            'hostid2': 'tz-test-host-2',
+            'data': sample_lynis_report
+        })
+        
+        assert response.status_code == 200
+        
+        device = Device.objects.get(hostid='tz-test-host')
+        assert device.last_update is not None
+        assert timezone.is_aware(device.last_update), "Device last_update should be timezone-aware"
+
 
 @pytest.mark.django_db
 class TestCheckLicense:
@@ -1030,6 +1052,29 @@ class TestLynisReportCustomVariables:
         parsed = LynisReport(report_data).get_parsed_report()
 
         assert parsed['days_since_audit'] is None
+
+    def test_parse_report_datetime_returns_timezone_aware(self):
+        """Test that _parse_report_datetime returns timezone-aware datetimes (fixes issue #80)."""
+        from django.utils import timezone
+        from datetime import datetime
+        from api.utils.lynis_report import LynisReport
+        
+        # Test space-separated format (naive input)
+        report_data = "report_datetime_end=2024-01-01 10:00:00"
+        report = LynisReport(report_data)
+        parsed_dt = report.get('report_datetime_end')
+        
+        assert parsed_dt is not None
+        assert timezone.is_aware(parsed_dt), "Parsed datetime should be timezone-aware"
+        
+        # Test ISO format (already aware)
+        aware_dt = timezone.now()
+        report_data_iso = f"report_datetime_end={aware_dt.isoformat()}"
+        report_iso = LynisReport(report_data_iso)
+        parsed_dt_iso = report_iso.get('report_datetime_end')
+        
+        assert parsed_dt_iso is not None
+        assert timezone.is_aware(parsed_dt_iso), "ISO datetime should remain timezone-aware"
 
     def test_installed_package_names_generated_from_packages_array(self):
         """Test that installed_package_names extracts package names without versions."""

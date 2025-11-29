@@ -113,6 +113,12 @@ class LynisReport:
             old_val = old_keys.get(key)
             new_val = new_keys.get(key)
             
+            # Serialize datetime objects to string for JSON compatibility
+            if isinstance(old_val, datetime):
+                old_val = old_val.isoformat()
+            if isinstance(new_val, datetime):
+                new_val = new_val.isoformat()
+            
             if old_val is None and new_val is not None:
                 changes['added'][key] = new_val
             elif old_val is not None and new_val is None:
@@ -199,6 +205,13 @@ class LynisReport:
         
         # Extract primary MAC address (corresponding to primary IP on gateway network)
         self.set('primary_mac_address', self._get_primary_mac_address())
+
+        # Parse and store report_datetime_end as datetime object (timezone-aware)
+        raw_datetime_end = self.get('report_datetime_end')
+        if raw_datetime_end:
+            parsed_datetime = self._parse_report_datetime(raw_datetime_end)
+            if parsed_datetime:
+                self.set('report_datetime_end', parsed_datetime)
 
         # Generate dynamic audit timing helper
         self._add_days_since_audit_variable()
@@ -346,14 +359,20 @@ class LynisReport:
             if candidate.endswith('Z'):
                 candidate = candidate[:-1] + '+00:00'
             try:
-                return datetime.fromisoformat(candidate)
+                parsed_datetime = datetime.fromisoformat(candidate)
             except ValueError:
                 # Fallback to common Lynis format (space separated)
                 try:
-                    return datetime.strptime(candidate, '%Y-%m-%d %H:%M:%S')
+                    parsed_datetime = datetime.strptime(candidate, '%Y-%m-%d %H:%M:%S')
                 except ValueError:
                     logging.debug('Unable to parse report_datetime_end value: %s', value)
                     return None
+            
+            # Make timezone-aware if naive
+            if timezone.is_naive(parsed_datetime):
+                parsed_datetime = timezone.make_aware(parsed_datetime, timezone.get_current_timezone())
+            
+            return parsed_datetime
 
         logging.debug('Unsupported report_datetime_end type: %s', type(value))
         return None
