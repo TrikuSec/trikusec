@@ -34,13 +34,23 @@ def format_csv_line(value, separator=', '):
     if not isinstance(value, list):
         return value
     
-    # Filter out None and empty string values
+    # Filter out None and empty string values, but preserve "-" as it indicates "no data found"
     filtered_values = [str(v) for v in value if v is not None and str(v).strip()]
     
     if not filtered_values:
         return ''
     
-    return separator.join(filtered_values)
+    # If the only value is "-", return it as-is (will be styled by empty_value filter)
+    if len(filtered_values) == 1 and filtered_values[0] == '-':
+        return '-'
+    
+    # Filter out "-" from multi-value lists (only keep real values)
+    real_values = [v for v in filtered_values if v != '-']
+    
+    if not real_values:
+        return '-'
+    
+    return separator.join(real_values)
 
 @register.filter(name='split_messages')
 def split_messages(value, arg):
@@ -246,3 +256,44 @@ def replace(value, arg):
         return str(value).replace(old, new)
     except (ValueError, AttributeError, TypeError):
         return value
+
+@register.filter(name='empty_value')
+def empty_value(value, default_text="-"):
+    """
+    Return a styled placeholder for empty values, or the value itself if not empty.
+    Follows UI/UX best practices by styling empty values differently (lighter gray, italic).
+    
+    Handles:
+    - None values
+    - Empty strings
+    - Empty lists
+    - Lists containing only "-" or empty strings
+    - Strings that are just "-"
+    """
+    # Check if value is None
+    if value is None:
+        return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
+    
+    # Handle empty strings
+    if isinstance(value, str):
+        if not value.strip() or value.strip() == '-':
+            return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
+        return value
+    
+    # Handle empty lists
+    if isinstance(value, list):
+        if len(value) == 0:
+            return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
+        # Check if list contains only empty strings or "-"
+        filtered = [v for v in value if v is not None and str(v).strip() and str(v).strip() != '-']
+        if not filtered:
+            return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
+        # List has valid values, return as-is (will be processed by other filters)
+        return value
+    
+    # For other types, check if they're falsy
+    if not value:
+        return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
+    
+    # Value is not empty, return as-is
+    return value

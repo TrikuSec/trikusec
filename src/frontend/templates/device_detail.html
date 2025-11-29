@@ -73,21 +73,21 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">IP Address</div>
                     <div class="text-left w-96 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.primary_ipv4_addresses|format_csv_line:" / "|default:"-" }}</span>
+                        <span class="ml-2 font-mono">{{ report.primary_ipv4_addresses|format_csv_line:" / "|empty_value }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Enrolled by</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email }}</span>
+                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email|empty_value }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">MAC Address</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.primary_mac_address|default:"-" }}</span>
+                        <span class="ml-2 font-mono">{{ report.primary_mac_address|empty_value }}</span>
                     </div>
                 </div>
 
@@ -117,14 +117,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Operating System</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ report.os }}</span>
+                        <span class="ml-2">{{ report.os|empty_value }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Kernel Version</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-mono">{{ report.os_kernel_version_full }}</span>
+                        <span class="ml-2 font-mono">{{ report.os_kernel_version_full|empty_value }}</span>
                     </div>
                 </div>
 
@@ -168,14 +168,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Lynis version</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ device.lynis_version }}</span>
+                        <span class="ml-2">{{ device.lynis_version|empty_value }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Audit frequency</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.lynis_timer_period|default_if_none:"-" }}</span>
+                        <span class="ml-2 italic">{{ report.lynis_timer_period|empty_value }}</span>
                     </div>
                 </div>
 
@@ -244,14 +244,14 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Antivirus</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2">{{ report.clamav_version|default_if_none:"-" }}</span>
+                        <span class="ml-2">{{ report.clamav_version|empty_value }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Last AV update</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 italic">{{ report.clamav_last_update|default_if_none:"-" }}</span>
+                        <span class="ml-2 italic">{{ report.clamav_last_update|empty_value }}</span>
                     </div>
                 </div>
 
