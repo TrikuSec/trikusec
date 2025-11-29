@@ -240,3 +240,14 @@ def replace(value, arg):
         return str(value).replace(old, new)
     except (ValueError, AttributeError, TypeError):
         return value
+
+@register.filter(name='default_styled')
+def default_styled(value, default_text="-"):
+    """
+    Return the value if it evaluates to True, otherwise return a styled default text.
+    The default text is wrapped in a span with a lighter color and italic style.
+    """
+    if value:
+        return value
+    
+    return mark_safe(f'<span class="text-gray-400 italic">{default_text}</span>')
