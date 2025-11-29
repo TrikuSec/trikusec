@@ -120,8 +120,8 @@
             Report "lynis_timer_running=0"
         fi
 
-        # Check timer period using systemctl show
-        TIMER_PERIOD=$(systemctl show lynis.timer --property=OnCalendar 2>/dev/null | cut -d'=' -f2)
+        # Check timer period using systemctl cat (avoids hardcoded path but reads config)
+        TIMER_PERIOD=$(systemctl cat lynis.timer 2>/dev/null | grep -i "OnCalendar" | cut -d'=' -f2)
         Display --indent 2 --text "Lynis systemd timer period" --result "${TIMER_PERIOD}" --color GREEN
         # Add value to the report
         Report "lynis_timer_period=${TIMER_PERIOD}"
