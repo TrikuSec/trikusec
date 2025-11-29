@@ -64,14 +64,14 @@
     # Description : Lynis systemd timer info. It will gather information about the Lynis systemd timer.
     Register --test-no CUST-TRIKUSEC-0010 --weight L --network NO --category security --description "TrikuSec Lynis systemd timer info"
 
-    LYNIS_TIMER="/etc/systemd/system/timers.target.wants/lynis.timer"
-
-    if FileExists ${LYNIS_TIMER}; then
-        LogText "Found Lynis systemd timer file: ${LYNIS_TIMER}"
-        Display --indent 2 --text "Lynis systemd timer file" --result "${STATUS_OK}" --color GREEN
+    # Check if lynis.timer exists in systemd using systemctl
+    # This works regardless of where the unit file is located
+    if systemctl list-unit-files lynis.timer 2>/dev/null | grep -q lynis.timer; then
+        LogText "Found Lynis systemd timer unit"
+        Display --indent 2 --text "Lynis systemd timer unit" --result "${STATUS_OK}" --color GREEN
     else
-        # Requisites not met, so we skip the test
-        ReportWarning "${TEST_NO}" "Lynis systemd timer file not found" "${LYNIS_TIMER}" "text:Check if Lynis is installed"
+        # Timer not found in systemd
+        ReportWarning "${TEST_NO}" "Lynis systemd timer not found" "" "text:Check if Lynis timer is installed"
         # Skip the test
         SKIPTEST=1
     fi
@@ -120,8 +120,8 @@
             Report "lynis_timer_running=0"
         fi
 
-        # Check timer period
-        TIMER_PERIOD=$(grep -i "OnCalendar" ${LYNIS_TIMER} | cut -d'=' -f2)
+        # Check timer period using systemctl show
+        TIMER_PERIOD=$(systemctl show lynis.timer --property=OnCalendar 2>/dev/null | cut -d'=' -f2)
         Display --indent 2 --text "Lynis systemd timer period" --result "${TIMER_PERIOD}" --color GREEN
         # Add value to the report
         Report "lynis_timer_period=${TIMER_PERIOD}"
