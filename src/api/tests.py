@@ -1381,3 +1381,76 @@ class TestActivityIgnorePattern:
         
         assert should_filter_web is True  # Should be filtered
         assert should_filter_db is False  # Should NOT be filtered
+
+
+@pytest.mark.django_db
+class TestComplianceChange:
+    """Tests for compliance status change logging."""
+
+    def test_compliance_change_logged(self, test_device, sample_lynis_report):
+        from api.utils.compliance import update_device_compliance
+        from api.utils.lynis_report import LynisReport
+        from api.models import DeviceEvent, PolicyRule, PolicyRuleset
+        
+        # Initial state: device is compliant (default)
+        assert test_device.compliant is True
+        
+        # Create a rule that always fails
+        rule = PolicyRule.objects.create(
+            name="Always Fail",
+            rule_query="hardening_index > `100`", # Assuming index is < 100
+            description="This rule always fails",
+            enabled=True
+        )
+        
+        # Add rule to a ruleset
+        ruleset = PolicyRuleset.objects.create(
+            name="Test Ruleset",
+            description="Test Ruleset"
+        )
+        ruleset.rules.add(rule)
+        
+        # Assign ruleset to device
+        test_device.rulesets.add(ruleset)
+        
+        # Parse report
+        report = LynisReport(sample_lynis_report)
+        parsed_report = report.get_parsed_report()
+        
+        # Update compliance
+        update_device_compliance(test_device, parsed_report)
+        
+        # Check device is now non-compliant
+        test_device.refresh_from_db()
+        assert test_device.compliant is False
+        
+        # Check event was created
+        event = DeviceEvent.objects.filter(
+            device=test_device,
+            event_type='compliance_changed'
+        ).first()
+        
+        assert event is not None
+        assert event.metadata['old_status'] == 'Compliant'
+        assert event.metadata['new_status'] == 'Non-Compliant'
+        
+        # Update again with same report (no change)
+        DeviceEvent.objects.all().delete()
+        update_device_compliance(test_device, parsed_report)
+        
+        # Check NO event was created
+        assert DeviceEvent.objects.count() == 0
+        
+        # Make it compliant again (disable rule)
+        rule.enabled = False
+        rule.save()
+        
+        update_device_compliance(test_device, parsed_report)
+        
+        test_device.refresh_from_db()
+        assert test_device.compliant is True
+        
+        event = DeviceEvent.objects.first()
+        assert event is not None
+        assert event.metadata['old_status'] == 'Non-Compliant'
+        assert event.metadata['new_status'] == 'Compliant'

@@ -12,7 +12,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings
 from api.utils.lynis_report import LynisReport
-from api.utils.compliance import check_device_compliance
+from api.utils.compliance import check_device_compliance, update_device_compliance
 from api.utils.license_utils import generate_license_key
 from .forms import (
     PolicyRulesetForm,
@@ -226,10 +226,8 @@ def device_list(request):
         
         report = LynisReport(report.full_report)
         
-        # Use utility function to check compliance
-        compliant, _ = check_device_compliance(device, report)
-        device.compliant = compliant
-        device.save()
+        # Use utility function to check compliance and update status
+        compliant, _ = update_device_compliance(device, report.get_parsed_report())
     
     # Handle sorting
     sort_field = request.GET.get('sort', 'last_update')
@@ -332,10 +330,7 @@ def device_detail(request, device_id):
         return HttpResponse('Failed to parse the report', status=500)
     
     # Use utility function to check compliance and get detailed ruleset evaluation
-    compliant, evaluated_rulesets = check_device_compliance(device, report)
-
-    # Update the device compliance status
-    device.compliant = compliant
+    compliant, evaluated_rulesets = update_device_compliance(device, report)
 
     # Get all rulesets (used to select the rulesets for the device from the side-panel)
     policy_rulesets = PolicyRuleset.objects.prefetch_related('rules').all()
@@ -461,10 +456,7 @@ def device_export_pdf(request, device_id):
         return HttpResponse('Failed to parse the report', status=500)
     
     # Use utility function to check compliance and get detailed ruleset evaluation
-    compliant, evaluated_rulesets = check_device_compliance(device, report)
-    
-    # Update the device compliance status
-    device.compliant = compliant
+    compliant, evaluated_rulesets = update_device_compliance(device, report)
     
     # Render HTML template
     html_string = render_to_string('device/device_pdf.html', {

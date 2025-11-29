@@ -43,3 +43,38 @@ def check_device_compliance(device, report):
     
     return compliant, evaluated_rulesets
 
+
+def update_device_compliance(device, report):
+    """
+    Check compliance, update device status, and log event if status changed.
+    Returns (compliant, evaluated_rulesets).
+    """
+    from api.models import DeviceEvent  # Avoid circular import
+    
+    # Check compliance
+    compliant, evaluated_rulesets = check_device_compliance(device, report)
+    
+    # Check if status changed
+    if device.compliant != compliant:
+        old_status = 'Compliant' if device.compliant else 'Non-Compliant'
+        new_status = 'Compliant' if compliant else 'Non-Compliant'
+        
+        logging.info(f"Device {device.hostname} compliance changed: {old_status} -> {new_status}")
+        
+        # Create event
+        DeviceEvent.objects.create(
+            device=device,
+            event_type='compliance_changed',
+            metadata={
+                'old_status': old_status,
+                'new_status': new_status,
+                'hostname': device.hostname
+            }
+        )
+        
+        # Update device
+        device.compliant = compliant
+        device.save()
+        
+    return compliant, evaluated_rulesets
+
