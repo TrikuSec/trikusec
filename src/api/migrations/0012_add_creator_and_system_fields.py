@@ -51,8 +51,8 @@ def create_system_user_and_migrate_data(apps, schema_editor):
     system_rules = [
         {
             'name': 'High Hardening Index',
-            'rule_query': 'hardening_index > `70`',
-            'description': 'System requires a hardening index greater than 70',
+            'rule_query': 'hardening_index > `60`',
+            'description': 'System requires a hardening index greater than 60',
             'enabled': True,
             'alert': False,
         },
