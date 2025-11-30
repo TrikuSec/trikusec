@@ -810,8 +810,8 @@ def ruleset_update(request, ruleset_id):
             ruleset.save()
             return redirect('policy_list')
         
-        # Prevent editing name/description of system rulesets
-        if ruleset.is_system and (has_name or has_description):
+        # Prevent editing name/description of system rulesets (unless user is superuser)
+        if ruleset.is_system and (has_name or has_description) and not request.user.is_superuser:
             error_msg = 'System rulesets cannot be edited'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
@@ -1003,8 +1003,8 @@ def rule_update(request, rule_id):
     """Rule update view: update a policy rule (AJAX + fallback)"""
     policy_rule = get_object_or_404(PolicyRule, id=rule_id)
     
-    # Prevent editing system rules
-    if policy_rule.is_system:
+    # Prevent editing system rules (unless user is superuser)
+    if policy_rule.is_system and not request.user.is_superuser:
         error_msg = 'System rules cannot be edited'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({

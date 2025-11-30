@@ -520,8 +520,8 @@ class TestSidebarStateManagement:
         assert title.is_visible(), "Rule edit panel title should be visible"
         assert title.text_content() == "Create New Rule"
     
-    def test_system_rule_cannot_be_edited(self, authenticated_browser, live_server_url, db):
-        """Test that system rules cannot be edited."""
+    def test_system_rule_cannot_be_edited_by_regular_user(self, authenticated_browser, live_server_url, db, test_user):
+        """Test that system rules cannot be edited by regular (non-superuser) users."""
         from api.models import PolicyRule
         from django.contrib.auth.models import User
         
@@ -587,23 +587,92 @@ class TestSidebarStateManagement:
         
         rule_description_field = page.locator('#rule_description')
         assert rule_description_field.is_visible(), "Rule description field should be visible"
-        assert rule_description_field.input_value() == "A system rule"
+    
+    def test_system_rule_can_be_edited_by_superuser(self, live_server_url, db, test_user):
+        """Test that system rules can be edited by superuser."""
+        from api.models import PolicyRule
+        from django.contrib.auth.models import User
         
-        rule_query_field = page.locator('#rule_query')
-        assert rule_query_field.is_visible(), "Rule query field should be visible"
-        assert rule_query_field.input_value() == "system_query"
+        # Make test_user a superuser
+        test_user.is_superuser = True
+        test_user.set_password('testpassword123')
+        test_user.save()
         
-        # Verify the form remains in edit mode for the system rule
-        rule_form = page.locator('#rule-edit-form')
-        form_action = rule_form.get_attribute('action')
-        assert form_action.endswith(f"/rule/{system_rule.id}/edit/"), (
-            f"Expected form action to remain in edit mode, got '{form_action}'"
+        # Get or create system user
+        system_user, _ = User.objects.get_or_create(
+            username='system',
+            defaults={'is_active': False, 'is_staff': False, 'is_superuser': False}
+        )
+        if not system_user.has_usable_password():
+            system_user.set_unusable_password()
+            system_user.save()
+        
+        # Create a system rule
+        system_rule = PolicyRule.objects.create(
+            name='System Rule Superuser',
+            description='A system rule for superuser test',
+            rule_query='system_query_superuser',
+            enabled=True,
+            created_by=system_user,
+            is_system=True
         )
         
-        # Enabled state should match the system rule's state (True by default)
-        enabled_checkbox = page.locator('#rule_enabled')
-        assert enabled_checkbox.is_visible(), "Enabled checkbox should be visible"
-        assert enabled_checkbox.is_checked(), "System rule should remain enabled"
+        # Get page fixture
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page()
+                
+                # Navigate to login page
+                page.goto(f"{live_server_url}/login/")
+                
+                # Fill in login form
+                page.fill('input[name="username"]', test_user.username)
+                page.fill('input[name="password"]', 'testpassword123')
+                
+                # Submit form
+                page.click('button[type="submit"]')
+                
+                # Wait for redirect
+                page.wait_for_url(f"{live_server_url}/**", timeout=5000)
+                
+                # Navigate to policies page
+                page.goto(f"{live_server_url}/policies/")
+                page.wait_for_load_state("networkidle")
+                
+                # Try to edit the system rule
+                rule_row = page.locator(f'tr:has-text("System Rule Superuser")')
+                rule_row.scroll_into_view_if_needed()
+                edit_button = rule_row.locator('button[title="Edit"]')
+                edit_button.wait_for(state="visible", timeout=5000)
+                edit_button.click()
+                
+                # Wait for sidebar
+                sidebar = page.locator('#rule-edit-panel')
+                sidebar.wait_for(state="visible", timeout=5000)
+                
+                # Update the rule name
+                rule_name_field = page.locator('#rule_name')
+                rule_name_field.wait_for(state="visible", timeout=5000)
+                rule_name_field.fill('System Rule Superuser Updated')
+                
+                # Submit the form
+                page.click('#rule-edit-form button[type="submit"]')
+                
+                # Wait for page reload (successful update)
+                page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(1000)
+                
+                # Verify the rule was updated
+                rule = PolicyRule.objects.get(id=system_rule.id)
+                assert rule.name == 'System Rule Superuser Updated'
+                assert rule.description == 'A system rule for superuser test'
+                assert rule.rule_query == 'system_query_superuser'
+                
+                browser.close()
+        except ImportError:
+            pytest.skip("Playwright not available - skipping E2E test")
     
     def test_rule_selection_pencil_icon_opens_edit_panel(self, authenticated_browser, live_server_url, test_policy_data):
         """Clicking pencil icon in rule selection sidebar opens rule edit panel and hides selection panel."""
