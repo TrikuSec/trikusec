@@ -52,7 +52,9 @@ def safe_redirect(request, fallback_url_name='device_list', **kwargs):
 
 @login_required
 def index(request):
-    """Index view: redirect to the device list"""
+    """Index view: redirect to onboarding if no devices, otherwise to device list"""
+    if not Device.objects.exists():
+        return redirect('onboarding')
     return redirect('device_list')
 
 
@@ -210,24 +212,25 @@ def onboarding(request):
 def device_list(request):
     """Device list view: show all devices"""
     devices_qs = Device.objects.all()
-    if not devices_qs.exists():
-        return redirect('onboarding')
-
-    for device in devices_qs:
-        logging.debug('Checking compliance for device %s', device)
-        
-        # Get the latest report for the device
-        report = FullReport.objects.filter(device=device).order_by('-created_at').first()
-        if not report:
-            logging.error('No report found for device %s', device)
-            device.compliant = False
-            device.save()
-            continue
-        
-        report = LynisReport(report.full_report)
-        
-        # Use utility function to check compliance and update status
-        compliant, _ = update_device_compliance(device, report.get_parsed_report())
+    has_devices = devices_qs.exists()
+    
+    # Only process compliance if devices exist
+    if has_devices:
+        for device in devices_qs:
+            logging.debug('Checking compliance for device %s', device)
+            
+            # Get the latest report for the device
+            report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+            if not report:
+                logging.error('No report found for device %s', device)
+                device.compliant = False
+                device.save()
+                continue
+            
+            report = LynisReport(report.full_report)
+            
+            # Use utility function to check compliance and update status
+            compliant, _ = update_device_compliance(device, report.get_parsed_report())
     
     # Handle sorting
     sort_field = request.GET.get('sort', 'last_update')
@@ -245,8 +248,11 @@ def device_list(request):
     # Default to last_update if invalid sort field
     sort_field = valid_sort_fields.get(sort_field, 'last_update')
     
+    # If no devices, return empty list
+    if not has_devices:
+        devices = []
     # If sorting by hardening_index, we need to extract it first and sort in Python
-    if sort_field == 'hardening_index':
+    elif sort_field == 'hardening_index':
         # Get all devices first
         devices = list(Device.objects.all())
         
@@ -309,6 +315,7 @@ def device_list(request):
         'pagination_query': base_query,
         'current_sort': sort_field,
         'current_order': sort_order,
+        'has_devices': has_devices,
     })
 
 @login_required
