@@ -10,9 +10,7 @@
             <h1 class="text-3xl font-bold">{{ license.name }}</h1>
             <div>
                 <button onclick="toggleLicenseEditPanel({{ license.id }})" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2">Edit</button>
-                {% if license.has_capacity %}
-                    <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Enroll Device</a>
-                {% endif %}
+                <a href="{% url 'enroll_device' %}?license_id={{ license.id }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Enroll Device</a>
             </div>
         </div>
 
