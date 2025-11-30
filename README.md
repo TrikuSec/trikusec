@@ -1,8 +1,5 @@
 # TrikuSec
 
-> [!WARNING]
-> This project is still in development and should NOT be used in production.
-
 **TrikuSec** is a centralized Linux server auditing and compliance management platform built on [Lynis](https://cisofy.com/lynis/). It collects, stores, and analyzes security audit reports from multiple Linux servers in one place, enabling centralized monitoring and policy compliance management across your infrastructure.
 
 ## Use Cases
