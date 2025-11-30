@@ -92,7 +92,8 @@ services:
       - DJANGO_DEBUG=False
       - DJANGO_ALLOWED_HOSTS=*
       - DJANGO_ALLOW_ASYNC_UNSAFE=True
-      - DJANGO_TEST_DB_NAME=/app/data/trikusec-dev.sqlite3
+      # Removed DJANGO_TEST_DB_NAME to prevent tests from writing to dev database
+      # Tests now use in-memory database as configured in testing.py
       - TRIKUSEC_URL=http://trikusec-manager-dev:8000
       - TRIKUSEC_LYNIS_API_URL=https://trikusec-lynis-api-dev:8001
       - TRIKUSEC_LYNIS_API_VERIFY_SSL=false

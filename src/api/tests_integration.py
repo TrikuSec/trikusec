@@ -17,6 +17,8 @@ import os
 import pytest
 import requests
 import time
+from django.test import Client
+from django.urls import reverse
 from api.models import LicenseKey, Device, FullReport, DiffReport
 
 
@@ -107,95 +109,75 @@ class TestLynisIntegration:
             pytest.skip("Server not available for integration testing")
 
     def test_report_upload_workflow(
-        self, lynis_api_url, lynis_api_verify_ssl, test_license_key, sample_lynis_report
+        self, test_license_key, sample_lynis_report
     ):
-        """Test complete report upload workflow."""
-        try:
-            # Upload report
-            response = requests.post(
-                f"{lynis_api_url}/api/lynis/upload/",
-                data={
-                    'licensekey': test_license_key.licensekey,
-                    'hostid': 'integration-test-host-1',
-                    'hostid2': 'integration-test-host-2',
-                    'data': sample_lynis_report
-                },
-                timeout=10,
-                verify=lynis_api_verify_ssl
-            )
-            assert response.status_code == 200
-            assert response.text == 'OK'
+        """Test complete report upload workflow using test client (works with in-memory DB)."""
+        client = Client()
+        url = reverse('upload_report')
+        
+        # Upload report
+        response = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'integration-test-host-1',
+            'hostid2': 'integration-test-host-2',
+            'data': sample_lynis_report
+        })
+        assert response.status_code == 200
+        assert response.content.decode() == 'OK'
 
-            # Verify device was created
-            device = Device.objects.get(
-                hostid='integration-test-host-1',
-                hostid2='integration-test-host-2'
-            )
-            assert device.licensekey == test_license_key
-            assert device.hostname == 'test-server'
+        # Verify device was created (now works with in-memory DB)
+        device = Device.objects.get(
+            hostid='integration-test-host-1',
+            hostid2='integration-test-host-2'
+        )
+        assert device.licensekey == test_license_key
+        assert device.hostname == 'test-server'
 
-            # Verify report was saved
-            report = FullReport.objects.filter(device=device).first()
-            assert report is not None
-            assert report.full_report == sample_lynis_report
-
-        except requests.exceptions.RequestException:
-            pytest.skip("Server not available for integration testing")
+        # Verify report was saved
+        report = FullReport.objects.filter(device=device).first()
+        assert report is not None
+        assert report.full_report == sample_lynis_report
 
     def test_diff_generation_workflow(
         self,
-        lynis_api_url,
-        lynis_api_verify_ssl,
         test_license_key,
         sample_lynis_report,
         sample_lynis_report_updated,
     ):
-        """Test diff generation when uploading second report."""
-        try:
-            hostid = 'integration-test-host-diff-1'
-            hostid2 = 'integration-test-host-diff-2'
+        """Test diff generation when uploading second report using test client (works with in-memory DB)."""
+        client = Client()
+        url = reverse('upload_report')
+        hostid = 'integration-test-host-diff-1'
+        hostid2 = 'integration-test-host-diff-2'
 
-            # First upload
-            response1 = requests.post(
-                f"{lynis_api_url}/api/lynis/upload/",
-                data={
-                    'licensekey': test_license_key.licensekey,
-                    'hostid': hostid,
-                    'hostid2': hostid2,
-                    'data': sample_lynis_report
-                },
-                timeout=10,
-                verify=lynis_api_verify_ssl
-            )
-            assert response1.status_code == 200
+        # First upload
+        response1 = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': hostid,
+            'hostid2': hostid2,
+            'data': sample_lynis_report
+        })
+        assert response1.status_code == 200
 
-            # Wait a bit
-            time.sleep(1)
+        # Wait a bit
+        time.sleep(1)
 
-            # Second upload with updated report
-            response2 = requests.post(
-                f"{lynis_api_url}/api/lynis/upload/",
-                data={
-                    'licensekey': test_license_key.licensekey,
-                    'hostid': hostid,
-                    'hostid2': hostid2,
-                    'data': sample_lynis_report_updated
-                },
-                timeout=10,
-                verify=lynis_api_verify_ssl
-            )
-            assert response2.status_code == 200
+        # Second upload with updated report
+        response2 = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': hostid,
+            'hostid2': hostid2,
+            'data': sample_lynis_report_updated
+        })
+        assert response2.status_code == 200
 
-            # Verify diff was created
-            device = Device.objects.get(hostid=hostid, hostid2=hostid2)
-            diff_reports = DiffReport.objects.filter(device=device)
-            assert diff_reports.count() >= 1
+        # Verify diff was created (now works with in-memory DB)
+        device = Device.objects.get(hostid=hostid, hostid2=hostid2)
+        diff_reports = DiffReport.objects.filter(device=device)
+        assert diff_reports.count() >= 1
 
-            # Verify device was updated
-            device.refresh_from_db()
-            assert device.lynis_version == '3.0.1'
-            assert device.warnings == 3
-
-        except requests.exceptions.RequestException:
-            pytest.skip("Server not available for integration testing")
+        # Verify device was updated
+        device.refresh_from_db()
+        assert device.lynis_version == '3.0.1'
+        assert device.warnings == 3
 
