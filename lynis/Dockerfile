@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Lynis and required dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends lynis curl bash wget && \
+    apt-get install -y --no-install-recommends lynis curl bash wget ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -14,11 +14,11 @@ RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections &&
     echo "postfix postfix/main_mailer_type string 'Local only'" | debconf-set-selections
 
 # Create directory for Lynis plugin
-RUN mkdir -p /usr/local/lynis/plugins
+#RUN mkdir -p /usr/local/lynis/plugins
 
 # Copy TrikuSec plugin
-COPY trikusec-lynis-plugin/plugin_trikusec_phase1 /usr/local/lynis/plugins/plugin_trikusec_phase1
-RUN chmod +x /usr/local/lynis/plugins/plugin_trikusec_phase1
+#COPY trikusec-lynis-plugin/plugin_trikusec_phase1 /usr/local/lynis/plugins/plugin_trikusec_phase1
+#RUN chmod +x /usr/local/lynis/plugins/plugin_trikusec_phase1
 
 # Create test directory
 RUN mkdir -p /test
