@@ -52,11 +52,6 @@ This approach improves monitoring without added risk.
 - **[Development](development/index.md)** - Contributing, testing, and development setup
 - **[License](license.md)** - License information (GPL-3.0)
 
-## Status
-
-!!! warning "Development Status"
-    This project is still in development and should **NOT** be used in production.
-
 ## Acknowledgments
 
 TrikuSec is built on [Lynis](https://cisofy.com/lynis/), an excellent open-source security auditing tool. We are grateful to the Lynis project and its community for providing such a robust foundation.
