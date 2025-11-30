@@ -78,9 +78,13 @@
                 </div>
 
                 <div class="grid grid-cols-2 w-96 space-y-2">
-                    <div class="text-left text-gray-600 mt-2">Enrolled by</div>
+                    <div class="text-left text-gray-600 mt-2">License</div>
                     <div class="text-left w-80 text-gray-900">:
-                        <span class="ml-2 font-light">{{ device.licensekey.created_by.email|empty_value }}</span>
+                        <span class="ml-2 font-mono">
+                            <a href="{% url 'license_detail' license_id=device.licensekey.id %}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                                {{ device.licensekey.licensekey|slice:":8" }}...
+                            </a>
+                        </span>
                     </div>
                 </div>
 
