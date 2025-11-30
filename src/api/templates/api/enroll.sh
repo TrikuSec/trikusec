@@ -290,13 +290,14 @@ configure_lynis() {
     
     print_info "Configuring upload settings..."
     
-    # Bugfix: lynis configure does not work correctly with :port in the upload server URL
-    # so we need to set the configuration manually
-    echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
-    
+    # We set upload=yes before configuring the upload server to avoid a bug in lynis configure, where it says upload is already set.
     ${SUDO} lynis configure settings \
         "upload=yes:license-key=${TRIKUSEC_LICENSEKEY}:upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" \
         "auditor=TrikuSec"
+    
+    # Bugfix: lynis configure does not work correctly with :port in the upload server URL
+    # so we need to set the configuration manually
+    echo "upload-server=${TRIKUSEC_LYNIS_UPLOAD_SERVER}/api/lynis" | ${SUDO} tee -a /etc/lynis/custom.prf > /dev/null
     
     # Configure SSL validation method (mutually exclusive options)
     if [ "$IGNORE_SSL_ERRORS" = "true" ]; then
