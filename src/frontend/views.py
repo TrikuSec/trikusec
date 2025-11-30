@@ -1345,6 +1345,7 @@ def activity(request):
             'enrolled': 'enrollment',
             'deleted': 'device_deleted',
             'license_changed': 'license_changed',
+            'compliance_changed': 'compliance_changed',
         }
         activity_type = event_type_map.get(event.event_type, 'other')
         

@@ -715,7 +715,21 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <p class="activity-value">{{ activity.value|default:activity.new_value|default:activity.old_value }}</p>
+                                <p class="activity-value">
+                                    {% if activity.value %}
+                                        {{ activity.value }}
+                                    {% elif activity.metadata.new_status %}
+                                        {{ activity.metadata.new_status }}
+                                    {% elif activity.metadata.old_status %}
+                                        {{ activity.metadata.old_status }}
+                                    {% elif activity.new_value %}
+                                        {{ activity.new_value }}
+                                    {% elif activity.old_value %}
+                                        {{ activity.old_value }}
+                                    {% else %}
+                                        No value available
+                                    {% endif %}
+                                </p>
                                 {% endif %}
                                 </div>
                             </div>
