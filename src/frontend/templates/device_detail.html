@@ -80,9 +80,9 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">License</div>
                     <div class="text-left w-80 text-gray-900 inline-flex items-center">:
-                        <span class="ml-2 font-mono">
+                        <span class="ml-2">
                             <a href="{% url 'license_detail' license_id=device.licensekey.id %}" class="text-blue-600 hover:text-blue-800 hover:underline">
-                                {{ device.licensekey.licensekey|slice:":8" }}...
+                                {{ device.licensekey.name }}
                             </a>
                         </span>
                         <a href="{% url 'enroll_device' %}?license_id={{ device.licensekey.id }}" class="ml-2 cursor-pointer" title="Enroll Device">
