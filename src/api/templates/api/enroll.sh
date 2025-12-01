@@ -260,8 +260,8 @@ setup_host_identifiers() {
     HOSTIDS_OUTPUT=$(lynis show hostids 2>/dev/null || echo "")
     
     # Extract hostid and hostid2 values from the output
-    HOSTID_VALUE=$(echo "$HOSTIDS_OUTPUT" | grep -E "^hostid[[:space:]]*:" | sed 's/.*:[[:space:]]*//' | tr -d '[:space:]' || echo "")
-    HOSTID2_VALUE=$(echo "$HOSTIDS_OUTPUT" | grep -E "^hostid2[[:space:]]*:" | sed 's/.*:[[:space:]]*//' | tr -d '[:space:]' || echo "")
+    HOSTID_VALUE=$(echo "$HOSTIDS_OUTPUT" | grep -E "^hostid[[:space:]]*=" | sed 's/.*:[[:space:]]*//' | tr -d '[:space:]' || echo "")
+    HOSTID2_VALUE=$(echo "$HOSTIDS_OUTPUT" | grep -E "^hostid2[[:space:]]*=" | sed 's/.*:[[:space:]]*//' | tr -d '[:space:]' || echo "")
     
     if [ -z "$HOSTID_VALUE" ] || [ -z "$HOSTID2_VALUE" ]; then
         print_info "Host identifiers are empty. Generating new identifiers..."
