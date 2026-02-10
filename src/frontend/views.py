@@ -223,14 +223,14 @@ def device_list(request):
             report = FullReport.objects.filter(device=device).order_by('-created_at').first()
             if not report:
                 logging.error('No report found for device %s', device)
-                device.compliant = False
-                device.save()
+                # Don't update compliance here - it should be set on upload
                 continue
             
             report = LynisReport(report.full_report)
             
-            # Use utility function to check compliance and update status
-            compliant, _ = update_device_compliance(device, report.get_parsed_report())
+            # Only check compliance for display purposes, don't update device or create events
+            # Compliance updates and events should only happen on report upload
+            compliant, _ = check_device_compliance(device, report.get_parsed_report())
     
     # Handle sorting
     sort_field = request.GET.get('sort', 'last_update')
@@ -336,8 +336,9 @@ def device_detail(request, device_id):
     if not report:
         return HttpResponse('Failed to parse the report', status=500)
     
-    # Use utility function to check compliance and get detailed ruleset evaluation
-    compliant, evaluated_rulesets = update_device_compliance(device, report)
+    # Only check compliance for display purposes, don't update device or create events
+    # Compliance updates and events should only happen on report upload
+    compliant, evaluated_rulesets = check_device_compliance(device, report)
 
     # Get all rulesets (used to select the rulesets for the device from the side-panel)
     policy_rulesets = PolicyRuleset.objects.prefetch_related('rules').all()
@@ -462,8 +463,9 @@ def device_export_pdf(request, device_id):
     if 'hostname' not in report:
         return HttpResponse('Failed to parse the report', status=500)
     
-    # Use utility function to check compliance and get detailed ruleset evaluation
-    compliant, evaluated_rulesets = update_device_compliance(device, report)
+    # Only check compliance for display purposes, don't update device or create events
+    # Compliance updates and events should only happen on report upload
+    compliant, evaluated_rulesets = check_device_compliance(device, report)
     
     # Render HTML template
     html_string = render_to_string('device/device_pdf.html', {
@@ -1207,17 +1209,16 @@ def activity(request):
 
     # My activity list with the devices and the changelog (added lines, removed lines and changed lines)
     activities = []
-    max_activities = 50
+    # Limit the number of reports/events processed, not the number of individual activity lines
+    # This prevents verbose reports (many changes) from hiding history
+    max_history_items = 500
     preview_limit = 3
 
     # Get all diff reports (from most recent to oldest)
-    diff_reports = DiffReport.objects.all().order_by('-created_at')
+    diff_reports = DiffReport.objects.all().order_by('-created_at')[:max_history_items]
     
     # Let's humanize the diff reports to show them in the template
     for diff_report in diff_reports:
-        if len(activities) >= max_activities:
-            break
-        
         diff_data = diff_report.diff_report  # Already a dict from JSONField
         
         # Get hostname from DiffReport (preserved even if device is deleted)
@@ -1344,7 +1345,7 @@ def activity(request):
     
     # Merge device events (not affected by silence rules)
     combined_activities = list(activities)
-    device_events = DeviceEvent.objects.select_related('device').order_by('-created_at')[:max_activities]
+    device_events = DeviceEvent.objects.select_related('device').order_by('-created_at')[:max_history_items]
     event_activities = []
     for event in device_events:
         # Map event types to activity types

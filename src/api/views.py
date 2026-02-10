@@ -230,6 +230,14 @@ def upload_report(request):
             except DatabaseError as e:
                 logging.error(f'Database error updating device: {e}')
                 return internal_error('Database error while updating device')
+            
+            # Check compliance and generate events if status changed
+            try:
+                from api.utils.compliance import update_device_compliance
+                update_device_compliance(device, report.get_parsed_report())
+            except Exception as e:
+                # Log but don't fail the upload if compliance check fails
+                logging.error(f'Error checking device compliance: {e}')
 
             logging.info(f'Device updated: {report.get("hostname")}')
             return HttpResponse('OK')
