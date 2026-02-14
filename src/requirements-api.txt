@@ -1,7 +1,6 @@
 # API dependencies
-Django==4.2.26
+Django==5.2.11
 pyyaml==6.0.2
 jmespath>=1.0.1
-django-ratelimit==4.1.0
 psycopg2-binary==2.9.10
 gunicorn==22.0.0

@@ -108,7 +108,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'trikusec.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Support both SQLite (development) and PostgreSQL (production)
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -168,7 +168,7 @@ CACHES = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -183,7 +183,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -194,7 +194,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
@@ -203,9 +203,12 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.environ.get('STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Forms: Assume HTTPS for URLField (Django 6.0 default)
+FORMS_URLFIELD_ASSUME_HTTPS = True
 
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = [

@@ -26,5 +26,6 @@ site/
 # Static files
 src/staticfiles/
 
-# Node.js
+# Node.js and generated assets
 node_modules/
+src/frontend/static/css/tailwind.min.css

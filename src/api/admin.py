@@ -32,9 +32,9 @@ class LicenseKeyAdmin(admin.ModelAdmin):
         }),
     )
     
+    @admin.display(description='Devices')
     def device_count(self, obj):
         return obj.device_set.count()
-    device_count.short_description = 'Devices'
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
@@ -61,17 +61,17 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
     )
     
+    @admin.display(description='Operating System')
     def os_display(self, obj):
         if obj.distro:
             return f"{obj.os} - {obj.distro}"
         return obj.os
-    os_display.short_description = 'Operating System'
     
+    @admin.display(description='Status')
     def compliance_status(self, obj):
         if obj.compliant:
             return format_html('<span style="color: green;">✓ Compliant</span>')
         return format_html('<span style="color: red;">✗ Non-compliant</span>')
-    compliance_status.short_description = 'Status'
 
 @admin.register(FullReport)
 class FullReportAdmin(admin.ModelAdmin):
@@ -81,10 +81,10 @@ class FullReportAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'full_report')
     date_hierarchy = 'created_at'
     
+    @admin.display(description='Preview')
     def report_preview(self, obj):
         preview = obj.full_report[:100] + '...' if len(obj.full_report) > 100 else obj.full_report
         return preview
-    report_preview.short_description = 'Preview'
 
 @admin.register(DiffReport)
 class DiffReportAdmin(admin.ModelAdmin):
@@ -94,6 +94,7 @@ class DiffReportAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'diff_report')
     date_hierarchy = 'created_at'
     
+    @admin.display(description='Preview')
     def diff_preview(self, obj):
         if isinstance(obj.diff_report, dict):
             preview = json.dumps(obj.diff_report, indent=2)
@@ -101,7 +102,6 @@ class DiffReportAdmin(admin.ModelAdmin):
         else:
             preview = str(obj.diff_report)[:100] + '...' if len(str(obj.diff_report)) > 100 else str(obj.diff_report)
         return format_html('<pre style="white-space: pre-wrap;">{}</pre>', preview)
-    diff_preview.short_description = 'Preview'
 
 @admin.register(PolicyRule)
 class PolicyRuleAdmin(admin.ModelAdmin):
@@ -127,6 +127,7 @@ class PolicyRuleAdmin(admin.ModelAdmin):
         }),
     )
     
+    @admin.display(description='Status')
     def rule_status(self, obj):
         if obj.enabled:
             status = '<span style="color: green;">● Active</span>'
@@ -134,7 +135,6 @@ class PolicyRuleAdmin(admin.ModelAdmin):
                 status += ' <span style="color: orange;">[Alert]</span>'
             return format_html(status)
         return format_html('<span style="color: gray;">○ Disabled</span>')
-    rule_status.short_description = 'Status'
 
 @admin.register(PolicyRuleset)
 class PolicyRulesetAdmin(admin.ModelAdmin):
@@ -161,13 +161,13 @@ class PolicyRulesetAdmin(admin.ModelAdmin):
         }),
     )
     
+    @admin.display(description='Rules')
     def rule_count(self, obj):
         return obj.rules.count()
-    rule_count.short_description = 'Rules'
     
+    @admin.display(description='Devices')
     def device_count(self, obj):
         return obj.devices.count()
-    device_count.short_description = 'Devices'
 
 @admin.register(ActivityIgnorePattern)
 class ActivityIgnorePatternAdmin(admin.ModelAdmin):
