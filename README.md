@@ -16,17 +16,21 @@ TrikuSec is ideal for:
 
 ### Core Capabilities
 
+- **Security Overview Dashboard**: Centralized dashboard with at-a-glance visibility into compliance rates, warning counts, OS distribution, top security issues, and devices requiring attention
 - **Centralized Audit Collection**: Receives audit reports from multiple Linux servers via Lynis clients, storing full reports and generating diff reports to track changes over time
 - **Device Management**: Tracks all monitored servers with metadata including hostname, OS, distribution, version, and compliance status
 - **Policy & Compliance Management**: Define custom compliance rules using a query language and automatically evaluate devices against assigned policies
 - **Report Analysis**: View complete audit reports, track changes between audits, and analyze historical compliance trends
 - **PDF Export**: Export comprehensive device reports to PDF format for documentation and compliance audits
-- **Web Dashboard**: User-friendly interface for viewing devices, compliance status, policies, and reports
+- **Web Interface**: User-friendly interface for viewing devices, compliance status, policies, and reports
 - **API Integration**: Lynis-compatible API endpoints for seamless integration with existing Lynis installations
 
 ### Screenshots
 
-![TrikuSec Devices Dashboard](docs/assets/img/trikusec-devices.png)
+**Security Overview Dashboard**
+The main dashboard provides a comprehensive security overview with summary cards showing compliance rates, warning counts, OS distribution, top security issues across your infrastructure, and a dedicated section highlighting devices that require immediate attention.
+
+![TrikuSec Devices List](docs/assets/img/trikusec-devices.png)
 
 ![Device Detail View](docs/assets/img/trikusec-device-detail.png)
 
