@@ -25,3 +25,6 @@ site/
 
 # Static files
 src/staticfiles/
+
+# Node.js
+node_modules/
