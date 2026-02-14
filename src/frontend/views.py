@@ -62,7 +62,6 @@ def index(request):
 def dashboard(request):
     """Dashboard view: security overview with stats, OS distribution, top issues, and attention items."""
     from django.utils import timezone as tz
-    from collections import Counter
 
     devices = Device.objects.all()
     total_devices = devices.count()
@@ -78,8 +77,9 @@ def dashboard(request):
 
     # Average hardening index (requires parsing reports)
     hardening_values = []
-    warning_counter = Counter()   # test_id -> (description, count)
-    suggestion_counter = Counter()
+    # Track unique device IDs per warning/suggestion: key -> set of device IDs
+    warning_devices = {}  # (test_id, description) -> set of device IDs
+    suggestion_devices = {}  # (test_id, description) -> set of device IDs
 
     # Fetch latest report per device in bulk: one query per device is acceptable
     # for dashboards with reasonable fleet sizes.  We iterate devices that have
@@ -104,19 +104,23 @@ def dashboard(request):
             except (ValueError, TypeError):
                 pass
 
-        # Aggregate warnings
+        # Aggregate warnings - track unique devices per warning (by test_id only)
         for w in (parsed.get('warning') or []):
             if isinstance(w, list) and len(w) >= 2:
                 test_id, desc = w[0], w[1]
-                key = (test_id, desc)
-                warning_counter[key] += 1
+                key = test_id  # Use test_id only, not (test_id, description)
+                if key not in warning_devices:
+                    warning_devices[key] = {'devices': set(), 'description': desc}
+                warning_devices[key]['devices'].add(device.id)
 
-        # Aggregate suggestions
+        # Aggregate suggestions - track unique devices per suggestion (by test_id only)
         for s in (parsed.get('suggestion') or []):
             if isinstance(s, list) and len(s) >= 2:
                 test_id, desc = s[0], s[1]
-                key = (test_id, desc)
-                suggestion_counter[key] += 1
+                key = test_id  # Use test_id only, not (test_id, description)
+                if key not in suggestion_devices:
+                    suggestion_devices[key] = {'devices': set(), 'description': desc}
+                suggestion_devices[key]['devices'].add(device.id)
 
     avg_hardening = round(sum(hardening_values) / len(hardening_values)) if hardening_values else None
 
@@ -131,13 +135,14 @@ def dashboard(request):
     )
 
     # --- Top warnings & suggestions (top 5) ---
+    # Sort by number of unique devices (descending) and take top 5
     top_warnings = [
-        {'test_id': k[0], 'description': k[1], 'count': v}
-        for k, v in warning_counter.most_common(5)
+        {'test_id': k, 'description': v['description'], 'count': len(v['devices'])}
+        for k, v in sorted(warning_devices.items(), key=lambda x: len(x[1]['devices']), reverse=True)[:5]
     ]
     top_suggestions = [
-        {'test_id': k[0], 'description': k[1], 'count': v}
-        for k, v in suggestion_counter.most_common(5)
+        {'test_id': k, 'description': v['description'], 'count': len(v['devices'])}
+        for k, v in sorted(suggestion_devices.items(), key=lambda x: len(x[1]['devices']), reverse=True)[:5]
     ]
 
     # --- Recent activity (last 5 events) ---

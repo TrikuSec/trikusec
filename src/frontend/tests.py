@@ -1118,6 +1118,52 @@ class TestDashboardView:
         assert len(top_suggestions) >= 1
         assert top_suggestions[0]['test_id'] == 'SSH-7408'
 
+    def test_dashboard_counts_unique_devices_not_occurrences(self, test_user, test_license_key):
+        """Dashboard should count unique devices, not total occurrences of warnings/suggestions."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        # Device 1 has PKGS-7392 warning appearing 3 times (e.g., multiple vulnerable packages)
+        # But it should only count as 1 device
+        report_d1 = (
+            '# Lynis Report\nhostname=device1\nos=Linux\nlynis_version=3.0.0\n'
+            'warning[]=PKGS-7392|Found vulnerable package A|-|-\n'
+            'warning[]=PKGS-7392|Found vulnerable package B|-|-\n'
+            'warning[]=PKGS-7392|Found vulnerable package C|-|-\n'
+            'suggestion[]=SSH-7408|Consider hardening SSH configuration (item 1)|-|-\n'
+            'suggestion[]=SSH-7408|Consider hardening SSH configuration (item 2)|-|-\n'
+        )
+
+        # Device 2 has the same warning but with different description - should count as 1 more device
+        report_d2 = (
+            '# Lynis Report\nhostname=device2\nos=Linux\nlynis_version=3.0.0\n'
+            'warning[]=PKGS-7392|Found one or more vulnerable packages.|-|-\n'
+            'suggestion[]=SSH-7408|Consider hardening SSH configuration|-|-\n'
+        )
+
+        d1 = DeviceFactory(licensekey=test_license_key)
+        d2 = DeviceFactory(licensekey=test_license_key)
+        FullReport.objects.create(device=d1, full_report=report_d1)
+        FullReport.objects.create(device=d2, full_report=report_d2)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        top_warnings = response.context['top_warnings']
+        top_suggestions = response.context['top_suggestions']
+        
+        # Should be 2 devices, not 4 occurrences (3 from d1 + 1 from d2)
+        assert len(top_warnings) >= 1
+        assert top_warnings[0]['test_id'] == 'PKGS-7392'
+        assert top_warnings[0]['count'] == 2, f"Expected 2 unique devices, got {top_warnings[0]['count']}"
+        
+        # Should be 2 devices, not 3 occurrences (2 from d1 + 1 from d2)
+        assert len(top_suggestions) >= 1
+        assert top_suggestions[0]['test_id'] == 'SSH-7408'
+        assert top_suggestions[0]['count'] == 2, f"Expected 2 unique devices, got {top_suggestions[0]['count']}"
+
     def test_dashboard_recent_events(self, test_user, test_device):
         """Dashboard should show recent device events."""
         client = Client()
