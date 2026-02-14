@@ -456,7 +456,7 @@
     <div id="activity-accordion" class="space-y-4">
         {% for entry in grouped_activities %}
         <div class="activity-host-card{% if entry.has_device_event %} activity-host-card--device-event{% endif %}" data-host-card data-hostname="{{ entry.hostname|lower }}">
-            <button type="button" class="activity-host-header" data-host-toggle="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U' }}">
+            <button type="button" class="activity-host-header" data-host-toggle="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.counter }}">
                 <div>
                     <div class="flex items-center gap-2">
                         <p class="text-lg font-semibold text-gray-900">{{ entry.hostname }}</p>
@@ -501,7 +501,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 8l4 4 4-4" />
                 </svg>
             </button>
-            <div class="activity-host-panel hidden" id="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U' }}">
+            <div class="activity-host-panel hidden" id="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.counter }}">
                 {% for block in entry.type_blocks %}
                 <div class="activity-type-section">
                     <div class="activity-type-header">
@@ -516,7 +516,7 @@
                             </small>
                         </div>
                     </div>
-                    <div id="type-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U' }}-{{ block.type }}">
+                    <div id="type-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.parentloop.counter }}-{{ block.type }}">
                         {% for activity in block.activities %}
                         {% if block.type == 'enrollment' %}
                             <div class="activity-entry">
