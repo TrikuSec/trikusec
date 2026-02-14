@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.models import Q, F, Count, Sum
 from django.core.paginator import Paginator
 from django.conf import settings
-from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings
+from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings, ComplianceSnapshot
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance, update_device_compliance
 from api.utils.license_utils import generate_license_key
@@ -62,13 +62,22 @@ def index(request):
 def dashboard(request):
     """Dashboard view: security overview with stats, OS distribution, top issues, and attention items."""
     from django.utils import timezone as tz
-    from collections import Counter
+    from collections import Counter, defaultdict
+    from datetime import timedelta
 
     devices = Device.objects.all()
     total_devices = devices.count()
 
     if total_devices == 0:
         return redirect('onboarding')
+
+    now = tz.now()
+
+    # --- Time range filter ---
+    time_range = request.GET.get('range', '30d')
+    range_map = {'7d': 7, '30d': 30, '90d': 90, '1y': 365}
+    days = range_map.get(time_range, 30)
+    range_start = now - timedelta(days=days)
 
     # --- Summary cards ---
     compliant_count = devices.filter(compliant=True).count()
@@ -80,10 +89,12 @@ def dashboard(request):
     hardening_values = []
     warning_counter = Counter()   # test_id -> (description, count)
     suggestion_counter = Counter()
+    # Also collect per-device hardening index for the comparison table
+    device_hardening_map = {}
 
-    # Fetch latest report per device in bulk: one query per device is acceptable
-    # for dashboards with reasonable fleet sizes.  We iterate devices that have
-    # at least one report.
+    # Store parsed reports for reuse (top failing rules evaluation)
+    device_parsed_reports = {}
+
     devices_with_reports = devices.filter(
         id__in=FullReport.objects.values('device_id').distinct()
     )
@@ -97,10 +108,14 @@ def dashboard(request):
         except Exception:
             continue
 
+        device_parsed_reports[device.id] = parsed
+
         hi = parsed.get('hardening_index')
         if hi is not None:
             try:
-                hardening_values.append(int(hi))
+                hi_int = int(hi)
+                hardening_values.append(hi_int)
+                device_hardening_map[device.id] = hi_int
             except (ValueError, TypeError):
                 pass
 
@@ -119,6 +134,29 @@ def dashboard(request):
                 suggestion_counter[key] += 1
 
     avg_hardening = round(sum(hardening_values) / len(hardening_values)) if hardening_values else None
+
+    # --- Compliance trend chart (from ComplianceSnapshot) ---
+    snapshots_in_range = (
+        ComplianceSnapshot.objects
+        .filter(created_at__gte=range_start)
+        .order_by('created_at')
+    )
+    # Group by date and compute daily compliance percentage
+    daily_data = defaultdict(lambda: {'compliant': 0, 'total': 0})
+    for snap in snapshots_in_range:
+        day_key = snap.created_at.date().isoformat()
+        daily_data[day_key]['total'] += 1
+        if snap.compliant:
+            daily_data[day_key]['compliant'] += 1
+
+    # Build sorted chart data
+    sorted_days = sorted(daily_data.keys())
+    compliance_trend_labels = sorted_days
+    compliance_trend_data = []
+    for day in sorted_days:
+        d = daily_data[day]
+        pct = round(d['compliant'] * 100 / d['total']) if d['total'] else 0
+        compliance_trend_data.append(pct)
 
     # --- OS Distribution ---
     os_distribution = (
@@ -140,16 +178,59 @@ def dashboard(request):
         for k, v in suggestion_counter.most_common(5)
     ]
 
+    # --- Top failing policy rules ---
+    rule_fail_counter = Counter()  # rule_id -> count
+    rule_info = {}  # rule_id -> {name, description}
+
+    for device in devices:
+        parsed = device_parsed_reports.get(device.id)
+        if not parsed:
+            continue
+        for ruleset in device.rulesets.prefetch_related('rules').all():
+            for rule in ruleset.rules.filter(enabled=True):
+                if not rule.evaluate(parsed):
+                    rule_fail_counter[rule.id] += 1
+                    if rule.id not in rule_info:
+                        rule_info[rule.id] = {'name': rule.name, 'description': rule.description}
+
+    top_failing_rules = [
+        {'rule_id': rid, 'name': rule_info[rid]['name'], 'description': rule_info[rid]['description'], 'count': cnt}
+        for rid, cnt in rule_fail_counter.most_common(5)
+    ]
+
     # --- Recent activity (last 5 events) ---
     recent_events = DeviceEvent.objects.select_related('device').order_by('-created_at')[:5]
+
+    # --- Device comparison table with trend indicators ---
+    device_comparison = []
+    for device in devices:
+        # Get last 2 snapshots to compute trend
+        last_snapshots = list(
+            ComplianceSnapshot.objects
+            .filter(device=device)
+            .order_by('-created_at')[:2]
+        )
+
+        trend = 'stable'
+        if len(last_snapshots) >= 2:
+            newer, older = last_snapshots[0], last_snapshots[1]
+            if newer.hardening_index is not None and older.hardening_index is not None:
+                if newer.hardening_index > older.hardening_index:
+                    trend = 'improving'
+                elif newer.hardening_index < older.hardening_index:
+                    trend = 'declining'
+
+        device_comparison.append({
+            'device': device,
+            'hardening_index': device_hardening_map.get(device.id),
+            'trend': trend,
+        })
 
     # --- Needs attention: long-standing non-compliant devices ---
     non_compliant_devices = devices.filter(compliant=False)
     attention_items = []
-    now = tz.now()
 
     for device in non_compliant_devices:
-        # Find when device became non-compliant
         compliance_event = (
             DeviceEvent.objects
             .filter(device=device, event_type='compliance_changed')
@@ -159,7 +240,6 @@ def dashboard(request):
         if compliance_event and compliance_event.metadata.get('new_status') == 'Non-Compliant':
             non_compliant_since = compliance_event.created_at
         else:
-            # Fallback: use last_update or created_at
             non_compliant_since = device.last_update or device.created_at
 
         days_non_compliant = (now - non_compliant_since).days
@@ -170,7 +250,6 @@ def dashboard(request):
             'days_non_compliant': days_non_compliant,
         })
 
-    # Sort by longest non-compliant first
     attention_items.sort(key=lambda x: x['days_non_compliant'], reverse=True)
 
     context = {
@@ -183,8 +262,13 @@ def dashboard(request):
         'os_distribution': os_distribution,
         'top_warnings': top_warnings,
         'top_suggestions': top_suggestions,
+        'top_failing_rules': top_failing_rules,
         'recent_events': recent_events,
+        'device_comparison': device_comparison,
         'attention_items': attention_items,
+        'compliance_trend_labels_json': json.dumps(compliance_trend_labels),
+        'compliance_trend_data_json': json.dumps(compliance_trend_data),
+        'current_range': time_range,
     }
     return render(request, 'dashboard.html', context)
 
@@ -504,6 +588,28 @@ def device_detail(request, device_id):
         }
         rules_data.append(rule_data)
 
+    # --- Compliance history from snapshots ---
+    snapshots = list(
+        ComplianceSnapshot.objects
+        .filter(device=device)
+        .order_by('created_at')
+        .values('created_at', 'compliant', 'hardening_index', 'warning_count')
+    )
+    compliance_history = {
+        'labels': [s['created_at'].date().isoformat() for s in snapshots],
+        'compliant': [1 if s['compliant'] else 0 for s in snapshots],
+        'hardening_index': [s['hardening_index'] for s in snapshots],
+        'warning_count': [s['warning_count'] for s in snapshots],
+    }
+
+    # --- Last compliance change event ---
+    last_compliance_event = (
+        DeviceEvent.objects
+        .filter(device=device, event_type='compliance_changed')
+        .order_by('-created_at')
+        .first()
+    )
+
     return render(request, 'device_detail.html', {
         'device': device,
         'report': report,
@@ -512,6 +618,8 @@ def device_detail(request, device_id):
         'all_rules': all_rules,  # For rule selection sidebar template
         'rulesets_json': json.dumps(rulesets_data),
         'rules_json': json.dumps(rules_data),
+        'compliance_history_json': json.dumps(compliance_history),
+        'last_compliance_event': last_compliance_event,
     })
 
 

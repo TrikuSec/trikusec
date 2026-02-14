@@ -6,9 +6,18 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold">Dashboard</h1>
-        <p class="text-gray-500 mt-1">Security overview for your organization</p>
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <p class="text-gray-500 mt-1">Security overview for your organization</p>
+        </div>
+        <!-- Time range selector -->
+        <div class="flex items-center space-x-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+            <a href="?range=7d" class="px-3 py-1.5 text-sm rounded-md {% if current_range == '7d' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">7d</a>
+            <a href="?range=30d" class="px-3 py-1.5 text-sm rounded-md {% if current_range == '30d' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">30d</a>
+            <a href="?range=90d" class="px-3 py-1.5 text-sm rounded-md {% if current_range == '90d' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">90d</a>
+            <a href="?range=1y" class="px-3 py-1.5 text-sm rounded-md {% if current_range == '1y' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">1y</a>
+        </div>
     </div>
 
     <!-- Summary Cards -->
@@ -86,6 +95,18 @@
             </div>
             {% endif %}
         </div>
+    </div>
+
+    <!-- Compliance Trend Chart -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Compliance Trend</h2>
+        {% if compliance_trend_data_json != '[]' %}
+        <div style="height: 250px;">
+            <canvas id="complianceTrendChart"></canvas>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm py-8 text-center">No compliance trend data available yet. Data will appear after devices submit reports.</p>
+        {% endif %}
     </div>
 
     <!-- Two-column grid: OS Distribution + Recent Activity -->
@@ -171,14 +192,14 @@
         </div>
     </div>
 
-    <!-- Two-column grid: Top Warnings + Top Suggestions -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Three-column grid: Top Warnings + Top Suggestions + Top Failing Rules -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Top Warnings -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">
                 <span class="inline-flex items-center">
                     <svg class="w-5 h-5 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    Most Common Warnings
+                    Top Warnings
                 </span>
             </h2>
             {% if top_warnings %}
@@ -205,7 +226,7 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">
                 <span class="inline-flex items-center">
                     <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                    Most Common Suggestions
+                    Top Suggestions
                 </span>
             </h2>
             {% if top_suggestions %}
@@ -225,6 +246,106 @@
             {% else %}
             <p class="text-gray-500 text-sm">No suggestions reported.</p>
             {% endif %}
+        </div>
+
+        <!-- Top Failing Policy Rules -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                <span class="inline-flex items-center">
+                    <svg class="w-5 h-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    Top Failing Rules
+                </span>
+            </h2>
+            {% if top_failing_rules %}
+            <div class="space-y-3">
+                {% for r in top_failing_rules %}
+                <div class="flex items-start justify-between py-2 {% if not forloop.last %}border-b border-gray-100{% endif %}">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="text-sm font-medium text-gray-900">{{ r.name }}</p>
+                        <p class="text-xs text-gray-500">{{ r.description|truncatewords:15 }}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 flex-shrink-0">
+                        {{ r.count }} device{{ r.count|pluralize }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No failing policy rules.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Device Comparison Table -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Device Status</h2>
+            <a href="{% url 'device_list' %}" class="text-sm text-blue-600 hover:text-blue-800">View all devices</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600 uppercase text-xs leading-normal">
+                        <th class="py-3 px-4 text-left">Device</th>
+                        <th class="py-3 px-4 text-left">OS</th>
+                        <th class="py-3 px-4 text-center">Hardening</th>
+                        <th class="py-3 px-4 text-center">Warnings</th>
+                        <th class="py-3 px-4 text-center">Compliance</th>
+                        <th class="py-3 px-4 text-center">Trend</th>
+                        <th class="py-3 px-4 text-left">Last Scan</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm">
+                    {% for item in device_comparison %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            <a href="{% url 'device_detail' device_id=item.device.id %}" class="font-medium text-blue-600 hover:text-blue-800">{{ item.device.hostname|default:item.device.hostid }}</a>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="flex items-center">
+                                {{ item.device.distro|distro_icon }}
+                                <span class="ml-1">{{ item.device.distro|default:"-" }}</span>
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            {% if item.hardening_index is not None %}{{ item.hardening_index }}{% else %}<span class="text-gray-400">-</span>{% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{{ item.device.warnings|default:0 }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            {% if item.device.compliant %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Compliant</span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Non-Compliant</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            {% if item.trend == 'improving' %}
+                            <span class="inline-flex items-center text-green-600" title="Improving">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                            </span>
+                            {% elif item.trend == 'declining' %}
+                            <span class="inline-flex items-center text-red-600" title="Declining">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center text-gray-400" title="Stable">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-gray-500">
+                            {% if item.device.last_update %}
+                                {{ item.device.last_update|timesince }} ago
+                            {% else %}
+                                <span class="text-gray-400 italic">Never</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -286,4 +407,62 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const trendLabels = {{ compliance_trend_labels_json|safe }};
+    const trendData = {{ compliance_trend_data_json|safe }};
+
+    if (trendLabels.length > 0 && document.getElementById('complianceTrendChart')) {
+        const ctx = document.getElementById('complianceTrendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: 'Compliance %',
+                    data: trendData,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '% compliant';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) { return value + '%'; }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 10,
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -16,6 +16,7 @@ from api.models import (
     EnrollmentPlugin,
     EnrollmentPackage,
     EnrollmentSkipTest,
+    ComplianceSnapshot,
 )
 from api.utils.lynis_report import LynisReport
 import fnmatch
@@ -1454,3 +1455,68 @@ class TestComplianceChange:
         assert event is not None
         assert event.metadata['old_status'] == 'Non-Compliant'
         assert event.metadata['new_status'] == 'Compliant'
+
+
+@pytest.mark.django_db
+class TestComplianceSnapshotOnUpload:
+    """Tests that ComplianceSnapshot records are created on report upload."""
+
+    def test_snapshot_created_on_upload(self, test_license_key, sample_lynis_report):
+        """Uploading a report should create a ComplianceSnapshot."""
+        client = Client()
+        url = reverse('upload_report')
+
+        response = client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'snapshot-test-host-1',
+            'hostid2': 'snapshot-test-host-2',
+            'data': sample_lynis_report,
+        })
+
+        assert response.status_code == 200
+        device = Device.objects.get(hostid='snapshot-test-host-1')
+        snapshots = ComplianceSnapshot.objects.filter(device=device)
+        assert snapshots.count() == 1
+        snap = snapshots.first()
+        assert snap.hardening_index == 65
+        assert snap.warning_count == 5
+
+    def test_multiple_uploads_create_multiple_snapshots(self, test_license_key, sample_lynis_report, sample_lynis_report_updated):
+        """Multiple uploads should create multiple snapshots for trend tracking."""
+        client = Client()
+        url = reverse('upload_report')
+
+        # First upload
+        client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'multi-snap-host-1',
+            'hostid2': 'multi-snap-host-2',
+            'data': sample_lynis_report,
+        })
+
+        # Second upload
+        client.post(url, {
+            'licensekey': test_license_key.licensekey,
+            'hostid': 'multi-snap-host-1',
+            'hostid2': 'multi-snap-host-2',
+            'data': sample_lynis_report_updated,
+        })
+
+        device = Device.objects.get(hostid='multi-snap-host-1')
+        snapshots = ComplianceSnapshot.objects.filter(device=device).order_by('created_at')
+        assert snapshots.count() == 2
+        assert snapshots[0].hardening_index == 65
+        assert snapshots[1].hardening_index == 70
+
+    def test_snapshot_model_str(self, test_device):
+        """ComplianceSnapshot __str__ should return a readable representation."""
+        snap = ComplianceSnapshot.objects.create(
+            device=test_device,
+            compliant=True,
+            hardening_index=72,
+            warning_count=3,
+        )
+        expected_name = test_device.hostname or test_device.hostid
+        assert expected_name in str(snap)
+        assert 'Compliant' in str(snap)
+        assert '72' in str(snap)
