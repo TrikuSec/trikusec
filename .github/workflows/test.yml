@@ -57,6 +57,16 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    
+    - name: Build Tailwind CSS
+      run: |
+        npm ci
+        npm run build:css
+    
     - name: Generate test secret key
       id: secret-key
       run: |
@@ -139,6 +149,16 @@ jobs:
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    
+    - name: Build Tailwind CSS
+      run: |
+        npm ci
+        npm run build:css
     
     - name: Generate test secret key
       id: secret-key

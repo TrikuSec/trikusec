@@ -192,6 +192,40 @@ docker compose -f docker-compose.dev.yml up
 # Starts trikusec-manager (8000) and trikusec-lynis-api (8001)
 ```
 
+### Tailwind CSS Development
+
+**TrikuSec uses Tailwind CSS bundled locally (no CDN).** Static assets are built during Docker image creation.
+
+**For development with live CSS updates:**
+
+```bash
+# Start the Tailwind watcher (auto-rebuilds CSS on template/JS changes)
+docker compose -f docker-compose.dev.yml --profile tailwind up -d tailwind
+
+# Stop the watcher
+docker compose -f docker-compose.dev.yml --profile tailwind down
+```
+
+**To manually build Tailwind CSS:**
+
+```bash
+# Install dependencies (if not already installed)
+npm install
+
+# Build CSS for production (minified)
+npm run build:css
+
+# Watch for changes during development
+npm run watch:css
+```
+
+**Important notes:**
+- Tailwind CSS is generated from `src/frontend/static/css/input.css`
+- Output file: `src/frontend/static/css/tailwind.min.css` (gitignored)
+- Configuration: `tailwind.config.js` scans all templates and JS files
+- In Docker production builds, Tailwind is built in a Node.js stage before the Python image
+- Font Awesome is also bundled locally in `src/frontend/static/vendor/fontawesome/`
+
 ### Running Integration Tests with Lynis
 
 ```bash

@@ -1,0 +1,13 @@
+{
+  "name": "trikusec",
+  "version": "1.0.0",
+  "description": "TrikuSec - Security Compliance Management",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/frontend/static/css/input.css -o ./src/frontend/static/css/tailwind.min.css --minify",
+    "watch:css": "tailwindcss -i ./src/frontend/static/css/input.css -o ./src/frontend/static/css/tailwind.min.css --watch --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
