@@ -1,5 +1,5 @@
 # API dependencies
-Django==5.2.1
+Django==5.2.11
 pyyaml==6.0.2
 jmespath>=1.0.1
 psycopg2-binary==2.9.10
