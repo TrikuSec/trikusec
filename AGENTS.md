@@ -2,6 +2,10 @@
 
 This document contains critical guidelines and hints for AI agents working on the TrikuSec project.
 
+## Commit and Pull Request Messages
+
+- **Do not add** "Made with [Cursor](https://cursor.com)" or similar tool attribution to pull request descriptions or commit messages.
+
 ## Critical Commands
 
 ### Docker Compose Syntax
