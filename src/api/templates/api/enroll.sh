@@ -33,6 +33,7 @@ PLUGIN_URLS=()
 {% endif %}
 
 SUDO=""
+HTTP_CLIENT=""
 
 #==============================================================================
 # Helper Functions
@@ -60,6 +61,61 @@ print_error() {
 
 print_warning() {
     echo "[WARNING] $1"
+}
+
+#==============================================================================
+# HTTP Client Detection and Wrappers
+#==============================================================================
+
+detect_http_client() {
+    if command -v curl >/dev/null 2>&1; then
+        HTTP_CLIENT="curl"
+    elif command -v wget >/dev/null 2>&1; then
+        HTTP_CLIENT="wget"
+    else
+        # Try to install curl
+        print_info "Neither curl nor wget found. Attempting to install curl..."
+        ${SUDO} apt-get update -qq
+        if ${SUDO} apt-get install -y curl 2>/dev/null; then
+            HTTP_CLIENT="curl"
+        else
+            print_error "Failed to install curl and wget is not available."
+            print_error "Please install curl or wget and try again."
+            exit 1
+        fi
+    fi
+    print_success "Using ${HTTP_CLIENT} as HTTP client"
+}
+
+# Fetch URL contents to stdout (equivalent to curl -fsSL <url>)
+http_fetch() {
+    local url="$1"
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        curl -fsSL "$url"
+    else
+        wget -qO- "$url"
+    fi
+}
+
+# Download URL to a file (equivalent to curl -fsSL <url> -o <file>)
+http_download() {
+    local url="$1"
+    local output="$2"
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        curl -fsSL "$url" -o "$output"
+    else
+        wget -q "$url" -O "$output"
+    fi
+}
+
+# Check URL connectivity silently (equivalent to curl -s <url> -o /dev/null)
+http_check() {
+    local url="$1"
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        curl -s "$url" -o /dev/null
+    else
+        wget -q --spider "$url" 2>/dev/null
+    fi
 }
 
 #==============================================================================
@@ -147,7 +203,7 @@ download_ssl_certificate() {
     print_info "Checking server certificate..."
     
     # Check if the server is reachable and has a valid certificate
-    if ! curl -s "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}" -o /dev/null; then
+    if ! http_check "https://${TRIKUSEC_LYNIS_UPLOAD_SERVER}"; then
         print_warning "Server certificate is self-signed. Downloading for Lynis client use."
         
         # Check if openssl is installed
@@ -188,7 +244,7 @@ install_packages() {
             ${SUDO} apt-get install -y gpg
         fi
         
-        curl -fsSL https://packages.cisofy.com/keys/cisofy-software-public.key | \
+        http_fetch https://packages.cisofy.com/keys/cisofy-software-public.key | \
             ${SUDO} gpg --dearmor -o /etc/apt/trusted.gpg.d/cisofy-software-public.gpg
         echo "deb [arch=amd64,arm64 signed-by=/etc/apt/trusted.gpg.d/cisofy-software-public.gpg] https://packages.cisofy.com/community/lynis/deb/ stable main" | \
             ${SUDO} tee /etc/apt/sources.list.d/cisofy-lynis.list
@@ -356,7 +412,7 @@ install_plugins() {
         print_info "Downloading plugin from ${PLUGIN_URL}"
         
         TMP_PLUGIN=$(mktemp)
-        if curl -fsSL "${PLUGIN_URL}" -o "${TMP_PLUGIN}"; then
+        if http_download "${PLUGIN_URL}" "${TMP_PLUGIN}"; then
             PLUGIN_BASENAME=$(basename "${PLUGIN_URL}")
             ${SUDO} mv "${TMP_PLUGIN}" "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
             ${SUDO} chown root:root "${PLUGIN_DIR}/${PLUGIN_BASENAME}"
@@ -510,6 +566,7 @@ run_first_audit() {
 main() {
     show_overview
     check_prerequisites
+    detect_http_client
     download_ssl_certificate
     install_packages
     setup_lynis_profile
