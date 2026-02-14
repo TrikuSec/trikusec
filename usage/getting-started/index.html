@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1012,6 +1012,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#additional-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Views
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#viewing-your-first-report" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1650,14 +1661,45 @@
 - Assign it to devices for immediate compliance monitoring
 - Use it as a starting point for custom policies</p>
 <h3 id="dashboard-overview">Dashboard Overview<a class="headerlink" href="#dashboard-overview" title="Permanent link">&para;</a></h3>
-<p>The main dashboard shows:</p>
+<p>After logging in, you'll see the <strong>Security Overview Dashboard</strong> as the default landing page. The dashboard provides:</p>
+<h4 id="summary-cards">Summary Cards<a class="headerlink" href="#summary-cards" title="Permanent link">&para;</a></h4>
 <ul>
-<li><strong>Devices</strong> - All servers that have sent reports</li>
-<li><strong>Compliance Status</strong> - Overall compliance percentage</li>
-<li><strong>Recent Activity</strong> - Latest audit reports</li>
+<li><strong>Total Devices</strong> - Number of monitored servers</li>
+<li><strong>Compliance Rate</strong> - Percentage of compliant devices with visual progress bar</li>
+<li><strong>Total Warnings</strong> - Aggregated warning count across all devices</li>
+<li><strong>Average Hardening Index</strong> - Mean security hardening score</li>
+</ul>
+<h4 id="os-distribution">OS Distribution<a class="headerlink" href="#os-distribution" title="Permanent link">&para;</a></h4>
+<p>Visual breakdown showing the distribution of operating systems and versions across your infrastructure.</p>
+<h4 id="top-security-issues">Top Security Issues<a class="headerlink" href="#top-security-issues" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Most Common Warnings</strong> - Top 5 warnings with affected device counts</li>
+<li><strong>Most Common Suggestions</strong> - Top 5 recommendations across devices</li>
+</ul>
+<h4 id="recent-activity">Recent Activity<a class="headerlink" href="#recent-activity" title="Permanent link">&para;</a></h4>
+<p>Latest device events including enrollments, compliance changes, and other updates.</p>
+<h4 id="needs-attention">Needs Attention<a class="headerlink" href="#needs-attention" title="Permanent link">&para;</a></h4>
+<p>Table of non-compliant devices sorted by how long they've been non-compliant, helping you prioritize remediation efforts.</p>
+<h3 id="additional-views">Additional Views<a class="headerlink" href="#additional-views" title="Permanent link">&para;</a></h3>
+<h4 id="devices">Devices<a class="headerlink" href="#devices" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Devices</strong> - List all servers that have sent reports</li>
+<li><strong>Device Details</strong> - Detailed view of individual servers</li>
+<li><strong>Compliance Status</strong> - Per-device compliance information</li>
 <li><strong>Warnings</strong> - Security warnings and recommendations</li>
 </ul>
-<p><img alt="TrikuSec Devices Dashboard" src="../../assets/img/trikusec-devices.png" /></p>
+<h4 id="policies">Policies<a class="headerlink" href="#policies" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Rulesets</strong> - Collections of compliance rules</li>
+<li><strong>Rules</strong> - Individual security checks</li>
+<li><strong>Assignments</strong> - Device-to-ruleset mappings</li>
+</ul>
+<h4 id="activity">Activity<a class="headerlink" href="#activity" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Activity Feed</strong> - Chronological view of all changes and events</li>
+<li><strong>Diff Reports</strong> - Track what changed between audit runs</li>
+</ul>
+<p><img alt="TrikuSec Security Overview Dashboard" src="../../assets/img/trikusec-devices.png" /></p>
 <h3 id="viewing-your-first-report">Viewing Your First Report<a class="headerlink" href="#viewing-your-first-report" title="Permanent link">&para;</a></h3>
 <p>Once a client has uploaded a report:</p>
 <ol>
@@ -1668,7 +1710,8 @@
 </ol>
 <h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="../devices/">Device Management</a> - Learn about device management and dashboard features</li>
+<li><a href="../dashboard/">Dashboard Guide</a> - Detailed overview of dashboard features</li>
+<li><a href="../devices/">Device Management</a> - Learn about device management features</li>
 <li><a href="../policies/">Policy Management</a> - Create and manage policies</li>
 <li><a href="../reports/">Report Analysis</a> - Understand audit reports</li>
 </ul>
@@ -1694,7 +1737,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 23, 2025 22:12:30 UTC">November 23, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 14, 2026 15:22:55 UTC">February 14, 2026</span>
   </span>
 
     
@@ -1781,10 +1824,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.tooltips", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.tooltips", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
