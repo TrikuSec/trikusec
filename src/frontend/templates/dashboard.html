@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <p class="text-gray-500 mt-1">Security overview for your organization</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Total Devices -->
+        <div class="bg-white rounded-lg shadow-md border-l-4 border-blue-500 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Devices</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_devices }}</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-full">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance -->
+        <div class="bg-white rounded-lg shadow-md border-l-4 border-green-500 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Compliant</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ compliant_count }}<span class="text-lg text-gray-400 font-normal">/{{ total_devices }}</span></p>
+                </div>
+                <div class="p-3 bg-green-50 rounded-full">
+                    <svg class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full {% if compliance_pct >= 80 %}bg-green-500{% elif compliance_pct >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width: {{ compliance_pct }}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">{{ compliance_pct }}% compliance rate</p>
+            </div>
+        </div>
+
+        <!-- Total Warnings -->
+        <div class="bg-white rounded-lg shadow-md border-l-4 border-yellow-500 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Warnings</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_warnings }}</p>
+                </div>
+                <div class="p-3 bg-yellow-50 rounded-full">
+                    <svg class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Hardening Index -->
+        <div class="bg-white rounded-lg shadow-md border-l-4 border-indigo-500 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Avg. Hardening Index</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{% if avg_hardening is not None %}{{ avg_hardening }}{% else %}<span class="text-gray-400">-</span>{% endif %}</p>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-full">
+                    <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+            </div>
+            {% if avg_hardening is not None %}
+            <div class="mt-3">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full {% if avg_hardening >= 70 %}bg-indigo-500{% elif avg_hardening >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width: {{ avg_hardening }}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">out of 100</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Two-column grid: OS Distribution + Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- OS Distribution -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">OS Distribution</h2>
+            {% if os_distribution %}
+            <div class="space-y-3">
+                {% for entry in os_distribution %}
+                <div class="flex items-center">
+                    <div class="w-32 flex items-center flex-shrink-0">
+                        <span class="mr-1">{{ entry.distro|distro_icon }}</span>
+                        <span class="text-sm text-gray-700 truncate" title="{{ entry.distro }} {{ entry.distro_version|default:'' }}">{{ entry.distro }} {{ entry.distro_version|default:'' }}</span>
+                    </div>
+                    <div class="flex-1 mx-3">
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="h-4 rounded-full bg-blue-400" style="width: {% widthratio entry.count total_devices 100 %}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-600 w-8 text-right">{{ entry.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No OS data available yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                <a href="{% url 'activity' %}" class="text-sm text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+            {% if recent_events %}
+            <div class="space-y-3">
+                {% for event in recent_events %}
+                <div class="flex items-start space-x-3 py-2 {% if not forloop.last %}border-b border-gray-100{% endif %}">
+                    <div class="flex-shrink-0 mt-0.5">
+                        {% if event.event_type == 'enrolled' %}
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100">
+                            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        </span>
+                        {% elif event.event_type == 'deleted' %}
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100">
+                            <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </span>
+                        {% elif event.event_type == 'compliance_changed' %}
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-purple-100">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
+                            <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900">
+                            <span class="font-medium">
+                                {% if event.device %}
+                                    <a href="{% url 'device_detail' device_id=event.device.id %}" class="hover:text-blue-600">{{ event.device.hostname|default:event.device.hostid }}</a>
+                                {% elif event.metadata.hostname %}
+                                    {{ event.metadata.hostname }}
+                                {% else %}
+                                    Unknown device
+                                {% endif %}
+                            </span>
+                            &mdash; {{ event.get_event_type_display }}
+                            {% if event.event_type == 'compliance_changed' and event.metadata.new_status %}
+                                <span class="{% if event.metadata.new_status == 'Compliant' %}text-green-600{% else %}text-red-600{% endif %}">({{ event.metadata.new_status }})</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-gray-500">{{ event.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No recent activity.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Two-column grid: Top Warnings + Top Suggestions -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Warnings -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                <span class="inline-flex items-center">
+                    <svg class="w-5 h-5 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    Most Common Warnings
+                </span>
+            </h2>
+            {% if top_warnings %}
+            <div class="space-y-3">
+                {% for w in top_warnings %}
+                <div class="flex items-start justify-between py-2 {% if not forloop.last %}border-b border-gray-100{% endif %}">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="text-sm font-medium text-gray-900">{{ w.description }}</p>
+                        <p class="text-xs text-gray-500 font-mono">{{ w.test_id }}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 flex-shrink-0">
+                        {{ w.count }} device{{ w.count|pluralize }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No warnings reported.</p>
+            {% endif %}
+        </div>
+
+        <!-- Top Suggestions -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                <span class="inline-flex items-center">
+                    <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    Most Common Suggestions
+                </span>
+            </h2>
+            {% if top_suggestions %}
+            <div class="space-y-3">
+                {% for s in top_suggestions %}
+                <div class="flex items-start justify-between py-2 {% if not forloop.last %}border-b border-gray-100{% endif %}">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="text-sm font-medium text-gray-900">{{ s.description }}</p>
+                        <p class="text-xs text-gray-500 font-mono">{{ s.test_id }}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0">
+                        {{ s.count }} device{{ s.count|pluralize }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No suggestions reported.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Needs Attention: Long-standing Non-Compliant Devices -->
+    {% if attention_items %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">
+            <span class="inline-flex items-center">
+                <svg class="w-5 h-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Needs Attention
+            </span>
+        </h2>
+        <p class="text-sm text-gray-500 mb-4">Devices that have been non-compliant for an extended period.</p>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600 uppercase text-xs leading-normal">
+                        <th class="py-3 px-4 text-left">Device</th>
+                        <th class="py-3 px-4 text-left">OS</th>
+                        <th class="py-3 px-4 text-center">Warnings</th>
+                        <th class="py-3 px-4 text-left">Non-Compliant Since</th>
+                        <th class="py-3 px-4 text-center">Days</th>
+                        <th class="py-3 px-4 text-left">Last Scan</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm">
+                    {% for item in attention_items %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            <a href="{% url 'device_detail' device_id=item.device.id %}" class="font-medium text-blue-600 hover:text-blue-800">{{ item.device.hostname|default:item.device.hostid }}</a>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="flex items-center">
+                                {{ item.device.distro|distro_icon }}
+                                <span class="ml-1">{{ item.device.distro|default:"-" }}</span>
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{{ item.device.warnings|default:0 }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-gray-500">{{ item.non_compliant_since|date:"M d, Y" }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {% if item.days_non_compliant >= 30 %}bg-red-100 text-red-800{% elif item.days_non_compliant >= 7 %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ item.days_non_compliant }}d
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-gray-500">
+                            {% if item.device.last_update %}
+                                {{ item.device.last_update|timesince }} ago
+                            {% else %}
+                                <span class="text-gray-400 italic">Never</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
