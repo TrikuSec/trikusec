@@ -155,9 +155,24 @@ services:
       - default
     command: ["/test/run-lynis-test.sh"]
 
+  tailwind:
+    image: node:22-alpine
+    container_name: trikusec-tailwind-dev
+    volumes:
+      - ./package.json:/app/package.json:ro
+      - ./tailwind.config.js:/app/tailwind.config.js:ro
+      - ./src/frontend:/app/src/frontend
+      - tailwind-modules:/app/node_modules
+    working_dir: /app
+    command: sh -c "npm install && npx tailwindcss -i src/frontend/static/css/input.css -o src/frontend/static/css/tailwind.min.css --watch --minify"
+    restart: unless-stopped
+    profiles:
+      - tailwind
+
 volumes:
   frontend-certs:
   api-certs:
+  tailwind-modules:
 
 networks:
   default:
