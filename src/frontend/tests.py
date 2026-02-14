@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from api.models import Device, FullReport, DiffReport, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest
+from api.models import Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest
 from frontend.templatetags import custom_filters
 from frontend.views import DEVICE_LIST_PAGE_SIZE
 from frontend.forms import (
@@ -992,3 +992,198 @@ class TestPolicyRuleFormValidation:
         assert form.is_valid(), f"Form should be valid: {form.errors}"
         # The cleaned value should have whitespace stripped
         assert form.cleaned_data['rule_query'] == "os == 'Linux'"
+
+
+@pytest.mark.django_db
+class TestDashboardView:
+    """Tests for the dashboard view."""
+
+    def test_dashboard_redirects_to_onboarding_when_no_devices(self, test_user):
+        """Dashboard should redirect to onboarding when there are no devices."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 302
+        assert reverse('onboarding') in response.url
+
+    def test_dashboard_renders_with_devices(self, test_user, test_device):
+        """Dashboard should render successfully when devices exist."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert 'total_devices' in response.context
+        assert response.context['total_devices'] == 1
+        assert response.context['compliant_count'] == 1
+        assert response.context['non_compliant_count'] == 0
+
+    def test_dashboard_requires_authentication(self):
+        """Dashboard should redirect unauthenticated users to login."""
+        client = Client()
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 302
+        assert '/login' in response.url
+
+    def test_dashboard_compliance_stats(self, test_user, test_license_key):
+        """Dashboard should show correct compliance statistics."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        # Create 3 compliant and 2 non-compliant devices
+        for i in range(3):
+            DeviceFactory(licensekey=test_license_key, compliant=True)
+        for i in range(2):
+            DeviceFactory(licensekey=test_license_key, compliant=False, warnings=3)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert response.context['total_devices'] == 5
+        assert response.context['compliant_count'] == 3
+        assert response.context['non_compliant_count'] == 2
+        assert response.context['compliance_pct'] == 60
+        assert response.context['total_warnings'] == 6
+
+    def test_dashboard_os_distribution(self, test_user, test_license_key):
+        """Dashboard should aggregate OS distribution data."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        DeviceFactory(licensekey=test_license_key, distro='Ubuntu', distro_version='22.04')
+        DeviceFactory(licensekey=test_license_key, distro='Ubuntu', distro_version='22.04')
+        DeviceFactory(licensekey=test_license_key, distro='Debian', distro_version='12')
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        os_dist = list(response.context['os_distribution'])
+        assert len(os_dist) == 2
+        # Ubuntu should come first (more devices)
+        assert os_dist[0]['distro'] == 'Ubuntu'
+        assert os_dist[0]['count'] == 2
+        assert os_dist[1]['distro'] == 'Debian'
+        assert os_dist[1]['count'] == 1
+
+    def test_dashboard_hardening_index(self, test_user, test_device):
+        """Dashboard should calculate average hardening index from reports."""
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report='# Lynis Report\nhardening_index=75\nhostname=test\nos=Linux\nlynis_version=3.0.0\n'
+        )
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert response.context['avg_hardening'] == 75
+
+    def test_dashboard_top_warnings_and_suggestions(self, test_user, test_license_key):
+        """Dashboard should aggregate top warnings and suggestions from reports."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        report_content = (
+            '# Lynis Report\nhostname=test1\nos=Linux\nlynis_version=3.0.0\n'
+            'warning[]=PKGS-7392|Found one or more vulnerable packages.|-|-\n'
+            'suggestion[]=SSH-7408|Consider hardening SSH configuration|-|-\n'
+        )
+
+        d1 = DeviceFactory(licensekey=test_license_key)
+        d2 = DeviceFactory(licensekey=test_license_key)
+        FullReport.objects.create(device=d1, full_report=report_content)
+        FullReport.objects.create(device=d2, full_report=report_content)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        top_warnings = response.context['top_warnings']
+        top_suggestions = response.context['top_suggestions']
+        assert len(top_warnings) >= 1
+        assert top_warnings[0]['test_id'] == 'PKGS-7392'
+        assert top_warnings[0]['count'] == 2
+        assert len(top_suggestions) >= 1
+        assert top_suggestions[0]['test_id'] == 'SSH-7408'
+
+    def test_dashboard_recent_events(self, test_user, test_device):
+        """Dashboard should show recent device events."""
+        client = Client()
+        client.force_login(test_user)
+
+        DeviceEvent.objects.create(
+            device=test_device,
+            event_type='enrolled',
+            metadata={'hostname': test_device.hostname}
+        )
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        events = response.context['recent_events']
+        assert len(events) == 1
+        assert events[0].event_type == 'enrolled'
+
+    def test_dashboard_attention_items(self, test_user, test_license_key):
+        """Dashboard should list non-compliant devices in the attention section."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        non_compliant_device = DeviceFactory(
+            licensekey=test_license_key,
+            compliant=False,
+            warnings=5,
+            hostname='problem-server'
+        )
+        # Create a compliance event in the past
+        DeviceEvent.objects.create(
+            device=non_compliant_device,
+            event_type='compliance_changed',
+            metadata={
+                'old_status': 'Compliant',
+                'new_status': 'Non-Compliant',
+                'hostname': 'problem-server'
+            }
+        )
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        attention = response.context['attention_items']
+        assert len(attention) == 1
+        assert attention[0]['device'].hostname == 'problem-server'
+        assert attention[0]['days_non_compliant'] >= 0
+
+    def test_index_redirects_to_dashboard(self, test_user, test_device):
+        """Index view should redirect to dashboard when devices exist."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('index'))
+
+        assert response.status_code == 302
+        assert reverse('dashboard') in response.url
+
+    def test_index_redirects_to_onboarding_when_no_devices(self, test_user):
+        """Index view should redirect to onboarding when no devices exist."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('index'))
+
+        assert response.status_code == 302
+        assert reverse('onboarding') in response.url

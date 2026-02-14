@@ -46,14 +46,45 @@ TrikuSec includes a **"Default baseline"** ruleset with essential security check
 
 ## Dashboard Overview
 
-The main dashboard shows:
+After logging in, you'll see the **Security Overview Dashboard** as the default landing page. The dashboard provides:
 
-- **Devices** - All servers that have sent reports
-- **Compliance Status** - Overall compliance percentage
-- **Recent Activity** - Latest audit reports
+### Summary Cards
+- **Total Devices** - Number of monitored servers
+- **Compliance Rate** - Percentage of compliant devices with visual progress bar
+- **Total Warnings** - Aggregated warning count across all devices
+- **Average Hardening Index** - Mean security hardening score
+
+### OS Distribution
+Visual breakdown showing the distribution of operating systems and versions across your infrastructure.
+
+### Top Security Issues
+- **Most Common Warnings** - Top 5 warnings with affected device counts
+- **Most Common Suggestions** - Top 5 recommendations across devices
+
+### Recent Activity
+Latest device events including enrollments, compliance changes, and other updates.
+
+### Needs Attention
+Table of non-compliant devices sorted by how long they've been non-compliant, helping you prioritize remediation efforts.
+
+## Additional Views
+
+### Devices
+- **Devices** - List all servers that have sent reports
+- **Device Details** - Detailed view of individual servers
+- **Compliance Status** - Per-device compliance information
 - **Warnings** - Security warnings and recommendations
 
-![TrikuSec Devices Dashboard](../assets/img/trikusec-devices.png)
+### Policies
+- **Rulesets** - Collections of compliance rules
+- **Rules** - Individual security checks
+- **Assignments** - Device-to-ruleset mappings
+
+### Activity
+- **Activity Feed** - Chronological view of all changes and events
+- **Diff Reports** - Track what changed between audit runs
+
+![TrikuSec Security Overview Dashboard](../assets/img/trikusec-devices.png)
 
 ## Viewing Your First Report
 
@@ -66,7 +97,8 @@ Once a client has uploaded a report:
 
 ## Next Steps
 
-- [Device Management](devices.md) - Learn about device management and dashboard features
+- [Dashboard Guide](dashboard.md) - Detailed overview of dashboard features
+- [Device Management](devices.md) - Learn about device management features
 - [Policy Management](policies.md) - Create and manage policies
 - [Report Analysis](reports.md) - Understand audit reports
 

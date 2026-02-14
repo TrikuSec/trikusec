@@ -7,7 +7,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, Sum
 from django.core.paginator import Paginator
 from django.conf import settings
 from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings
@@ -52,10 +52,141 @@ def safe_redirect(request, fallback_url_name='device_list', **kwargs):
 
 @login_required
 def index(request):
-    """Index view: redirect to onboarding if no devices, otherwise to device list"""
+    """Index view: redirect to onboarding if no devices, otherwise to dashboard"""
     if not Device.objects.exists():
         return redirect('onboarding')
-    return redirect('device_list')
+    return redirect('dashboard')
+
+
+@login_required
+def dashboard(request):
+    """Dashboard view: security overview with stats, OS distribution, top issues, and attention items."""
+    from django.utils import timezone as tz
+    from collections import Counter
+
+    devices = Device.objects.all()
+    total_devices = devices.count()
+
+    if total_devices == 0:
+        return redirect('onboarding')
+
+    # --- Summary cards ---
+    compliant_count = devices.filter(compliant=True).count()
+    non_compliant_count = total_devices - compliant_count
+    compliance_pct = round(compliant_count * 100 / total_devices) if total_devices else 0
+    total_warnings = devices.aggregate(total=Sum('warnings'))['total'] or 0
+
+    # Average hardening index (requires parsing reports)
+    hardening_values = []
+    warning_counter = Counter()   # test_id -> (description, count)
+    suggestion_counter = Counter()
+
+    # Fetch latest report per device in bulk: one query per device is acceptable
+    # for dashboards with reasonable fleet sizes.  We iterate devices that have
+    # at least one report.
+    devices_with_reports = devices.filter(
+        id__in=FullReport.objects.values('device_id').distinct()
+    )
+
+    for device in devices_with_reports:
+        latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+        if not latest_report:
+            continue
+        try:
+            parsed = LynisReport(latest_report.full_report).get_parsed_report()
+        except Exception:
+            continue
+
+        hi = parsed.get('hardening_index')
+        if hi is not None:
+            try:
+                hardening_values.append(int(hi))
+            except (ValueError, TypeError):
+                pass
+
+        # Aggregate warnings
+        for w in (parsed.get('warning') or []):
+            if isinstance(w, list) and len(w) >= 2:
+                test_id, desc = w[0], w[1]
+                key = (test_id, desc)
+                warning_counter[key] += 1
+
+        # Aggregate suggestions
+        for s in (parsed.get('suggestion') or []):
+            if isinstance(s, list) and len(s) >= 2:
+                test_id, desc = s[0], s[1]
+                key = (test_id, desc)
+                suggestion_counter[key] += 1
+
+    avg_hardening = round(sum(hardening_values) / len(hardening_values)) if hardening_values else None
+
+    # --- OS Distribution ---
+    os_distribution = (
+        devices
+        .exclude(distro__isnull=True)
+        .exclude(distro='')
+        .values('distro', 'distro_version')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    # --- Top warnings & suggestions (top 5) ---
+    top_warnings = [
+        {'test_id': k[0], 'description': k[1], 'count': v}
+        for k, v in warning_counter.most_common(5)
+    ]
+    top_suggestions = [
+        {'test_id': k[0], 'description': k[1], 'count': v}
+        for k, v in suggestion_counter.most_common(5)
+    ]
+
+    # --- Recent activity (last 5 events) ---
+    recent_events = DeviceEvent.objects.select_related('device').order_by('-created_at')[:5]
+
+    # --- Needs attention: long-standing non-compliant devices ---
+    non_compliant_devices = devices.filter(compliant=False)
+    attention_items = []
+    now = tz.now()
+
+    for device in non_compliant_devices:
+        # Find when device became non-compliant
+        compliance_event = (
+            DeviceEvent.objects
+            .filter(device=device, event_type='compliance_changed')
+            .order_by('-created_at')
+            .first()
+        )
+        if compliance_event and compliance_event.metadata.get('new_status') == 'Non-Compliant':
+            non_compliant_since = compliance_event.created_at
+        else:
+            # Fallback: use last_update or created_at
+            non_compliant_since = device.last_update or device.created_at
+
+        days_non_compliant = (now - non_compliant_since).days
+
+        attention_items.append({
+            'device': device,
+            'non_compliant_since': non_compliant_since,
+            'days_non_compliant': days_non_compliant,
+        })
+
+    # Sort by longest non-compliant first
+    attention_items.sort(key=lambda x: x['days_non_compliant'], reverse=True)
+
+    context = {
+        'total_devices': total_devices,
+        'compliant_count': compliant_count,
+        'non_compliant_count': non_compliant_count,
+        'compliance_pct': compliance_pct,
+        'total_warnings': total_warnings,
+        'avg_hardening': avg_hardening,
+        'os_distribution': os_distribution,
+        'top_warnings': top_warnings,
+        'top_suggestions': top_suggestions,
+        'recent_events': recent_events,
+        'attention_items': attention_items,
+    }
+    return render(request, 'dashboard.html', context)
 
 
 @login_required
