@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from api.models import Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest
+from api.models import Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest, ComplianceSnapshot, PolicyRule, PolicyRuleset
 from frontend.templatetags import custom_filters
 from frontend.views import DEVICE_LIST_PAGE_SIZE
 from frontend.forms import (
@@ -1187,3 +1187,197 @@ class TestDashboardView:
 
         assert response.status_code == 302
         assert reverse('onboarding') in response.url
+
+    def test_dashboard_compliance_trend(self, test_user, test_device):
+        """Dashboard should include compliance trend data from ComplianceSnapshot."""
+        client = Client()
+        client.force_login(test_user)
+
+        # Create snapshots
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=70, warning_count=2)
+        ComplianceSnapshot.objects.create(device=test_device, compliant=False, hardening_index=60, warning_count=5)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert 'compliance_trend_labels_json' in response.context
+        assert 'compliance_trend_data_json' in response.context
+
+    def test_dashboard_device_comparison(self, test_user, test_device):
+        """Dashboard should include a device comparison table."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert 'device_comparison' in response.context
+        assert len(response.context['device_comparison']) == 1
+        assert response.context['device_comparison'][0]['device'].id == test_device.id
+
+    def test_dashboard_device_trend_improving(self, test_user, test_device):
+        """Device comparison should show improving trend when hardening index increases."""
+        client = Client()
+        client.force_login(test_user)
+
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=60, warning_count=3)
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=75, warning_count=2)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        comparison = response.context['device_comparison']
+        assert len(comparison) == 1
+        assert comparison[0]['trend'] == 'improving'
+
+    def test_dashboard_device_trend_declining(self, test_user, test_device):
+        """Device comparison should show declining trend when hardening index decreases."""
+        client = Client()
+        client.force_login(test_user)
+
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=80, warning_count=1)
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=65, warning_count=3)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        comparison = response.context['device_comparison']
+        assert comparison[0]['trend'] == 'declining'
+
+    def test_dashboard_device_trend_stable(self, test_user, test_device):
+        """Device comparison should show stable trend when hardening index unchanged."""
+        client = Client()
+        client.force_login(test_user)
+
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=70, warning_count=2)
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=70, warning_count=2)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        comparison = response.context['device_comparison']
+        assert comparison[0]['trend'] == 'stable'
+
+    def test_dashboard_top_failing_rules(self, test_user, test_license_key):
+        """Dashboard should show top failing policy rules."""
+        from conftest import DeviceFactory
+
+        client = Client()
+        client.force_login(test_user)
+
+        rule = PolicyRule.objects.create(
+            name='Require Firewall',
+            rule_query='firewall_active=1',
+            description='Firewall must be active',
+            enabled=True,
+            created_by=test_user,
+        )
+        ruleset = PolicyRuleset.objects.create(
+            name='Basic Security',
+            description='Basic security rules',
+            created_by=test_user,
+        )
+        ruleset.rules.add(rule)
+
+        # Create a device with the ruleset and a report where firewall is off
+        d = DeviceFactory(licensekey=test_license_key)
+        d.rulesets.add(ruleset)
+        FullReport.objects.create(
+            device=d,
+            full_report='# Lynis Report\nhostname=test-fw\nos=Linux\nlynis_version=3.0.0\nfirewall_active=0\n'
+        )
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        failing_rules = response.context['top_failing_rules']
+        assert len(failing_rules) >= 1
+        assert failing_rules[0]['name'] == 'Require Firewall'
+        assert failing_rules[0]['count'] >= 1
+
+    def test_dashboard_time_range_filter(self, test_user, test_device):
+        """Dashboard should accept time range filter parameter."""
+        client = Client()
+        client.force_login(test_user)
+
+        for range_val in ['7d', '30d', '90d', '1y']:
+            response = client.get(reverse('dashboard') + f'?range={range_val}')
+            assert response.status_code == 200
+            assert response.context['current_range'] == range_val
+
+    def test_dashboard_default_time_range(self, test_user, test_device):
+        """Dashboard should default to 30d time range."""
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('dashboard'))
+
+        assert response.status_code == 200
+        assert response.context['current_range'] == '30d'
+
+
+@pytest.mark.django_db
+class TestDeviceDetailComplianceHistory:
+    """Tests for the compliance history chart on device detail page."""
+
+    def test_device_detail_includes_compliance_history(self, test_user, test_device):
+        """Device detail should include compliance history JSON."""
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report='# Lynis Report\nhardening_index=75\nhostname=test\nos=Linux\nlynis_version=3.0.0\n'
+        )
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=70, warning_count=2)
+        ComplianceSnapshot.objects.create(device=test_device, compliant=True, hardening_index=75, warning_count=1)
+
+        response = client.get(reverse('device_detail', kwargs={'device_id': test_device.id}))
+
+        assert response.status_code == 200
+        assert 'compliance_history_json' in response.context
+
+        import json
+        history = json.loads(response.context['compliance_history_json'])
+        assert len(history['labels']) == 2
+        assert len(history['hardening_index']) == 2
+        assert len(history['warning_count']) == 2
+        assert len(history['compliant']) == 2
+
+    def test_device_detail_empty_compliance_history(self, test_user, test_device):
+        """Device detail should handle empty compliance history."""
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report='# Lynis Report\nhardening_index=75\nhostname=test\nos=Linux\nlynis_version=3.0.0\n'
+        )
+
+        response = client.get(reverse('device_detail', kwargs={'device_id': test_device.id}))
+
+        assert response.status_code == 200
+        import json
+        history = json.loads(response.context['compliance_history_json'])
+        assert history['labels'] == []
+
+    def test_device_detail_last_compliance_event(self, test_user, test_device):
+        """Device detail should include last compliance change event."""
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(
+            device=test_device,
+            full_report='# Lynis Report\nhardening_index=75\nhostname=test\nos=Linux\nlynis_version=3.0.0\n'
+        )
+        event = DeviceEvent.objects.create(
+            device=test_device,
+            event_type='compliance_changed',
+            metadata={'old_status': 'Compliant', 'new_status': 'Non-Compliant'}
+        )
+
+        response = client.get(reverse('device_detail', kwargs={'device_id': test_device.id}))
+
+        assert response.status_code == 200
+        assert response.context['last_compliance_event'] is not None
+        assert response.context['last_compliance_event'].id == event.id

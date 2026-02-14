@@ -5,7 +5,7 @@ from django_ratelimit.decorators import ratelimit
 from django.db import DatabaseError
 from django.db.models import Q
 from django.conf import settings
-from .models import LicenseKey, Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings
+from .models import LicenseKey, Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, ComplianceSnapshot
 from .forms import ReportUploadForm
 from api.utils.lynis_report import LynisReport
 from api.utils.error_responses import internal_error
@@ -238,6 +238,26 @@ def upload_report(request):
             except Exception as e:
                 # Log but don't fail the upload if compliance check fails
                 logging.error(f'Error checking device compliance: {e}')
+
+            # Record a compliance snapshot for trend tracking
+            try:
+                hi = report.get('hardening_index')
+                hi_int = int(hi) if hi is not None else None
+            except (ValueError, TypeError):
+                hi_int = None
+            try:
+                wc = int(report.get('warning_count') or 0)
+            except (ValueError, TypeError):
+                wc = 0
+            try:
+                ComplianceSnapshot.objects.create(
+                    device=device,
+                    compliant=device.compliant,
+                    hardening_index=hi_int,
+                    warning_count=wc,
+                )
+            except Exception as e:
+                logging.error(f'Error creating compliance snapshot: {e}')
 
             logging.info(f'Device updated: {report.get("hostname")}')
             return HttpResponse('OK')

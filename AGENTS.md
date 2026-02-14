@@ -192,6 +192,14 @@ docker compose -f docker-compose.dev.yml up
 # Starts trikusec-manager (8000) and trikusec-lynis-api (8001)
 ```
 
+### Backfilling Compliance Snapshots
+
+When upgrading an existing deployment that had devices before the ComplianceSnapshot feature, run the backfill command so historical compliance data is available for the dashboard trend charts:
+
+```bash
+docker compose -f docker-compose.dev.yml run --rm trikusec-manager python manage.py backfill_compliance_snapshots
+```
+
 ### Running Integration Tests with Lynis
 
 ```bash

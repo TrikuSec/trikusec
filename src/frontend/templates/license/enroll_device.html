@@ -13,7 +13,7 @@
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">Quick install</h2>
                     <p class="text-gray-500 mt-1">Run a single command on your device to enroll it automatically.</p>
-                    <p class="text-sm text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>Only works on Debian/Ubuntu based distributions.</p>
+                    <p class="text-sm text-amber-600 mt-2"><svg class="inline w-4 h-4 mr-1 -mt-0.5" fill="currentColor" viewBox="0 0 512 512"><path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"/></svg>Only works on Debian/Ubuntu based distributions.</p>
                 </div>
                 <span class="bg-blue-100 text-blue-600 uppercase text-xs font-semibold tracking-wide px-3 py-1 rounded-full">Recommended</span>
             </div>
@@ -45,26 +45,26 @@ upload-server={{ trikusec_lynis_upload_server }}</pre>
             <ul class="space-y-3 text-sm text-gray-600 mb-6">
                 <li class="flex items-start gap-3">
                     <span class="text-blue-500 mt-0.5">
-                        <i class="fas fa-terminal"></i>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 576 512"><path d="M9.372 86.628c-12.497-12.497-12.497-32.758 0-45.255s32.758-12.497 45.255 0L178.745 165.49 302.627 41.608c12.497-12.497 32.758-12.497 45.255 0s12.497 32.758 0 45.255L223.765 210.98l124.117 124.117c12.497 12.497 12.497 32.758 0 45.255s-32.758 12.497-45.255 0L178.51 256.235 54.628 380.117c-12.497 12.497-32.758 12.497-45.255 0s-12.497-32.758 0-45.255L133.49 210.745 9.372 86.628zM544 416c17.673 0 32 14.327 32 32s-14.327 32-32 32H288c-17.673 0-32-14.327-32-32s14.327-32 32-32h256z"/></svg>
                     </span>
                     Follow the steps in the documentation and run each command yourself for manual enrollment.
                 </li>
                 <li class="flex items-start gap-3">
                     <span class="text-blue-500 mt-0.5">
-                        <i class="fas fa-shield-alt"></i>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 512 512"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></svg>
                     </span>
                     Configure outbound access to `{{ trikusec_lynis_api_url }}` over TLS for report uploads.
                 </li>
                 <li class="flex items-start gap-3">
                     <span class="text-blue-500 mt-0.5">
-                        <i class="fas fa-book"></i>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg>
                     </span>
                     You can also explore automation examples for Ansible, etc.
                 </li>
             </ul>
             <a href="https://trikusec.github.io/trikusec/installation/client-setup/" class="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition">
                 View installation guide
-                <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 448 512"><path d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"/></svg>
             </a>
         </section>
     </div>

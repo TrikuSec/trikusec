@@ -170,6 +170,30 @@ class PolicyRuleset(models.Model):
         return self.name
 
 
+class ComplianceSnapshot(models.Model):
+    """Captures a point-in-time compliance snapshot on every report upload.
+
+    Used to build compliance trend graphs and device comparison sparklines.
+    """
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='compliance_snapshots')
+    compliant = models.BooleanField()
+    hardening_index = models.IntegerField(null=True, blank=True)
+    warning_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['device', '-created_at']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        status = 'Compliant' if self.compliant else 'Non-Compliant'
+        device_name = self.device.hostname or self.device.hostid if self.device else 'Unknown'
+        return f"{device_name} - {status} (HI: {self.hardening_index or '-'})"
+
+
 class EnrollmentSettings(models.Model):
     """Singleton model storing global enrollment script configuration."""
 
