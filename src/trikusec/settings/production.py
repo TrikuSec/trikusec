@@ -25,17 +25,13 @@ if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['']:
 # Production logging (INFO level)
 LOGGING['root']['level'] = os.environ.get('DJANGO_LOG_LEVEL', 'INFO')
 
-# Database recommendation for production
-# SQLite is allowed by default for easier installation, but PostgreSQL is strongly recommended
-# for production deployments. See README.md for PostgreSQL setup instructions.
-if not os.environ.get('DATABASE_URL'):
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.warning(
-        'DATABASE_URL is not set. Using SQLite by default. '
-        'PostgreSQL is strongly recommended for production deployments. '
-        'See README.md for setup instructions.'
-    )
+# Database configuration info
+import logging
+_logger = logging.getLogger(__name__)
+if os.environ.get('DATABASE_URL'):
+    _logger.info('Using PostgreSQL database (DATABASE_URL is set).')
+else:
+    _logger.info('Using SQLite database (default).')
 
 DATABASES = apply_test_db_override(DATABASES)
 
