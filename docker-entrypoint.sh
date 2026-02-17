@@ -159,13 +159,14 @@ fi
 # Create admin user (idempotent - only creates if doesn't exist)
 # Capture output to detect if user already exists
 CREATE_USER_OUTPUT=$(python manage.py createsuperuser --noinput --username=${TRIKUSEC_ADMIN_USERNAME} --email=${TRIKUSEC_ADMIN_EMAIL} 2>&1) || true
-echo "$CREATE_USER_OUTPUT"
 
-# Check if user already existed
-if echo "$CREATE_USER_OUTPUT" | grep -q "already exists"; then
+# Check if user already existed (Django outputs "already exists" or "already taken")
+if echo "$CREATE_USER_OUTPUT" | grep -qi "already"; then
     USER_EXISTS=true
+    echo "Admin user '${TRIKUSEC_ADMIN_USERNAME}' already exists. Skipping creation."
 else
     USER_EXISTS=false
+    echo "$CREATE_USER_OUTPUT"
 fi
 
 # Password management logic:
