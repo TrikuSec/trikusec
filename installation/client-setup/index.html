@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1703,6 +1703,12 @@
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>list-timers<span class="w"> </span>lynis.timer
 </span></code></pre></div>
 <p>The timer triggers the service once per day by default (adjust <code>OnCalendar</code> in the timer if you need a different cadence), ensuring each client uploads a fresh report to TrikuSec without manual intervention.</p>
+<div class="admonition warning">
+<p class="admonition-title">Use a single scheduler for Lynis</p>
+<p>Avoid triggering <code>lynis.service</code> from other units (for example <code>apt-daily-upgrade.service</code> hooks) while also using <code>lynis.timer</code>.
+Overlapping runs can generate malformed/concatenated reports and unstable host identification.
+Recommended setup: keep <code>lynis.timer</code> as the only recurring trigger.</p>
+</div>
 <h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h3>
 <h4 id="connection-issues">Connection Issues<a class="headerlink" href="#connection-issues" title="Permanent link">&para;</a></h4>
 <p>If you're having trouble connecting to the server:</p>
@@ -1724,6 +1730,34 @@
 <li>Check network connectivity: <code>curl -k https://yourserver:8001/api/lynis/license</code></li>
 <li>Check server logs: <code>docker compose logs trikusec-lynis-api</code></li>
 <li>Verify the <abbr title="Application Programming Interface">API</abbr> endpoint is accessible.</li>
+</ol>
+<h4 id="debian-unattended-upgrades-and-pkgs-7392">Debian: Unattended Upgrades and PKGS-7392<a class="headerlink" href="#debian-unattended-upgrades-and-pkgs-7392" title="Permanent link">&para;</a></h4>
+<p>On Debian, having <code>unattended-upgrades</code> installed is not enough by itself. To reduce <code>PKGS-7392</code> findings (vulnerable packages), ensure periodic execution is enabled.</p>
+<ol>
+<li>Create <code>/etc/apt/apt.conf.d/20auto-upgrades</code>:</li>
+</ol>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>APT::Periodic::Update-Package-Lists &quot;1&quot;;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>APT::Periodic::Download-Upgradeable-Packages &quot;1&quot;;
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>APT::Periodic::Unattended-Upgrade &quot;1&quot;;
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>APT::Periodic::AutocleanInterval &quot;7&quot;;
+</span></code></pre></div>
+<ol>
+<li>Ensure allowed origins include Debian stable, security, and updates (for example in <code>/etc/apt/apt.conf.d/50unattended-upgrades</code> or a local override such as <code>/etc/apt/apt.conf.d/52unattended-upgrades-local</code>):</li>
+</ol>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Unattended-Upgrade::Origins-Pattern {
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    &quot;origin=Debian,codename=${distro_codename},label=Debian&quot;;
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    &quot;origin=Debian,codename=${distro_codename}-security,label=Debian-Security&quot;;
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    &quot;origin=Debian,codename=${distro_codename}-updates,label=Debian&quot;;
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>};
+</span></code></pre></div>
+<ol>
+<li>Verify configuration:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>apt-config<span class="w"> </span>dump<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;APT::Periodic::(Update-Package-Lists|Download-Upgradeable-Packages|Unattended-Upgrade|AutocleanInterval)&#39;</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>unattended-upgrade<span class="w"> </span>--dry-run<span class="w"> </span>--debug
+</span></code></pre></div>
+<ol>
+<li>Re-run Lynis after upgrades are applied so TrikuSec receives updated vulnerability status.</li>
 </ol>
 
 
@@ -1747,7 +1781,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 29, 2025 17:05:45 UTC">November 29, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 13, 2026 12:52:24 UTC">April 13, 2026</span>
   </span>
 
     
