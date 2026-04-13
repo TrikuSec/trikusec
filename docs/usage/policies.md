@@ -240,6 +240,10 @@ vulnerable_packages_found == `0`
 
 **Description:** Checks that no vulnerable packages were detected in the system.
 
+!!! note
+    This rule depends on Lynis vulnerability results (`vulnerable_packages_found` / `vulnerable_package[]`), not just package presence.
+    Installing `unattended-upgrades` alone does not make the rule pass unless updates are actually applied and a new audit is uploaded.
+
 ### Firewall Active
 
 Require firewall to be active:
@@ -334,4 +338,3 @@ contains(installed_package_names, 'fail2ban') && contains(installed_package_name
 
 - [Reports](reports.md) - Understand audit reports
 - [API Reference](../api/index.md) - Manage policies via API
-

@@ -141,6 +141,11 @@ Keep Lynis results current by scheduling a daily execution through `systemd` tim
 
 The timer triggers the service once per day by default (adjust `OnCalendar` in the timer if you need a different cadence), ensuring each client uploads a fresh report to TrikuSec without manual intervention.
 
+!!! warning "Use a single scheduler for Lynis"
+    Avoid triggering `lynis.service` from other units (for example `apt-daily-upgrade.service` hooks) while also using `lynis.timer`.
+    Overlapping runs can generate malformed/concatenated reports and unstable host identification.
+    Recommended setup: keep `lynis.timer` as the only recurring trigger.
+
 ## Troubleshooting
 
 ### Connection Issues
@@ -166,3 +171,35 @@ If uploads fail:
 1. Check network connectivity: `curl -k https://yourserver:8001/api/lynis/license`
 2. Check server logs: `docker compose logs trikusec-lynis-api`
 3. Verify the API endpoint is accessible.
+
+### Debian: Unattended Upgrades and PKGS-7392
+
+On Debian, having `unattended-upgrades` installed is not enough by itself. To reduce `PKGS-7392` findings (vulnerable packages), ensure periodic execution is enabled.
+
+1. Create `/etc/apt/apt.conf.d/20auto-upgrades`:
+
+```conf
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+```
+
+2. Ensure allowed origins include Debian stable, security, and updates (for example in `/etc/apt/apt.conf.d/50unattended-upgrades` or a local override such as `/etc/apt/apt.conf.d/52unattended-upgrades-local`):
+
+```conf
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=${distro_codename},label=Debian";
+    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+    "origin=Debian,codename=${distro_codename}-updates,label=Debian";
+};
+```
+
+3. Verify configuration:
+
+```bash
+apt-config dump | grep -E 'APT::Periodic::(Update-Package-Lists|Download-Upgradeable-Packages|Unattended-Upgrade|AutocleanInterval)'
+unattended-upgrade --dry-run --debug
+```
+
+4. Re-run Lynis after upgrades are applied so TrikuSec receives updated vulnerability status.
