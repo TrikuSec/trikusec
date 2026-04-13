@@ -82,13 +82,22 @@ class LynisReport:
     def __init__(self, full_report: str):
         self.report = full_report
         self.keys = {}
+        self.error = None
 
         try:
             self.report = self._clean_full_report()
+            self._validate_report_structure()
             self.keys = self._parse_report()
             self._generate_custom_variables()
         except Exception as e:
+            self.error = str(e)
             logging.error(f'Error initializing LynisReport: {e}')
+
+    def is_valid(self) -> bool:
+        return self.error is None
+
+    def get_error(self) -> str:
+        return self.error
     
     def compare_reports(self, new_report_str: str, ignore_keys: List[str] = []) -> Dict[str, Any]:
         """
@@ -161,6 +170,18 @@ class LynisReport:
         cleaned_lines = [line for line in report_lines if not any(test in line for test in invalid_tests)]
         return '\n'.join(cleaned_lines)
 
+    def _validate_report_structure(self) -> None:
+        """Validate that the payload contains a single Lynis report."""
+        report_lines = [line.strip() for line in self.report.split('\n') if line.strip()]
+        header_count = sum(1 for line in report_lines if line == '# Lynis Report')
+        finish_count = sum(1 for line in report_lines if line.lower() == 'finish=true')
+
+        if header_count > 1:
+            raise ValueError('Multiple Lynis report headers detected in payload')
+
+        if finish_count > 1:
+            raise ValueError('Multiple Lynis finish markers detected in payload')
+
     def get_full_report(self) -> str:
         """Return the full report content."""
         return self.report
@@ -182,6 +203,8 @@ class LynisReport:
                 base_key = key.replace('[]', '')
                 if base_key not in parsed_keys:
                     parsed_keys[base_key] = []
+                elif not isinstance(parsed_keys[base_key], list):
+                    parsed_keys[base_key] = [parsed_keys[base_key]]
                 parsed_keys[base_key].append(value)
             else:
                 # Convert numeric strings to integers for proper JMESPath comparisons
@@ -422,4 +445,3 @@ class LynisReport:
         
         self.set('installed_package_names', package_names)
         logging.debug(f'Generated installed_package_names with {len(package_names)} entries')
-

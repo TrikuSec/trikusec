@@ -63,6 +63,10 @@ def upload_report(request):
                 logging.error(f'Error parsing report: {e}')
                 return internal_error('Error parsing report data')
 
+            if not report.is_valid():
+                logging.error('Invalid report payload: %s', report.get_error())
+                return HttpResponse('Invalid report data', status=400)
+
             # Extract all 5 identifiers for device matching
             primary_ips = report.get('primary_ipv4_addresses') or []
             primary_ip = primary_ips[0] if isinstance(primary_ips, list) and len(primary_ips) > 0 and primary_ips[0] != '-' else None
@@ -148,13 +152,16 @@ def upload_report(request):
                         return HttpResponse(capacity_error or 'License has reached maximum device limit', status=403)
                     
                     # Create the new device
+                    hostname = candidate_identifiers['hostname'] or None
+                    ip_address = candidate_identifiers['ip_address'] if candidate_identifiers['ip_address'] and candidate_identifiers['ip_address'] != '-' else None
+                    mac_address = candidate_identifiers['mac_address'] if candidate_identifiers['mac_address'] and candidate_identifiers['mac_address'] != '-' else None
                     device = Device.objects.create(
                         hostid=post_hostid,
                         hostid2=post_hostid2,
                         licensekey=licensekey,
-                        hostname=candidate_identifiers['hostname'],
-                        ip_address=candidate_identifiers['ip_address'],
-                        mac_address=candidate_identifiers['mac_address']
+                        hostname=hostname,
+                        ip_address=ip_address,
+                        mac_address=mac_address
                     )
                     DeviceEvent.objects.create(device=device, event_type='enrolled')
                 
@@ -216,9 +223,12 @@ def upload_report(request):
                 device.hostid = post_hostid
                 device.hostid2 = post_hostid2
                 # Update all identifiers
-                device.hostname = candidate_identifiers['hostname']
-                device.ip_address = candidate_identifiers['ip_address']
-                device.mac_address = candidate_identifiers['mac_address']
+                if candidate_identifiers['hostname']:
+                    device.hostname = candidate_identifiers['hostname']
+                if candidate_identifiers['ip_address'] and candidate_identifiers['ip_address'] != '-':
+                    device.ip_address = candidate_identifiers['ip_address']
+                if candidate_identifiers['mac_address'] and candidate_identifiers['mac_address'] != '-':
+                    device.mac_address = candidate_identifiers['mac_address']
                 # Update other device attributes
                 device.os = report.get('os')
                 device.distro = report.get('os_fullname')
@@ -239,7 +249,7 @@ def upload_report(request):
                 # Log but don't fail the upload if compliance check fails
                 logging.error(f'Error checking device compliance: {e}')
 
-            logging.info(f'Device updated: {report.get("hostname")}')
+            logging.info(f'Device updated: {device.hostname or device.hostid}')
             return HttpResponse('OK')
         return HttpResponse('Invalid form data', status=400)
     return HttpResponse('Invalid request method', status=405)
