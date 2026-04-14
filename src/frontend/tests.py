@@ -1183,7 +1183,7 @@ class TestDashboardView:
         assert events[0].event_type == 'enrolled'
 
     def test_dashboard_attention_items(self, test_user, test_license_key):
-        """Dashboard should list non-compliant devices in the attention section."""
+        """Dashboard should list devices non-compliant for more than 7 days."""
         from conftest import DeviceFactory
 
         client = Client()
@@ -1196,7 +1196,7 @@ class TestDashboardView:
             hostname='problem-server'
         )
         # Create a compliance event in the past
-        DeviceEvent.objects.create(
+        event = DeviceEvent.objects.create(
             device=non_compliant_device,
             event_type='compliance_changed',
             metadata={
@@ -1205,6 +1205,7 @@ class TestDashboardView:
                 'hostname': 'problem-server'
             }
         )
+        DeviceEvent.objects.filter(id=event.id).update(created_at=timezone.now() - timedelta(days=8))
 
         response = client.get(reverse('dashboard'))
 
@@ -1212,7 +1213,7 @@ class TestDashboardView:
         attention = response.context['attention_items']
         assert len(attention) == 1
         assert attention[0]['device'].hostname == 'problem-server'
-        assert attention[0]['days_non_compliant'] >= 0
+        assert attention[0]['days_non_compliant'] > 7
 
     def test_index_redirects_to_dashboard(self, test_user, test_device):
         """Index view should redirect to dashboard when devices exist."""

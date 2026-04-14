@@ -148,7 +148,7 @@ def dashboard(request):
     # --- Recent activity (last 5 events) ---
     recent_events = DeviceEvent.objects.select_related('device').order_by('-created_at')[:5]
 
-    # --- Needs attention: long-standing non-compliant devices ---
+    # --- Needs attention: non-compliant for more than 7 days ---
     non_compliant_devices = devices.filter(compliant=False)
     attention_items = []
     now = tz.now()
@@ -169,11 +169,12 @@ def dashboard(request):
 
         days_non_compliant = (now - non_compliant_since).days
 
-        attention_items.append({
-            'device': device,
-            'non_compliant_since': non_compliant_since,
-            'days_non_compliant': days_non_compliant,
-        })
+        if days_non_compliant > 7:
+            attention_items.append({
+                'device': device,
+                'non_compliant_since': non_compliant_since,
+                'days_non_compliant': days_non_compliant,
+            })
 
     # Sort by longest non-compliant first
     attention_items.sort(key=lambda x: x['days_non_compliant'], reverse=True)
