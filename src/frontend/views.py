@@ -1563,7 +1563,7 @@ def activity(request):
         for activity in combined_activities:
             device = activity['device']
             change_type = activity.get('type', 'other')
-            if change_type not in ['enrollment', 'device_deleted', 'license_changed', 'added', 'removed', 'changed']:
+            if change_type not in ['enrollment', 'device_deleted', 'license_changed', 'compliance_changed', 'added', 'removed', 'changed']:
                 change_type = 'other'
             
             timestamp = activity['created_at']
@@ -1618,7 +1618,7 @@ def activity(request):
         for entry in grouped_activities_list:
             # Build type blocks for this entry
             type_blocks = []
-            for change_type in ['enrollment', 'device_deleted', 'license_changed', 'changed', 'added', 'removed', 'other']:
+            for change_type in ['enrollment', 'device_deleted', 'license_changed', 'compliance_changed', 'changed', 'added', 'removed', 'other']:
                 change_list = entry['activities_by_type'].get(change_type, [])
                 if change_list:
                     type_blocks.append({
@@ -1633,12 +1633,18 @@ def activity(request):
             # Calculate summary badges for header
             entry['summary_badges'] = [
                 {'type': change_type, 'count': len(entry['activities_by_type'].get(change_type, []))}
-                for change_type in ['enrollment', 'device_deleted', 'license_changed', 'changed', 'added', 'removed', 'other']
+                for change_type in ['enrollment', 'device_deleted', 'license_changed', 'compliance_changed', 'changed', 'added', 'removed', 'other']
                 if entry['activities_by_type'].get(change_type)
             ]
+
+            detailed_change_types = {'changed', 'added', 'removed'}
+            entry['has_detailed_changes'] = any(
+                change_type in detailed_change_types
+                for change_type in entry['activities_by_type'].keys()
+            )
             
             # Mark entries that have device events (for highlighting)
-            device_event_types = {'enrollment', 'device_deleted', 'license_changed'}
+            device_event_types = {'enrollment', 'device_deleted', 'license_changed', 'compliance_changed'}
             entry['has_device_event'] = any(
                 change_type in device_event_types
                 for change_type in entry['activities_by_type'].keys()
