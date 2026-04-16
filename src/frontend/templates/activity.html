@@ -173,6 +173,14 @@
             background-color: #f9fafb;
         }
 
+        .activity-host-header--static {
+            cursor: default;
+        }
+
+        .activity-host-header--static:hover {
+            background-color: #ffffff;
+        }
+
         .activity-host-header:focus {
             outline: 2px solid #3b82f6;
             outline-offset: -2px;
@@ -204,6 +212,69 @@
         .activity-host-panel {
             border-top: 1px solid #e5e7eb;
             padding: 1.25rem;
+        }
+
+        .activity-simple-events {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .activity-simple-event {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .activity-simple-event-main {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            min-width: 0;
+        }
+
+        .activity-event-icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-event-icon svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .activity-event-icon--enrollment {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .activity-event-icon--device-deleted {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .activity-event-icon--license-changed {
+            background-color: #fef3c7;
+            color: #ca8a04;
+        }
+
+        .activity-event-icon--compliance-changed {
+            background-color: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .activity-event-icon--other {
+            background-color: #f3f4f6;
+            color: #4b5563;
         }
 
         .activity-type-section + .activity-type-section {
@@ -456,7 +527,11 @@
     <div id="activity-accordion" class="space-y-4">
         {% for entry in grouped_activities %}
         <div class="activity-host-card{% if entry.has_device_event %} activity-host-card--device-event{% endif %}" data-host-card data-hostname="{{ entry.hostname|lower }}">
+            {% if entry.has_detailed_changes %}
             <button type="button" class="activity-host-header" data-host-toggle="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.counter }}">
+            {% else %}
+            <div class="activity-host-header activity-host-header--static" tabindex="0">
+            {% endif %}
                 <div>
                     <div class="flex items-center gap-2">
                         <p class="text-lg font-semibold text-gray-900">{{ entry.hostname }}</p>
@@ -497,19 +572,25 @@
                     </div>
                     {% endif %}
                 </div>
+                {% if entry.has_detailed_changes %}
                 <svg class="w-5 h-5 text-gray-500 transition-transform" data-chevron viewBox="0 0 20 20" fill="none" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 8l4 4 4-4" />
                 </svg>
+                {% endif %}
+            {% if entry.has_detailed_changes %}
             </button>
-            <div class="activity-host-panel hidden" id="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.counter }}">
+            {% else %}
+            </div>
+            {% endif %}
+            <div class="activity-host-panel{% if entry.has_detailed_changes %} hidden{% endif %}" id="host-panel-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.counter }}">
                 {% for block in entry.type_blocks %}
                 <div class="activity-type-section">
                     <div class="activity-type-header">
                         <div class="activity-type-title">
                             <span class="activity-pill activity-pill--{{ block.type|replace:"_:-" }}">{{ block.type|replace:"_: "|capfirst }}</span>
                             <small>
-                                {% if block.type == 'enrollment' %}
-                                    {{ block.count }} enrollment{% if block.count != 1 %}s{% endif %}
+                                {% if block.type == 'enrollment' or block.type == 'device_deleted' or block.type == 'license_changed' or block.type == 'compliance_changed' %}
+                                    {{ block.count }} event{% if block.count != 1 %}s{% endif %}
                                 {% else %}
                                     {{ block.count }} change{% if block.count != 1 %}s{% endif %}
                                 {% endif %}
@@ -518,100 +599,34 @@
                     </div>
                     <div id="type-{{ entry.device.id|default:'deleted' }}-{{ entry.timestamp|date:'U.u' }}-{{ forloop.parentloop.counter }}-{{ block.type }}">
                         {% for activity in block.activities %}
-                        {% if block.type == 'enrollment' %}
-                            <div class="activity-entry">
-                                <div class="activity-entry-header">
-                                    <div class="activity-entry-title">
-                                        <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span class="font-semibold text-gray-900">New device enrolled</span>
-                                    </div>
-                                    <div class="activity-entry-timestamp">{{ activity.created_at|date:"Y-m-d H:i" }}</div>
-                                </div>
-                                <div class="activity-entry-content">
-                                    <p class="text-sm text-gray-600">New device registered with TrikuSec</p>
-                                </div>
-                            </div>
-                        {% elif block.type == 'device_deleted' %}
-                            <div class="activity-entry">
-                                <div class="activity-entry-header">
-                                    <div class="activity-entry-title">
-                                        <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        <span class="font-semibold text-gray-900">Device deleted</span>
-                                    </div>
-                                    <div class="activity-entry-timestamp">{{ activity.created_at|date:"Y-m-d H:i" }}</div>
-                                </div>
-                                <div class="activity-entry-content">
-                                    <p class="text-sm text-gray-600">Device was permanently removed from TrikuSec</p>
-                                    {% if activity.metadata %}
-                                    <div class="mt-2 text-xs text-gray-500">
-                                        {% if activity.metadata.hostname %}
-                                        <p><span class="font-semibold">Hostname:</span> {{ activity.metadata.hostname }}</p>
-                                        {% endif %}
-                                        {% if activity.metadata.license_name %}
-                                        <p><span class="font-semibold">License:</span> {{ activity.metadata.license_name }}</p>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% elif block.type == 'license_changed' %}
-                            <div class="activity-entry">
-                                <div class="activity-entry-header">
-                                    <div class="activity-entry-title">
-                                        <svg class="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                        </svg>
-                                        <span class="font-semibold text-gray-900">License changed</span>
-                                    </div>
-                                    <div class="activity-entry-timestamp">{{ activity.created_at|date:"Y-m-d H:i" }}</div>
-                                </div>
-                                <div class="activity-entry-content">
-                                    {% if activity.metadata %}
-                                    <div class="activity-entry-grid">
-                                        <div class="before-card">
-                                            <p class="activity-entry-label">Previous License</p>
-                                            <p class="activity-value">{{ activity.metadata.old_license_name|default:activity.metadata.old_license|default:"Unknown" }}</p>
-                                        </div>
-                                        <div class="now-card now-card--up">
-                                            <p class="activity-entry-label">New License</p>
-                                            <p class="activity-value">{{ activity.metadata.new_license_name|default:activity.metadata.new_license|default:"Unknown" }}</p>
+                        {% if block.type == 'enrollment' or block.type == 'device_deleted' or block.type == 'license_changed' or block.type == 'compliance_changed' %}
+                            <div class="activity-simple-events">
+                                <div class="activity-simple-event">
+                                    <div class="activity-simple-event-main">
+                                        <span class="activity-event-icon activity-event-icon--{{ block.type|replace:"_:-" }}">
+                                            {% if block.type == 'enrollment' %}
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                            {% elif block.type == 'device_deleted' %}
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            {% elif block.type == 'license_changed' %}
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                                            {% elif block.type == 'compliance_changed' %}
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                            {% endif %}
+                                        </span>
+                                        <div class="min-w-0">
+                                            <p class="font-semibold text-gray-900">
+                                                {% if block.type == 'enrollment' %}New device enrolled
+                                                {% elif block.type == 'device_deleted' %}Device deleted
+                                                {% elif block.type == 'license_changed' %}License changed
+                                                {% elif block.type == 'compliance_changed' %}Compliance status changed{% endif %}
+                                            </p>
+                                            {% if block.type == 'compliance_changed' and activity.metadata.new_status %}
+                                            <p class="text-sm {% if activity.metadata.new_status == 'Compliant' %}text-green-600{% else %}text-red-600{% endif %}">{{ activity.metadata.new_status }}</p>
+                                            {% endif %}
                                         </div>
                                     </div>
-                                    {% else %}
-                                    <p class="text-sm text-gray-600">Device license was changed</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% elif block.type == 'compliance_changed' %}
-                            <div class="activity-entry">
-                                <div class="activity-entry-header">
-                                    <div class="activity-entry-title">
-                                        <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span class="font-semibold text-gray-900">Compliance status changed</span>
-                                    </div>
-                                    <div class="activity-entry-timestamp">{{ activity.created_at|date:"Y-m-d H:i" }}</div>
-                                </div>
-                                <div class="activity-entry-content">
-                                    {% if activity.metadata %}
-                                    <div class="activity-entry-grid">
-                                        <div class="before-card">
-                                            <p class="activity-entry-label">Previous Status</p>
-                                            <p class="activity-value {% if activity.metadata.old_status == 'Non-Compliant' %}text-red-600{% else %}text-green-600{% endif %}">{{ activity.metadata.old_status|default:"Unknown" }}</p>
-                                        </div>
-                                        <div class="now-card {% if activity.metadata.new_status == 'Compliant' %}now-card--up{% else %}now-card--down{% endif %}">
-                                            <p class="activity-entry-label">New Status</p>
-                                            <p class="activity-value {% if activity.metadata.new_status == 'Non-Compliant' %}text-red-600{% else %}text-green-600{% endif %}">{{ activity.metadata.new_status|default:"Unknown" }}</p>
-                                        </div>
-                                    </div>
-                                    {% else %}
-                                    <p class="text-sm text-gray-600">Device compliance status changed</p>
-                                    {% endif %}
+                                    <span class="text-xs text-gray-500">{{ activity.created_at|date:"Y-m-d H:i" }}</span>
                                 </div>
                             </div>
                         {% else %}
@@ -871,6 +886,11 @@
                 if (hostname.includes(normalized)) {
                     hasMatch = true;
                 }
+
+                // Check all visible text inside the card (including simple event boxes)
+                if (!hasMatch && card.textContent.toLowerCase().includes(normalized)) {
+                    hasMatch = true;
+                }
                 
                 // Get all activity entries within this card
                 const activityEntries = card.querySelectorAll('.activity-entry');
@@ -1003,7 +1023,7 @@
             }
 
             // Enter/Space to expand/collapse when header is focused
-            if (e.target.classList.contains('activity-host-header') && (e.key === 'Enter' || e.key === ' ')) {
+            if (e.target.classList.contains('activity-host-header') && e.target.hasAttribute('data-host-toggle') && (e.key === 'Enter' || e.key === ' ')) {
                 e.preventDefault();
                 e.target.click();
                 return;
