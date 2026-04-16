@@ -403,6 +403,52 @@ class TestDeviceDelete:
 
 
 @pytest.mark.django_db
+class TestDeviceUpdateCompliance:
+    """Tests for compliance refresh when updating device rulesets."""
+
+    def test_assigning_non_compliant_ruleset_updates_device_status(self, test_user, test_device, sample_lynis_report):
+        from api.models import PolicyRule, PolicyRuleset
+
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        rule = PolicyRule.objects.create(
+            name='Hardening over 100',
+            rule_query='hardening_index > `100`',
+            description='Intentionally failing rule for regression coverage',
+            enabled=True,
+        )
+        ruleset = PolicyRuleset.objects.create(
+            name='Strict Baseline',
+            description='Ruleset that should fail for sample report',
+        )
+        ruleset.rules.add(rule)
+
+        assert test_device.compliant is True
+
+        response = client.post(
+            reverse('device_update', kwargs={'device_id': test_device.id}),
+            data={'rulesets': [str(ruleset.id)]},
+        )
+
+        assert response.status_code == 302
+
+        test_device.refresh_from_db()
+        assert test_device.compliant is False
+        assert test_device.rulesets.filter(id=ruleset.id).exists()
+
+        compliance_event = DeviceEvent.objects.filter(
+            device=test_device,
+            event_type='compliance_changed',
+        ).first()
+        assert compliance_event is not None
+        assert compliance_event.metadata['old_status'] == 'Compliant'
+        assert compliance_event.metadata['new_status'] == 'Non-Compliant'
+
+
+@pytest.mark.django_db
 class TestActivityView:
     """Tests for the activity timeline view."""
 

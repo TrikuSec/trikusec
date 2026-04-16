@@ -534,6 +534,16 @@ def device_update(request, device_id):
             logging.debug('Selected rulesets: %s', selected_rulesets)
             device.rulesets.set(selected_rulesets)
             form.save()
+
+            # Recalculate compliance immediately when rulesets change
+            latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+            if latest_report:
+                parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
+                if isinstance(parsed_report, dict) and parsed_report:
+                    update_device_compliance(device, parsed_report)
+                else:
+                    logging.warning('Skipping compliance update for device %s: latest report could not be parsed', device.id)
+
             # Return to the referer page
             return safe_redirect(request, 'device_detail', device_id=device_id)
         else:
