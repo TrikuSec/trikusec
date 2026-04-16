@@ -449,6 +449,72 @@ class TestDeviceUpdateCompliance:
 
 
 @pytest.mark.django_db
+class TestRulesetRemoveDevice:
+    """Tests for removing device assignments from the ruleset detail page."""
+
+    def test_remove_device_from_ruleset_success(self, test_user, test_device):
+        from api.models import PolicyRuleset
+
+        client = Client()
+        client.force_login(test_user)
+
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline Ruleset',
+            description='Ruleset for remove-assignment flow',
+            created_by=test_user,
+            is_system=False,
+        )
+        test_device.rulesets.add(ruleset)
+
+        response = client.post(
+            reverse('ruleset_remove_device', kwargs={'ruleset_id': ruleset.id, 'device_id': test_device.id})
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse('ruleset_detail', kwargs={'ruleset_id': ruleset.id})
+        assert not test_device.rulesets.filter(id=ruleset.id).exists()
+
+    def test_remove_device_from_ruleset_get_method(self, test_user, test_device):
+        from api.models import PolicyRuleset
+
+        client = Client()
+        client.force_login(test_user)
+
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline Ruleset',
+            created_by=test_user,
+            is_system=False,
+        )
+        test_device.rulesets.add(ruleset)
+
+        response = client.get(
+            reverse('ruleset_remove_device', kwargs={'ruleset_id': ruleset.id, 'device_id': test_device.id})
+        )
+
+        assert response.status_code == 405
+        assert response.content == b'Method not allowed'
+
+    def test_ruleset_detail_shows_remove_action(self, test_user, test_device):
+        from api.models import PolicyRuleset
+
+        client = Client()
+        client.force_login(test_user)
+
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline Ruleset',
+            created_by=test_user,
+            is_system=False,
+        )
+        test_device.rulesets.add(ruleset)
+
+        response = client.get(reverse('ruleset_detail', kwargs={'ruleset_id': ruleset.id}))
+
+        assert response.status_code == 200
+        expected_url = reverse('ruleset_remove_device', kwargs={'ruleset_id': ruleset.id, 'device_id': test_device.id})
+        assert expected_url.encode() in response.content
+
+
+@pytest.mark.django_db
 class TestActivityView:
     """Tests for the activity timeline view."""
 
