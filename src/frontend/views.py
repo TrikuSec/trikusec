@@ -945,6 +945,31 @@ def ruleset_detail(request, ruleset_id):
     return render(request, 'policy/ruleset_detail.html', context)
 
 
+@login_required
+@csrf_protect
+def ruleset_remove_device(request, ruleset_id, device_id):
+    """Remove a device from a ruleset from the ruleset detail view."""
+    if request.method != 'POST':
+        return HttpResponse('Method not allowed', status=405)
+
+    ruleset = get_object_or_404(PolicyRuleset, id=ruleset_id)
+    device = get_object_or_404(Device, id=device_id, rulesets=ruleset)
+
+    device.rulesets.remove(ruleset)
+
+    latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+    if latest_report:
+        parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
+        if isinstance(parsed_report, dict) and parsed_report:
+            update_device_compliance(device, parsed_report)
+        else:
+            logging.warning('Skipping compliance update for device %s: latest report could not be parsed', device.id)
+
+    device_name = device.hostname or device.hostid
+    messages.success(request, f'Ruleset "{ruleset.name}" removed from device "{device_name}".')
+    return redirect('ruleset_detail', ruleset_id=ruleset.id)
+
+
 @csrf_protect
 @login_required
 def ruleset_update(request, ruleset_id):

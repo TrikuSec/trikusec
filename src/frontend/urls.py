@@ -26,6 +26,7 @@ urlpatterns = [
     # Backward compatibility redirect
     path('rulesets/', views.policy_list, name='ruleset_list'),
     path('ruleset/<int:ruleset_id>/', views.ruleset_detail, name='ruleset_detail'),
+    path('ruleset/<int:ruleset_id>/device/<int:device_id>/remove/', views.ruleset_remove_device, name='ruleset_remove_device'),
     path('ruleset/create/', views.ruleset_create, name='ruleset_create'),
     path('ruleset/<int:ruleset_id>/edit/', views.ruleset_update, name='ruleset_update'),
     path('ruleset/<int:ruleset_id>/delete/', views.ruleset_delete, name='ruleset_delete'),
