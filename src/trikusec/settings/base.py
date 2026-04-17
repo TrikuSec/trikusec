@@ -249,6 +249,7 @@ RATELIMIT_ENABLE = os.environ.get('RATELIMIT_ENABLE', 'True').lower() in ('true'
 RATELIMIT_USE_CACHE = 'default'
 
 # TrikuSec configuration
+TRIKUSEC_VERSION = os.environ.get('TRIKUSEC_VERSION', '').strip()
 TRIKUSEC_URL = os.environ.get('TRIKUSEC_URL', 'https://localhost:443')
 # Lynis API URL - falls back to TRIKUSEC_URL if not set
 TRIKUSEC_LYNIS_API_URL = os.environ.get('TRIKUSEC_LYNIS_API_URL', TRIKUSEC_URL)

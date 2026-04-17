@@ -31,6 +31,7 @@ import json
 import logging
 import re
 import fnmatch
+from pathlib import Path
 from urllib.parse import urlparse
 from django.urls import reverse
 from datetime import datetime
@@ -38,6 +39,29 @@ from weasyprint import HTML
 from django.template.loader import render_to_string
 
 DEVICE_LIST_PAGE_SIZE = getattr(settings, 'DEVICE_LIST_PAGE_SIZE', 25)
+
+
+def get_trikusec_version():
+    configured_version = getattr(settings, 'TRIKUSEC_VERSION', '')
+    if configured_version:
+        return configured_version
+
+    version_file_path = Path(settings.BASE_DIR) / 'VERSION'
+    if version_file_path.exists():
+        return version_file_path.read_text(encoding='utf-8').strip()
+
+    package_json_path = Path(settings.BASE_DIR).parent / 'package.json'
+    if package_json_path.exists():
+        try:
+            package_data = json.loads(package_json_path.read_text(encoding='utf-8'))
+            package_version = package_data.get('version', '').strip()
+            if package_version:
+                return package_version
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return 'development'
+
 
 def safe_redirect(request, fallback_url_name='device_list', **kwargs):
     referer = request.META.get('HTTP_REFERER')
@@ -295,6 +319,7 @@ def settings_view(request):
         'plugin_formset': plugin_formset,
         'package_formset': package_formset,
         'skip_formset': skip_formset,
+        'trikusec_version': get_trikusec_version(),
     })
 
 @login_required

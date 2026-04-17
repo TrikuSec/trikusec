@@ -237,6 +237,19 @@ class TestEnrollmentSkipTestFormSet:
 
 
 @pytest.mark.django_db
+class TestSettingsViewAboutSection:
+    def test_settings_view_shows_about_section_and_version(self, test_user):
+        client = Client()
+        client.force_login(test_user)
+
+        response = client.get(reverse('settings'))
+
+        assert response.status_code == 200
+        assert 'About TrikuSec' in response.content.decode()
+        assert response.context['trikusec_version']
+
+
+@pytest.mark.django_db
 class TestDeviceListPagination:
     """Tests for paginating the device list view."""
 

@@ -23,6 +23,22 @@
     </div>
     {% endif %}
 
+    <section class="bg-white shadow rounded-lg p-6 mb-8">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-medium text-gray-900">About TrikuSec</h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    TrikuSec centralizes Lynis audit data so you can monitor hardening posture, track changes,
+                    and evaluate policy compliance across your Linux infrastructure.
+                </p>
+            </div>
+            <div class="shrink-0 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                <span class="text-gray-500">Version:</span>
+                <span class="font-semibold">{{ trikusec_version }}</span>
+            </div>
+        </div>
+    </section>
+
     <section class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <div>
