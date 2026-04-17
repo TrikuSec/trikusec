@@ -174,32 +174,12 @@ If uploads fail:
 
 ### Debian: Unattended Upgrades and PKGS-7392
 
-On Debian, having `unattended-upgrades` installed is not enough by itself. To reduce `PKGS-7392` findings (vulnerable packages), ensure periodic execution is enabled.
-
-1. Create `/etc/apt/apt.conf.d/20auto-upgrades`:
-
-```conf
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Download-Upgradeable-Packages "1";
-APT::Periodic::Unattended-Upgrade "1";
-APT::Periodic::AutocleanInterval "7";
-```
-
-2. Ensure allowed origins include Debian stable, security, and updates (for example in `/etc/apt/apt.conf.d/50unattended-upgrades` or a local override such as `/etc/apt/apt.conf.d/52unattended-upgrades-local`):
-
-```conf
-Unattended-Upgrade::Origins-Pattern {
-    "origin=Debian,codename=${distro_codename},label=Debian";
-    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
-    "origin=Debian,codename=${distro_codename}-updates,label=Debian";
-};
-```
-
-3. Verify configuration:
+For Debian clients, the quickest way to enable automatic security updates is:
 
 ```bash
-apt-config dump | grep -E 'APT::Periodic::(Update-Package-Lists|Download-Upgradeable-Packages|Unattended-Upgrade|AutocleanInterval)'
-unattended-upgrade --dry-run --debug
+sudo dpkg-reconfigure unattended-upgrades
 ```
 
-4. Re-run Lynis after upgrades are applied so TrikuSec receives updated vulnerability status.
+Choose **Yes** when prompted. This enables periodic unattended upgrades (as documented by Debian: <https://wiki.debian.org/PeriodicUpdates>).
+
+After updates are applied, run Lynis again so TrikuSec receives refreshed package/vulnerability status (`PKGS-7392`).
