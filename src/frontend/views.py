@@ -1221,12 +1221,49 @@ def rule_list(request):
 
 @login_required
 def rule_detail(request, rule_id):
-    """Rule detail view: show rule info, rulesets using it"""
+    """Rule detail view: show rule info, rulesets using it, and device evaluation status."""
     rule = get_object_or_404(PolicyRule, id=rule_id)
-    
+
     # Get rulesets using this rule (reverse relationship)
     rulesets = rule.policyruleset_set.all().order_by('name')
-    
+
+    # Get devices that have this rule configured via at least one assigned ruleset
+    configured_devices_qs = Device.objects.filter(rulesets__rules=rule).distinct().order_by('hostname', 'hostid')
+    configured_devices = []
+
+    for device in configured_devices_qs:
+        latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+        matching_rulesets = list(device.rulesets.filter(rules=rule).order_by('name').values_list('name', flat=True))
+
+        status = 'unknown'
+        status_label = 'No report'
+        last_report_at = latest_report.created_at if latest_report else None
+
+        if latest_report:
+            parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
+            if isinstance(parsed_report, dict) and parsed_report:
+                evaluation_result = rule.evaluate(parsed_report)
+                if evaluation_result is True:
+                    status = 'pass'
+                    status_label = 'Pass'
+                elif evaluation_result is False:
+                    status = 'fail'
+                    status_label = 'Fail'
+                else:
+                    status = 'unknown'
+                    status_label = 'Unknown'
+            else:
+                status = 'unknown'
+                status_label = 'Unknown'
+
+        configured_devices.append({
+            'device': device,
+            'status': status,
+            'status_label': status_label,
+            'rulesets': matching_rulesets,
+            'last_report_at': last_report_at,
+        })
+
     # Serialize rule for JavaScript
     rule_data = {
         'id': rule.id,
@@ -1238,13 +1275,14 @@ def rule_detail(request, rule_id):
         'created_at': rule.created_at.isoformat(),
         'updated_at': rule.updated_at.isoformat(),
     }
-    
+
     context = {
         'rule': rule,
         'rulesets': rulesets,  # Rulesets using this rule
+        'configured_devices': configured_devices,
         'rule_json': json.dumps(rule_data),
     }
-    
+
     return render(request, 'policy/rule_detail.html', context)
 
 @login_required

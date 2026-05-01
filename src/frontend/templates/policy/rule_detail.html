@@ -78,7 +78,7 @@
         </div>
 
         <!-- Rulesets Using This Rule -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
             <div class="p-6">
                 <h2 class="text-xl font-semibold mb-4">Rulesets Using This Rule</h2>
                 {% if rulesets %}
@@ -123,6 +123,64 @@
                     </table>
                 {% else %}
                     <p class="text-gray-500">This rule is not used in any rulesets yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Devices Using This Rule -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Devices Using This Rule</h2>
+                {% if configured_devices %}
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">Device</th>
+                                <th class="py-3 px-6 text-left">Host ID</th>
+                                <th class="py-3 px-6 text-left">Via Rulesets</th>
+                                <th class="py-3 px-6 text-left">Last Report</th>
+                                <th class="py-3 px-6 text-left">Status</th>
+                                <th class="py-3 px-6 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm font-light">
+                            {% for entry in configured_devices %}
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <td class="py-3 px-6 text-left font-medium text-gray-800">
+                                    {{ entry.device.hostname|default:entry.device.hostid }}
+                                </td>
+                                <td class="py-3 px-6 text-left">{{ entry.device.hostid }}</td>
+                                <td class="py-3 px-6 text-left">{{ entry.rulesets|join:", " }}</td>
+                                <td class="py-3 px-6 text-left">
+                                    {% if entry.last_report_at %}
+                                        {{ entry.last_report_at|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-6 text-left">
+                                    {% if entry.status == 'pass' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Pass</span>
+                                    {% elif entry.status == 'fail' %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Fail</span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ entry.status_label }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-6 text-left">
+                                    <a href="{% url 'device_detail' device_id=entry.device.id %}" class="text-gray-600 hover:text-gray-800" title="View device">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-gray-500">No devices currently have this rule assigned via a ruleset.</p>
                 {% endif %}
             </div>
         </div>
