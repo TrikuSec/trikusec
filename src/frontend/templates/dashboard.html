@@ -33,7 +33,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Compliant</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ compliant_count }}<span class="text-lg text-gray-400 font-normal">/{{ total_devices }}</span></p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ compliant_count }}<span class="text-lg text-gray-400 font-normal">/{{ assessed_devices_count }}</span></p>
                 </div>
                 <div class="p-3 bg-green-50 rounded-full">
                     <svg class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,7 +45,7 @@
                 <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="h-2 rounded-full {% if compliance_pct >= 80 %}bg-green-500{% elif compliance_pct >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width: {{ compliance_pct }}%"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">{{ compliance_pct }}% compliance rate</p>
+                <p class="text-xs text-gray-500 mt-1">{{ compliance_pct }}% compliance rate{% if unknown_count %} ({{ unknown_count }} unknown){% endif %}</p>
             </div>
         </div>
 

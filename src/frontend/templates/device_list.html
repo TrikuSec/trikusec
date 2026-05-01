@@ -191,7 +191,9 @@
                             </div>
                         </td>
                         <td class="py-3 px-6 text-left">
-                            {% if device.compliant %}
+                            {% if device.ruleset_count == 0 %}
+                            <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">Unknown</span>
+                            {% elif device.compliant %}
                             <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Compliant</span>
                             {% else %}
                             <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not Compliant</span>
