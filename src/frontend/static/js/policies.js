@@ -155,6 +155,13 @@ function submitRulesetForm() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            const refreshed = data.compliance_refreshed || 0;
+            const toastMessage = refreshed > 0
+                ? `Ruleset updated. Compliance refreshed for ${refreshed} device${refreshed === 1 ? '' : 's'}.`
+                : 'Ruleset updated successfully.';
+            sessionStorage.setItem('pending_toast_message', toastMessage);
+            sessionStorage.setItem('pending_toast_type', 'success');
+
             // Close panel and reload page
             closeRulesetEditPanel();
             location.reload();

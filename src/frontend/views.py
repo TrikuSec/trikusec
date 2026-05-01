@@ -74,6 +74,31 @@ def safe_redirect(request, fallback_url_name='device_list', **kwargs):
     except Exception:
         return redirect('device_list')
 
+
+def refresh_device_compliance_for_queryset(devices_queryset):
+    """Recalculate and persist compliance status for devices in the given queryset."""
+    refreshed = 0
+    skipped = 0
+
+    for device in devices_queryset.distinct():
+        latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
+        if not latest_report:
+            skipped += 1
+            continue
+
+        parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
+        if isinstance(parsed_report, dict) and parsed_report:
+            update_device_compliance(device, parsed_report)
+            refreshed += 1
+        else:
+            skipped += 1
+            logging.warning(
+                'Skipping compliance update for device %s: latest report could not be parsed',
+                device.id,
+            )
+
+    return refreshed, skipped
+
 @login_required
 def index(request):
     """Index view: redirect to onboarding if no devices, otherwise to dashboard"""
@@ -1014,6 +1039,15 @@ def ruleset_update(request, ruleset_id):
             selected_rules = PolicyRule.objects.filter(id__in=selected_rule_ids)
             ruleset.rules.set(selected_rules)
             ruleset.save()
+
+            refreshed, skipped = refresh_device_compliance_for_queryset(ruleset.devices.all())
+            logging.info(
+                'Refreshed compliance after ruleset %s update (selection mode): %s refreshed, %s skipped',
+                ruleset.id,
+                refreshed,
+                skipped,
+            )
+
             return redirect('policy_list')
         
         # Prevent editing name/description of system rulesets (unless user is superuser)
@@ -1074,12 +1108,22 @@ def ruleset_update(request, ruleset_id):
                 ruleset.rules.set(selected_rules)
                 ruleset.save()
             
+            refreshed, skipped = refresh_device_compliance_for_queryset(ruleset.devices.all())
+            logging.info(
+                'Refreshed compliance after ruleset %s update: %s refreshed, %s skipped',
+                ruleset.id,
+                refreshed,
+                skipped,
+            )
+
             # AJAX request: return JSON
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
                     'ruleset_id': ruleset.id,
-                    'message': 'Ruleset updated successfully'
+                    'message': 'Ruleset updated successfully',
+                    'compliance_refreshed': refreshed,
+                    'compliance_skipped': skipped,
                 })
             
             # Traditional request: redirect
@@ -1228,13 +1272,24 @@ def rule_update(request, rule_id):
             if not rule.created_by:
                 rule.created_by = request.user
             rule.save()
+
+            affected_devices = Device.objects.filter(rulesets__rules=policy_rule).distinct()
+            refreshed, skipped = refresh_device_compliance_for_queryset(affected_devices)
+            logging.info(
+                'Refreshed compliance after rule %s update: %s refreshed, %s skipped',
+                policy_rule.id,
+                refreshed,
+                skipped,
+            )
             
             # AJAX request: return JSON
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
                     'rule_id': policy_rule.id,
-                    'message': 'Rule updated successfully'
+                    'message': 'Rule updated successfully',
+                    'compliance_refreshed': refreshed,
+                    'compliance_skipped': skipped,
                 })
             
             # Traditional request: redirect to referer or rule list

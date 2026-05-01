@@ -133,6 +133,13 @@ function submitRuleForm() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            const refreshed = data.compliance_refreshed || 0;
+            const toastMessage = refreshed > 0
+                ? `Rule updated. Compliance refreshed for ${refreshed} device${refreshed === 1 ? '' : 's'}.`
+                : 'Rule updated successfully.';
+            sessionStorage.setItem('pending_toast_message', toastMessage);
+            sessionStorage.setItem('pending_toast_type', 'success');
+
             // Close panel and reload page
             toggleRuleEditPanel();
             location.reload();

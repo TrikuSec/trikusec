@@ -143,8 +143,39 @@
     {% block content %}{% endblock %}
   </main>
 
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
   {% include 'components/modal.html' %}
   <script src="{% static 'js/modal.js' %}"></script>
+  <script>
+    (function () {
+      function removeToast(toast) {
+        toast.classList.add('opacity-0', 'translate-y-1');
+        setTimeout(() => toast.remove(), 200);
+      }
+
+      window.showToast = function (message, type = 'success', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        if (!container || !message) return;
+
+        const bgClass = type === 'error' ? 'bg-red-600' : 'bg-green-600';
+        const toast = document.createElement('div');
+        toast.className = `pointer-events-auto text-white text-sm px-4 py-2 rounded shadow-lg transition-all duration-200 opacity-100 ${bgClass}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        setTimeout(() => removeToast(toast), duration);
+      };
+
+      const pendingToast = sessionStorage.getItem('pending_toast_message');
+      if (pendingToast) {
+        const pendingType = sessionStorage.getItem('pending_toast_type') || 'success';
+        sessionStorage.removeItem('pending_toast_message');
+        sessionStorage.removeItem('pending_toast_type');
+        window.showToast(pendingToast, pendingType);
+      }
+    })();
+  </script>
 </body>
 {% block scripts %}{% endblock %}
 
