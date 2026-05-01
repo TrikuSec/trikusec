@@ -1131,6 +1131,64 @@ class TestRuleDetailView:
         assert response.status_code == 302
         assert '/login' in response.url
 
+    def test_rule_detail_shows_configured_devices_and_status(self, test_user, test_device, sample_lynis_report):
+        """Rule detail should include devices configured with this rule and pass/fail/no-report status."""
+        from api.models import PolicyRule, PolicyRuleset
+
+        client = Client()
+        client.force_login(test_user)
+
+        rule = PolicyRule.objects.create(
+            name='Hardening over 60',
+            description='Test device status visibility',
+            rule_query='hardening_index > `60`',
+            enabled=True,
+            created_by=test_user,
+        )
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline',
+            description='Baseline ruleset',
+            created_by=test_user,
+        )
+        ruleset.rules.add(rule)
+
+        passing_device = test_device
+        passing_device.hostname = 'pass-host'
+        passing_device.save()
+
+        failing_device = Device.objects.create(
+            licensekey=test_device.licensekey,
+            hostid='fail-host-id',
+            hostid2='fail-host-id2',
+            hostname='fail-host',
+            compliant=True,
+        )
+        no_report_device = Device.objects.create(
+            licensekey=test_device.licensekey,
+            hostid='noreport-host-id',
+            hostid2='noreport-host-id2',
+            hostname='noreport-host',
+            compliant=True,
+        )
+
+        passing_device.rulesets.add(ruleset)
+        failing_device.rulesets.add(ruleset)
+        no_report_device.rulesets.add(ruleset)
+
+        FullReport.objects.create(device=passing_device, full_report=sample_lynis_report)
+        failing_report = sample_lynis_report.replace('hardening_index=65', 'hardening_index=10')
+        FullReport.objects.create(device=failing_device, full_report=failing_report)
+
+        response = client.get(reverse('rule_detail', kwargs={'rule_id': rule.id}))
+
+        assert response.status_code == 200
+        configured_devices = response.context['configured_devices']
+
+        status_by_host = {entry['device'].hostname: entry['status'] for entry in configured_devices}
+        assert status_by_host['pass-host'] == 'pass'
+        assert status_by_host['fail-host'] == 'fail'
+        assert status_by_host['noreport-host'] == 'unknown'
+
 
 @pytest.mark.django_db
 class TestPolicyRuleFormValidation:
