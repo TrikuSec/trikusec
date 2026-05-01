@@ -29,6 +29,7 @@
 # - CUST-TRIKUSEC-0020: Antivirus version check. It will check the version of the installed
 #              		 antivirus software and the last update.
 # - CUST-TRIKUSEC-0030: Custom test to check the status of the firewall.
+# - CUST-TRIKUSEC-0040: Debsecan full CVE list export for TrikuSec policy rules.
 #
 ###################################################################################
 
@@ -186,6 +187,65 @@
             Display --indent 2 --text "- Checking if everything is OK..." --result "${STATUS_WARNING}" --color RED
             ReportSuggestion "${TEST_NO}" "This is a suggestion"
         fi
+    fi
+
+#
+#################################################################################
+#
+    # Test        : CUST-TRIKUSEC-0040
+    # Description : Export full debsecan CVE list (if debsecan is installed)
+
+    DEBSECANBINARY=$(command -v debsecan)
+    if [ ! "${DEBSECANBINARY}" = "" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; SKIPREASON="No debsecan binary found"; fi
+    Register --test-no CUST-TRIKUSEC-0040 --preqs-met ${PREQS_MET} --skip-reason "${SKIPREASON}" --weight M --network NO --category security --description "Export full debsecan CVE list for TrikuSec"
+
+    if [ ${SKIPTEST} -eq 0 ]; then
+        Report "debsecan_installed=1"
+
+        # Derive Debian codename (bookworm/trixie/bullseye...) when possible
+        DEBIAN_CODENAME=""
+        if [ -f /etc/os-release ]; then
+            # shellcheck disable=SC1091
+            . /etc/os-release
+            if [ ! "${VERSION_CODENAME}" = "" ]; then
+                DEBIAN_CODENAME="${VERSION_CODENAME}"
+            fi
+        fi
+
+        if [ "${DEBIAN_CODENAME}" = "" ]; then
+            DEBIAN_CODENAME=$(lsb_release -sc 2>/dev/null)
+        fi
+
+        if [ ! "${DEBIAN_CODENAME}" = "" ]; then
+            Report "debsecan_suite=${DEBIAN_CODENAME}"
+            DEBSECAN_BUGS=$(debsecan --suite "${DEBIAN_CODENAME}" --format bugs 2>/dev/null)
+        else
+            DEBSECAN_BUGS=$(debsecan --format bugs 2>/dev/null)
+        fi
+
+        # Extract CVE identifiers and deduplicate
+        CVE_LIST=$(printf '%s\n' "${DEBSECAN_BUGS}" | grep -Eo 'CVE-[0-9]{4}-[0-9]+' | sort -u)
+
+        if [ ! "${CVE_LIST}" = "" ]; then
+            CVE_COUNT=0
+            for CVE in ${CVE_LIST}; do
+                Report "debsecan_cve[]=${CVE}"
+                CVE_COUNT=$((CVE_COUNT + 1))
+            done
+
+            CVE_LIST_COMMA=$(printf '%s\n' "${CVE_LIST}" | tr '\n' ',' | sed 's/,$//')
+            Report "debsecan_cve_list=${CVE_LIST_COMMA}"
+            Report "debsecan_cve_count=${CVE_COUNT}"
+            Display --indent 2 --text "Debsecan CVE list exported" --result "${CVE_COUNT}" --color GREEN
+        else
+            Report "debsecan_cve_count=0"
+            Report "debsecan_cve_list=NONE"
+            Display --indent 2 --text "Debsecan CVE list exported" --result "0" --color GREEN
+        fi
+    else
+        Report "debsecan_installed=0"
+        Report "debsecan_cve_count=0"
+        Report "debsecan_cve_list=NO_DEBSECAN"
     fi
 
 #
