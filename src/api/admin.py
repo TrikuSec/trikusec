@@ -69,6 +69,8 @@ class DeviceAdmin(admin.ModelAdmin):
     
     @admin.display(description='Status')
     def compliance_status(self, obj):
+        if not obj.rulesets.exists():
+            return format_html('<span style="color: gray;">? Unknown</span>')
         if obj.compliant:
             return format_html('<span style="color: green;">✓ Compliant</span>')
         return format_html('<span style="color: red;">✗ Non-compliant</span>')

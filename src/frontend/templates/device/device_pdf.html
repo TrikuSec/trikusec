@@ -107,9 +107,13 @@
         </div>
         <div class="info-item">
             <span class="info-label">Compliance:</span>
+            {% if not has_rulesets %}
+            <span class="info-value">Unknown</span>
+            {% else %}
             <span class="info-value {% if device.compliant %}compliant{% else %}non-compliant{% endif %}">
                 {% if device.compliant %}Compliant{% else %}Non-compliant{% endif %}
             </span>
+            {% endif %}
         </div>
         <div class="info-item">
             <span class="info-label">IP Address:</span>

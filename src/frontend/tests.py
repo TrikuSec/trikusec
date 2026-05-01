@@ -303,6 +303,33 @@ class TestDeviceListPagination:
 
 
 @pytest.mark.django_db
+class TestDeviceComplianceUnknownStatus:
+    """Devices without assigned rulesets should be shown as Unknown."""
+
+    def test_device_list_shows_unknown_when_no_ruleset(self, test_user, test_device, sample_lynis_report):
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        response = client.get(reverse('device_list'))
+
+        assert response.status_code == 200
+        assert b'Unknown' in response.content
+
+    def test_device_detail_shows_unknown_when_no_ruleset(self, test_user, test_device, sample_lynis_report):
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        response = client.get(reverse('device_detail', kwargs={'device_id': test_device.id}))
+
+        assert response.status_code == 200
+        assert b'Unknown' in response.content
+
+
+@pytest.mark.django_db
 class TestDeviceDelete:
     """Tests for the device_delete endpoint."""
 
@@ -1294,8 +1321,9 @@ class TestDashboardView:
         assert response.status_code == 200
         assert 'total_devices' in response.context
         assert response.context['total_devices'] == 1
-        assert response.context['compliant_count'] == 1
+        assert response.context['compliant_count'] == 0
         assert response.context['non_compliant_count'] == 0
+        assert response.context['unknown_count'] == 1
 
     def test_dashboard_requires_authentication(self):
         """Dashboard should redirect unauthenticated users to login."""
@@ -1309,20 +1337,41 @@ class TestDashboardView:
     def test_dashboard_compliance_stats(self, test_user, test_license_key):
         """Dashboard should show correct compliance statistics."""
         from conftest import DeviceFactory
+        from api.models import PolicyRule, PolicyRuleset
 
         client = Client()
         client.force_login(test_user)
 
+        # Create one shared ruleset so devices are considered assessed
+        rule = PolicyRule.objects.create(
+            name='Dashboard marker rule',
+            description='Used for dashboard counting tests',
+            rule_query='hardening_index > `0`',
+            enabled=True,
+            created_by=test_user,
+        )
+        ruleset = PolicyRuleset.objects.create(
+            name='Dashboard Test Ruleset',
+            description='Test ruleset',
+            created_by=test_user,
+        )
+        ruleset.rules.add(rule)
+
         # Create 3 compliant and 2 non-compliant devices
+        devices = []
         for i in range(3):
-            DeviceFactory(licensekey=test_license_key, compliant=True)
+            devices.append(DeviceFactory(licensekey=test_license_key, compliant=True))
         for i in range(2):
-            DeviceFactory(licensekey=test_license_key, compliant=False, warnings=3)
+            devices.append(DeviceFactory(licensekey=test_license_key, compliant=False, warnings=3))
+        for device in devices:
+            device.rulesets.add(ruleset)
 
         response = client.get(reverse('dashboard'))
 
         assert response.status_code == 200
         assert response.context['total_devices'] == 5
+        assert response.context['assessed_devices_count'] == 5
+        assert response.context['unknown_count'] == 0
         assert response.context['compliant_count'] == 3
         assert response.context['non_compliant_count'] == 2
         assert response.context['compliance_pct'] == 60

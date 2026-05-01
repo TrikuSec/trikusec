@@ -119,9 +119,12 @@ def dashboard(request):
         return redirect('onboarding')
 
     # --- Summary cards ---
-    compliant_count = devices.filter(compliant=True).count()
-    non_compliant_count = total_devices - compliant_count
-    compliance_pct = round(compliant_count * 100 / total_devices) if total_devices else 0
+    assessed_devices = devices.filter(rulesets__isnull=False).distinct()
+    assessed_devices_count = assessed_devices.count()
+    compliant_count = assessed_devices.filter(compliant=True).count()
+    non_compliant_count = assessed_devices.filter(compliant=False).count()
+    unknown_count = total_devices - assessed_devices_count
+    compliance_pct = round(compliant_count * 100 / assessed_devices_count) if assessed_devices_count else 0
     total_warnings = devices.aggregate(total=Sum('warnings'))['total'] or 0
 
     # Average hardening index (requires parsing reports)
@@ -233,6 +236,8 @@ def dashboard(request):
         'compliant_count': compliant_count,
         'non_compliant_count': non_compliant_count,
         'compliance_pct': compliance_pct,
+        'assessed_devices_count': assessed_devices_count,
+        'unknown_count': unknown_count,
         'total_warnings': total_warnings,
         'avg_hardening': avg_hardening,
         'os_distribution': os_distribution,
@@ -398,7 +403,7 @@ def onboarding(request):
 @login_required
 def device_list(request):
     """Device list view: show all devices"""
-    devices_qs = Device.objects.all()
+    devices_qs = Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True))
     has_devices = devices_qs.exists()
     
     # Only process compliance if devices exist
@@ -441,7 +446,7 @@ def device_list(request):
     # If sorting by hardening_index, we need to extract it first and sort in Python
     elif sort_field == 'hardening_index':
         # Get all devices first
-        devices = list(Device.objects.all())
+        devices = list(Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)))
         
         # Extract hardening_index from latest report for each device
         for device in devices:
@@ -466,7 +471,7 @@ def device_list(request):
             order_by = f'-{sort_field}'
         
         # Order devices by selected field
-        devices = Device.objects.all().order_by(order_by)
+        devices = Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)).order_by(order_by)
         
         # Extract hardening_index from latest report for each device (for display)
         devices_list = list(devices)
@@ -564,6 +569,7 @@ def device_detail(request, device_id):
         'device': device,
         'report': report,
         'evaluated_rulesets': evaluated_rulesets,
+        'has_rulesets': device.rulesets.exists(),
         'rulesets': policy_rulesets,
         'all_rules': all_rules,  # For rule selection sidebar template
         'rulesets_json': json.dumps(rulesets_data),
@@ -669,6 +675,7 @@ def device_export_pdf(request, device_id):
         'device': device,
         'report': report,
         'evaluated_rulesets': evaluated_rulesets,
+        'has_rulesets': device.rulesets.exists(),
         'generated_at': datetime.now(),
     }, request=request)
     

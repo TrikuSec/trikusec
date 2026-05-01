@@ -62,7 +62,9 @@
                 <div class="grid grid-cols-2 w-96 space-y-2">
                     <div class="text-left text-gray-600 mt-2">Compliance</div>
                     <div class="text-left w-80 text-gray-900 font-medium">:
-                        {% if device.compliant %}
+                        {% if not has_rulesets %}
+                        <span class="ml-2 bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">Unknown</span>
+                        {% elif device.compliant %}
                         <span class="ml-2 bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Compliant</span>
                         {% else %}
                         <span class="ml-2 bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Non-compliant</span>
