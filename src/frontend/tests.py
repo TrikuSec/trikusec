@@ -462,6 +462,99 @@ class TestDeviceUpdateCompliance:
 
 
 @pytest.mark.django_db
+class TestPolicyEditComplianceRefresh:
+    """Tests for compliance refresh when editing rules and rulesets."""
+
+    def test_rule_update_recalculates_assigned_device_compliance(self, test_user, test_device, sample_lynis_report):
+        from api.models import PolicyRule, PolicyRuleset
+        from api.utils.compliance import update_device_compliance
+        from api.utils.lynis_report import LynisReport
+
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        failing_rule = PolicyRule.objects.create(
+            name='Hardening over 100',
+            rule_query='hardening_index > `100`',
+            description='Fails with sample report',
+            enabled=True,
+        )
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline',
+            description='Baseline ruleset',
+        )
+        ruleset.rules.add(failing_rule)
+        test_device.rulesets.add(ruleset)
+
+        parsed_report = LynisReport(sample_lynis_report).get_parsed_report()
+        update_device_compliance(test_device, parsed_report)
+        test_device.refresh_from_db()
+        assert test_device.compliant is False
+
+        response = client.post(
+            reverse('rule_update', kwargs={'rule_id': failing_rule.id}),
+            data={
+                'enabled': 'on',
+                'name': failing_rule.name,
+                'description': failing_rule.description,
+                'rule_query': 'hardening_index > `60`',
+            },
+        )
+
+        assert response.status_code == 302
+
+        test_device.refresh_from_db()
+        assert test_device.compliant is True
+
+    def test_ruleset_update_recalculates_assigned_device_compliance(self, test_user, test_device, sample_lynis_report):
+        from api.models import PolicyRule, PolicyRuleset
+        from api.utils.compliance import update_device_compliance
+        from api.utils.lynis_report import LynisReport
+
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        failing_rule = PolicyRule.objects.create(
+            name='Hardening over 100',
+            rule_query='hardening_index > `100`',
+            description='Fails with sample report',
+            enabled=True,
+        )
+        passing_rule = PolicyRule.objects.create(
+            name='Hardening over 60',
+            rule_query='hardening_index > `60`',
+            description='Passes with sample report',
+            enabled=True,
+        )
+
+        ruleset = PolicyRuleset.objects.create(
+            name='Baseline',
+            description='Baseline ruleset',
+        )
+        ruleset.rules.add(failing_rule)
+        test_device.rulesets.add(ruleset)
+
+        parsed_report = LynisReport(sample_lynis_report).get_parsed_report()
+        update_device_compliance(test_device, parsed_report)
+        test_device.refresh_from_db()
+        assert test_device.compliant is False
+
+        response = client.post(
+            reverse('ruleset_update', kwargs={'ruleset_id': ruleset.id}),
+            data={'rules': [str(passing_rule.id)]},
+        )
+
+        assert response.status_code == 302
+
+        test_device.refresh_from_db()
+        assert test_device.compliant is True
+
+
+@pytest.mark.django_db
 class TestRulesetRemoveDevice:
     """Tests for removing device assignments from the ruleset detail page."""
 
