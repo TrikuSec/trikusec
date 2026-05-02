@@ -202,29 +202,46 @@
     if [ ${SKIPTEST} -eq 0 ]; then
         Report "debsecan_installed=1"
 
-        # Derive Debian codename (bookworm/trixie/bullseye...) when possible
-        DEBIAN_CODENAME=""
+        # Derive distro codename when possible (Debian/Ubuntu/etc)
+        DISTRO_CODENAME=""
         if [ -f /etc/os-release ]; then
             # shellcheck disable=SC1091
             . /etc/os-release
             if [ ! "${VERSION_CODENAME}" = "" ]; then
-                DEBIAN_CODENAME="${VERSION_CODENAME}"
+                DISTRO_CODENAME="${VERSION_CODENAME}"
+            elif [ ! "${UBUNTU_CODENAME}" = "" ]; then
+                DISTRO_CODENAME="${UBUNTU_CODENAME}"
             fi
         fi
 
-        if [ "${DEBIAN_CODENAME}" = "" ]; then
-            DEBIAN_CODENAME=$(lsb_release -sc 2>/dev/null)
+        if [ "${DISTRO_CODENAME}" = "" ]; then
+            DISTRO_CODENAME=$(lsb_release -sc 2>/dev/null)
         fi
 
-        if [ ! "${DEBIAN_CODENAME}" = "" ]; then
-            Report "debsecan_suite=${DEBIAN_CODENAME}"
-            DEBSECAN_BUGS=$(debsecan --suite "${DEBIAN_CODENAME}" --format bugs 2>/dev/null)
-        else
-            DEBSECAN_BUGS=$(debsecan --format bugs 2>/dev/null)
+        if [ ! "${DISTRO_CODENAME}" = "" ]; then
+            Report "debsecan_suite=${DISTRO_CODENAME}"
+        fi
+
+        # Collect debsecan output with robust fallbacks.
+        # Primary path: no suite (auto-detect), which is more reliable on Ubuntu.
+        DEBSECAN_OUTPUT=""
+
+        DEBSECAN_OUTPUT=$(debsecan 2>/dev/null)
+
+        if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" 2>/dev/null)
+        fi
+
+        if [ "${DEBSECAN_OUTPUT}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
+        fi
+
+        if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
         fi
 
         # Extract CVE identifiers and deduplicate
-        CVE_LIST=$(printf '%s\n' "${DEBSECAN_BUGS}" | grep -Eo 'CVE-[0-9]{4}-[0-9]+' | sort -u)
+        CVE_LIST=$(printf '%s\n' "${DEBSECAN_OUTPUT}" | grep -Eo 'CVE-[0-9]{4}-[0-9]+' | sort -u)
 
         if [ ! "${CVE_LIST}" = "" ]; then
             CVE_COUNT=0
