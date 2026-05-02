@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        GIT_DESCRIBE: ${GIT_DESCRIBE:-$(git describe --tags 2>/dev/null || echo development)}
     container_name: trikusec-manager-dev
     volumes:
       - ./src:/app
@@ -45,6 +47,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+      args:
+        GIT_DESCRIBE: ${GIT_DESCRIBE:-$(git describe --tags 2>/dev/null || echo development)}
     container_name: trikusec-lynis-api-dev
     volumes:
       - ./src:/app
