@@ -204,12 +204,18 @@
 
         # Derive distro codename when possible (Debian/Ubuntu/etc)
         DISTRO_CODENAME=""
+        DISTRO_ID=""
+        DISTRO_ID_LIKE=""
+
         if [ -f /etc/os-release ]; then
             # shellcheck disable=SC1091
             . /etc/os-release
-            if [ ! "${VERSION_CODENAME}" = "" ]; then
+            DISTRO_ID="${ID:-}"
+            DISTRO_ID_LIKE="${ID_LIKE:-}"
+
+            if [ ! "${VERSION_CODENAME:-}" = "" ]; then
                 DISTRO_CODENAME="${VERSION_CODENAME}"
-            elif [ ! "${UBUNTU_CODENAME}" = "" ]; then
+            elif [ ! "${UBUNTU_CODENAME:-}" = "" ]; then
                 DISTRO_CODENAME="${UBUNTU_CODENAME}"
             fi
         fi
@@ -222,22 +228,49 @@
             Report "debsecan_suite=${DISTRO_CODENAME}"
         fi
 
+        # For Ubuntu-based systems use the TrikuSec Ubuntu advisory source.
+        DEBSECAN_SOURCE_URL=""
+        case "${DISTRO_ID} ${DISTRO_ID_LIKE}" in
+            *ubuntu*)
+                DEBSECAN_SOURCE_URL="https://trikusec.github.io/ubt2dsa/"
+                ;;
+        esac
+
+        if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+            Report "debsecan_source=${DEBSECAN_SOURCE_URL}"
+        fi
+
         # Collect debsecan output with robust fallbacks.
-        # Primary path: no suite (auto-detect), which is more reliable on Ubuntu.
         DEBSECAN_OUTPUT=""
 
-        DEBSECAN_OUTPUT=$(debsecan 2>/dev/null)
+        if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" 2>/dev/null)
+        else
+            DEBSECAN_OUTPUT=$(debsecan 2>/dev/null)
+        fi
 
         if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
-            DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" 2>/dev/null)
+            if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --suite "${DISTRO_CODENAME}" 2>/dev/null)
+            else
+                DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" 2>/dev/null)
+            fi
         fi
 
         if [ "${DEBSECAN_OUTPUT}" = "" ]; then
-            DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
+            if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --format bugs 2>/dev/null)
+            else
+                DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
+            fi
         fi
 
         if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
-            DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
+            if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
+            else
+                DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
+            fi
         fi
 
         # Extract CVE identifiers and deduplicate
