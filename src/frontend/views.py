@@ -50,16 +50,6 @@ def get_trikusec_version():
     if version_file_path.exists():
         return version_file_path.read_text(encoding='utf-8').strip()
 
-    package_json_path = Path(settings.BASE_DIR).parent / 'package.json'
-    if package_json_path.exists():
-        try:
-            package_data = json.loads(package_json_path.read_text(encoding='utf-8'))
-            package_version = package_data.get('version', '').strip()
-            if package_version:
-                return package_version
-        except (json.JSONDecodeError, OSError):
-            pass
-
     return 'development'
 
 

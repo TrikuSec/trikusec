@@ -28,6 +28,10 @@ WORKDIR /app
 # Copy the content of the local src directory to the working directory
 COPY src/ .
 
+# Generate VERSION file from git tag (fallback to 'development' if no git context)
+ARG GIT_DESCRIBE
+RUN echo "${GIT_DESCRIBE:-development}" > /app/VERSION
+
 # Install pip
 RUN pip install --upgrade pip
 
