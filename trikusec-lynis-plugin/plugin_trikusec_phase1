@@ -241,28 +241,13 @@
         fi
 
         # Collect debsecan output with robust fallbacks.
+        # Always use --format bugs to avoid duplicated CVEs.
         DEBSECAN_OUTPUT=""
 
         if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
-            DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" 2>/dev/null)
+            DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --format bugs 2>/dev/null)
         else
-            DEBSECAN_OUTPUT=$(debsecan 2>/dev/null)
-        fi
-
-        if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
-            if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
-                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --suite "${DISTRO_CODENAME}" 2>/dev/null)
-            else
-                DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" 2>/dev/null)
-            fi
-        fi
-
-        if [ "${DEBSECAN_OUTPUT}" = "" ]; then
-            if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
-                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --format bugs 2>/dev/null)
-            else
-                DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
-            fi
+            DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
         fi
 
         if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
