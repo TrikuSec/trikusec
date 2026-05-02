@@ -241,22 +241,35 @@
         fi
 
         # Collect debsecan output with robust fallbacks.
-        # Always use --format bugs to avoid duplicated CVEs.
+        # Always use --format summary, then keep only "high urgency" entries.
         DEBSECAN_OUTPUT=""
 
         if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
-            DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --format bugs 2>/dev/null)
+            DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --format summary 2>/dev/null)
         else
-            DEBSECAN_OUTPUT=$(debsecan --format bugs 2>/dev/null)
+            DEBSECAN_OUTPUT=$(debsecan --format summary 2>/dev/null)
         fi
 
         if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
             if [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
-                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
+                DEBSECAN_OUTPUT=$(debsecan --source "${DEBSECAN_SOURCE_URL}" --suite "${DISTRO_CODENAME}" --format summary 2>/dev/null)
             else
-                DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format bugs 2>/dev/null)
+                DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format summary 2>/dev/null)
             fi
         fi
+
+        # Fallback: on some Ubuntu installations the custom source can return no data.
+        # If so, retry using the distro's default debsecan source.
+        if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DEBSECAN_SOURCE_URL}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --format summary 2>/dev/null)
+        fi
+
+        if [ "${DEBSECAN_OUTPUT}" = "" ] && [ ! "${DEBSECAN_SOURCE_URL}" = "" ] && [ ! "${DISTRO_CODENAME}" = "" ]; then
+            DEBSECAN_OUTPUT=$(debsecan --suite "${DISTRO_CODENAME}" --format summary 2>/dev/null)
+        fi
+
+        Report "debsecan_filter=high urgency"
+        DEBSECAN_OUTPUT=$(printf '%s\n' "${DEBSECAN_OUTPUT}" | grep -i "high urgency")
 
         # Extract CVE identifiers and deduplicate
         CVE_LIST=$(printf '%s\n' "${DEBSECAN_OUTPUT}" | grep -Eo 'CVE-[0-9]{4}-[0-9]+' | sort -u)
