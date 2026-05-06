@@ -36,6 +36,78 @@ docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m 
 docker compose -f docker-compose.dev.yml --profile test run --rm test pytest -m integration -v
 ```
 
+### Run Lynis Client Integration Flow Manually (Dev)
+
+Use this when you want to validate the real enrollment/upload flow against your running dev stack.
+
+1) Ensure services are running:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d trikusec-manager trikusec-lynis-api
+```
+
+2) Create (or update) a license key in DB:
+
+```bash
+export TRIKUSEC_LICENSE_KEY=aaaaaaaa-bbbbbbbb-cccccccc
+
+docker compose -f docker-compose.dev.yml exec trikusec-manager \
+  python manage.py populate_db_licensekey "$TRIKUSEC_LICENSE_KEY" --name "Dev Integration License"
+```
+
+3) Run the Lynis client container once:
+
+```bash
+docker compose -f docker-compose.dev.yml run --rm \
+  -e TRIKUSEC_LICENSE_KEY="$TRIKUSEC_LICENSE_KEY" \
+  lynis-client
+```
+
+This should enroll/upload a device that appears in the **Devices** view.
+
+### Seed Example Devices for Manual UI Testing
+
+If you only need sample data quickly (without running full Lynis audit), post synthetic reports directly to the upload endpoint.
+
+```bash
+export TRIKUSEC_LICENSE_KEY=aaaaaaaa-bbbbbbbb-cccccccc
+
+# Ensure the license exists
+docker compose -f docker-compose.dev.yml exec trikusec-manager \
+  python manage.py populate_db_licensekey "$TRIKUSEC_LICENSE_KEY" --name "Dev Seed License"
+
+# Seed 12 demo devices
+for i in $(seq 1 12); do
+  REPORT=$(cat <<EOF
+# Lynis Report
+report_version_major=1
+report_version_minor=0
+hostname=demo-device-$i
+os=Linux
+os_fullname=Ubuntu 22.04 LTS
+os_version=22.04
+lynis_version=3.0.9
+uptime_in_days=$((RANDOM % 120))
+warning_count=$((RANDOM % 15))
+vulnerable_packages_found=$((RANDOM % 8))
+hardening_index=$((50 + RANDOM % 45))
+report_datetime_end=2026-05-06 12:00:00
+finish=true
+EOF
+)
+
+  curl -sk -X POST "https://localhost:8001/api/lynis/upload/" \
+    --data-urlencode "licensekey=${TRIKUSEC_LICENSE_KEY}" \
+    --data-urlencode "hostid=demo-hostid-$i" \
+    --data-urlencode "hostid2=demo-hostid2-$i" \
+    --data-urlencode "data=${REPORT}" >/dev/null
+
+  echo "Uploaded demo device $i"
+done
+```
+
+This is the fastest way to populate the device list for manual feature validation.
+
 ### E2E Tests Only
 
 E2E tests require Playwright and must be run in the `test-e2e` service:
