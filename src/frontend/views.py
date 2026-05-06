@@ -392,32 +392,91 @@ def onboarding(request):
 
 @login_required
 def device_list(request):
-    """Device list view: show all devices"""
+    """Device list view: show all devices."""
+    from django.utils import timezone as tz
+
+    now = tz.now()
+
+    def enrich_device_for_list(device, parsed_report):
+        """Attach computed fields used by the device list optional columns."""
+        device.hardening_index = None
+        device.uptime_in_days = None
+        device.trikusec_plugin_installed = False
+        device.antivirus_installed = False
+        device.vulnerable_packages_count = 0
+        device.total_days_non_compliant = 0
+
+        if isinstance(parsed_report, dict):
+            device.hardening_index = parsed_report.get('hardening_index', None)
+
+            uptime_days = parsed_report.get('uptime_in_days')
+            try:
+                device.uptime_in_days = int(uptime_days) if uptime_days is not None else None
+            except (TypeError, ValueError):
+                device.uptime_in_days = None
+
+            installed_package_names = parsed_report.get('installed_package_names') or []
+            if not isinstance(installed_package_names, list):
+                installed_package_names = []
+
+            device.trikusec_plugin_installed = parsed_report.get('trikusec_custom_tests') in (1, '1', True)
+            if not device.trikusec_plugin_installed:
+                device.trikusec_plugin_installed = any(
+                    'trikusec' in pkg.lower() and 'plugin' in pkg.lower()
+                    for pkg in installed_package_names
+                    if isinstance(pkg, str)
+                )
+
+            malware_scanner_installed = parsed_report.get('malware_scanner_installed')
+            clamav_version = parsed_report.get('clamav_version')
+            known_antivirus_packages = {'clamav', 'rkhunter', 'chkrootkit'}
+            package_antivirus_installed = any(
+                any(av_pkg in pkg.lower() for av_pkg in known_antivirus_packages)
+                for pkg in installed_package_names
+                if isinstance(pkg, str)
+            )
+            device.antivirus_installed = (
+                malware_scanner_installed in (1, '1', True)
+                or bool(clamav_version)
+                or package_antivirus_installed
+            )
+
+            vulnerable_packages_found = parsed_report.get('vulnerable_packages_found')
+            if vulnerable_packages_found is None:
+                vulnerable_packages = parsed_report.get('vulnerable_package')
+                if isinstance(vulnerable_packages, list):
+                    device.vulnerable_packages_count = len(vulnerable_packages)
+                else:
+                    device.vulnerable_packages_count = 0
+            else:
+                try:
+                    device.vulnerable_packages_count = int(vulnerable_packages_found)
+                except (TypeError, ValueError):
+                    device.vulnerable_packages_count = 0
+
+        if device.ruleset_count > 0 and not device.compliant:
+            compliance_event = (
+                DeviceEvent.objects
+                .filter(device=device, event_type='compliance_changed')
+                .order_by('-created_at')
+                .first()
+            )
+
+            if compliance_event and compliance_event.metadata.get('new_status') == 'Non-Compliant':
+                non_compliant_since = compliance_event.created_at
+            else:
+                non_compliant_since = device.last_update or device.created_at
+
+            elapsed_days = (now - non_compliant_since).days if non_compliant_since else 0
+            device.total_days_non_compliant = max(0, elapsed_days)
+
     devices_qs = Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True))
     has_devices = devices_qs.exists()
-    
-    # Only process compliance if devices exist
-    if has_devices:
-        for device in devices_qs:
-            logging.debug('Checking compliance for device %s', device)
-            
-            # Get the latest report for the device
-            report = FullReport.objects.filter(device=device).order_by('-created_at').first()
-            if not report:
-                logging.error('No report found for device %s', device)
-                # Don't update compliance here - it should be set on upload
-                continue
-            
-            report = LynisReport(report.full_report)
-            
-            # Only check compliance for display purposes, don't update device or create events
-            # Compliance updates and events should only happen on report upload
-            compliant, _ = check_device_compliance(device, report.get_parsed_report())
-    
+
     # Handle sorting
     sort_field = request.GET.get('sort', 'last_update')
     sort_order = request.GET.get('order', 'desc')
-    
+
     # Validate sort field to prevent SQL injection
     valid_sort_fields = {
         'hostname': 'hostname',
@@ -426,30 +485,27 @@ def device_list(request):
         'last_update': 'last_update',
         'hardening_index': 'hardening_index',
     }
-    
+
     # Default to last_update if invalid sort field
     sort_field = valid_sort_fields.get(sort_field, 'last_update')
-    
+
     # If no devices, return empty list
     if not has_devices:
         devices = []
     # If sorting by hardening_index, we need to extract it first and sort in Python
     elif sort_field == 'hardening_index':
-        # Get all devices first
         devices = list(Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)))
-        
-        # Extract hardening_index from latest report for each device
+
         for device in devices:
+            parsed_report = None
             latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
             if latest_report:
                 try:
                     parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
-                    device.hardening_index = parsed_report.get('hardening_index', None)
                 except Exception:
-                    device.hardening_index = None
-            else:
-                device.hardening_index = None
-        
+                    parsed_report = None
+            enrich_device_for_list(device, parsed_report)
+
         # Sort by hardening_index (treat None as -1 for sorting purposes)
         reverse_order = sort_order == 'desc'
         devices.sort(key=lambda d: d.hardening_index if d.hardening_index is not None else -1, reverse=reverse_order)
@@ -459,23 +515,19 @@ def device_list(request):
             order_by = sort_field
         else:  # default to desc
             order_by = f'-{sort_field}'
-        
+
         # Order devices by selected field
-        devices = Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)).order_by(order_by)
-        
-        # Extract hardening_index from latest report for each device (for display)
-        devices_list = list(devices)
-        for device in devices_list:
+        devices = list(Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)).order_by(order_by))
+
+        for device in devices:
+            parsed_report = None
             latest_report = FullReport.objects.filter(device=device).order_by('-created_at').first()
             if latest_report:
                 try:
                     parsed_report = LynisReport(latest_report.full_report).get_parsed_report()
-                    device.hardening_index = parsed_report.get('hardening_index', None)
                 except Exception:
-                    device.hardening_index = None
-            else:
-                device.hardening_index = None
-        devices = devices_list
+                    parsed_report = None
+            enrich_device_for_list(device, parsed_report)
 
     paginator = Paginator(devices, DEVICE_LIST_PAGE_SIZE)
     page_number = request.GET.get('page')

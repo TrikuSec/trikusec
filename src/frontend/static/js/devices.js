@@ -77,11 +77,28 @@ function deleteDevice(deviceId, hostname) {
     });
 }
 
-// Device search toggle - using event delegation for Firefox compatibility
+// Device search toggle + column customization
+
+const DEVICE_OPTIONAL_COLUMNS = [
+    'uptime',
+    'trikusec_plugin',
+    'antivirus',
+    'vulnerable_packages',
+    'non_compliant_days',
+];
+const DEVICE_COLUMN_PREFS_KEY = 'trikusec.device-list.optional-columns.v1';
+const DEVICE_MAX_TOTAL_COLUMNS = 10;
+const DEVICE_MANDATORY_COLUMNS = 4;
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchContainer = document.getElementById('device-search-container');
     const searchInput = document.getElementById('device-search-input');
     const deviceRows = document.querySelectorAll('tbody tr[data-device-name]');
+
+    const columnsToggleButton = document.getElementById('device-columns-toggle');
+    const columnsPanel = document.getElementById('device-columns-panel');
+    const columnsLimitMsg = document.getElementById('device-columns-limit-msg');
+    const columnCheckboxes = document.querySelectorAll('[data-column-checkbox]');
 
     function filterDevices(term) {
         const normalized = term.trim().toLowerCase();
@@ -93,9 +110,68 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function loadOptionalColumnsPreference() {
+        try {
+            const raw = localStorage.getItem(DEVICE_COLUMN_PREFS_KEY);
+            if (!raw) {
+                return [...DEVICE_OPTIONAL_COLUMNS];
+            }
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                return [...DEVICE_OPTIONAL_COLUMNS];
+            }
+            return parsed.filter((key) => DEVICE_OPTIONAL_COLUMNS.includes(key));
+        } catch (_) {
+            return [...DEVICE_OPTIONAL_COLUMNS];
+        }
+    }
+
+    function saveOptionalColumnsPreference(selectedColumns) {
+        try {
+            localStorage.setItem(DEVICE_COLUMN_PREFS_KEY, JSON.stringify(selectedColumns));
+        } catch (_) {
+            // Ignore persistence errors (e.g., private browsing quota restrictions)
+        }
+    }
+
+    function updateColumnSelectionLimits(selectedColumns) {
+        if (!columnCheckboxes.length) {
+            return;
+        }
+
+        const maxOptionalColumns = DEVICE_MAX_TOTAL_COLUMNS - DEVICE_MANDATORY_COLUMNS;
+        const maxReached = selectedColumns.length >= maxOptionalColumns;
+
+        columnCheckboxes.forEach((checkbox) => {
+            if (!checkbox.checked) {
+                checkbox.disabled = maxReached;
+            }
+        });
+
+        if (columnsLimitMsg) {
+            columnsLimitMsg.classList.toggle('hidden', !maxReached);
+        }
+    }
+
+    function applyOptionalColumns(selectedColumns) {
+        DEVICE_OPTIONAL_COLUMNS.forEach((columnKey) => {
+            const shouldShow = selectedColumns.includes(columnKey);
+            const nodes = document.querySelectorAll(`[data-optional-column="${columnKey}"]`);
+            nodes.forEach((node) => node.classList.toggle('hidden', !shouldShow));
+        });
+
+        columnCheckboxes.forEach((checkbox) => {
+            const columnKey = checkbox.getAttribute('data-column-checkbox');
+            checkbox.checked = selectedColumns.includes(columnKey);
+        });
+
+        updateColumnSelectionLimits(selectedColumns);
+    }
+
     // Use event delegation on document to avoid Firefox issues with hidden elements
     document.addEventListener('click', function(e) {
         const searchToggle = e.target.closest('#device-search-toggle');
+        const columnsToggle = e.target.closest('#device-columns-toggle');
 
         if (searchToggle && searchContainer) {
             const wasOpen = searchContainer.classList.contains('max-w-xs');
@@ -104,14 +180,20 @@ document.addEventListener('DOMContentLoaded', function() {
             searchContainer.classList.toggle('opacity-100');
 
             if (!wasOpen && searchInput) {
-                // Wait a bit so the transition starts, then focus
                 setTimeout(() => searchInput.focus(), 150);
             } else if (wasOpen) {
-                // Closing the search panel should clear filters
                 if (searchInput) {
                     searchInput.value = '';
                 }
                 filterDevices('');
+            }
+        }
+
+        if (columnsToggle && columnsPanel) {
+            columnsPanel.classList.toggle('hidden');
+        } else if (columnsPanel && columnsToggleButton && !columnsPanel.classList.contains('hidden')) {
+            if (!columnsPanel.contains(e.target) && !columnsToggleButton.contains(e.target)) {
+                columnsPanel.classList.add('hidden');
             }
         }
     });
@@ -119,6 +201,31 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', (event) => {
             filterDevices(event.target.value);
+        });
+    }
+
+    if (columnCheckboxes.length) {
+        let selectedColumns = loadOptionalColumnsPreference();
+        applyOptionalColumns(selectedColumns);
+
+        columnCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', (event) => {
+                const columnKey = event.target.getAttribute('data-column-checkbox');
+                if (!columnKey) {
+                    return;
+                }
+
+                if (event.target.checked) {
+                    if (!selectedColumns.includes(columnKey)) {
+                        selectedColumns = [...selectedColumns, columnKey];
+                    }
+                } else {
+                    selectedColumns = selectedColumns.filter((key) => key !== columnKey);
+                }
+
+                applyOptionalColumns(selectedColumns);
+                saveOptionalColumnsPreference(selectedColumns);
+            });
         });
     }
 });

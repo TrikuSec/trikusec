@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from api.models import Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest
+from api.models import Device, FullReport, DiffReport, DeviceEvent, EnrollmentSettings, EnrollmentPlugin, EnrollmentPackage, EnrollmentSkipTest, PolicyRuleset
 from frontend.templatetags import custom_filters
 from frontend.views import DEVICE_LIST_PAGE_SIZE
 from frontend.forms import (
@@ -327,6 +327,76 @@ class TestDeviceComplianceUnknownStatus:
 
         assert response.status_code == 200
         assert b'Unknown' in response.content
+
+
+@pytest.mark.django_db
+class TestDeviceListCustomizableColumns:
+    """Tests for device list optional/customizable columns."""
+
+    def test_device_list_shows_optional_column_controls(self, test_user, test_device, sample_lynis_report):
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        response = client.get(reverse('device_list'))
+
+        assert response.status_code == 200
+        body = response.content.decode()
+        assert 'Uptime' in body
+        assert 'TrikuSec Lynis Plugin' in body
+        assert 'Antivirus' in body
+        assert 'Vulnerable Packages (count)' in body
+        assert 'Total Days Non-Compliant' in body
+
+    def test_device_list_enriches_optional_column_values(self, test_user, test_license_key):
+        client = Client()
+        client.force_login(test_user)
+
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='feature-host-1',
+            hostid2='feature-host-2',
+            hostname='feature-device',
+            os='Linux',
+            distro='Ubuntu',
+            compliant=False,
+            warnings=2,
+            last_update=timezone.now() - timedelta(days=4),
+        )
+
+        ruleset = PolicyRuleset.objects.create(name='Test ruleset', description='Ruleset for testing')
+        device.rulesets.add(ruleset)
+
+        DeviceEvent.objects.create(
+            device=device,
+            event_type='compliance_changed',
+            metadata={'old_status': 'Compliant', 'new_status': 'Non-Compliant'},
+        )
+        event = DeviceEvent.objects.filter(device=device, event_type='compliance_changed').first()
+        event.created_at = timezone.now() - timedelta(days=3)
+        event.save(update_fields=['created_at'])
+
+        report = """# Lynis Report
+hostname=feature-device
+os=Linux
+uptime_in_days=12
+trikusec_custom_tests=1
+clamav_version=ClamAV 1.2.3
+vulnerable_packages_found=7
+report_datetime_end=2024-01-01 10:05:00
+"""
+        FullReport.objects.create(device=device, full_report=report)
+
+        response = client.get(reverse('device_list'))
+
+        assert response.status_code == 200
+        listed_device = next(d for d in response.context['devices'].object_list if d.id == device.id)
+        assert listed_device.uptime_in_days == 12
+        assert listed_device.trikusec_plugin_installed is True
+        assert listed_device.antivirus_installed is True
+        assert listed_device.vulnerable_packages_count == 7
+        assert listed_device.total_days_non_compliant == 3
 
 
 @pytest.mark.django_db
