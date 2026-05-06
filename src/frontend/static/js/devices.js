@@ -88,7 +88,8 @@ const DEVICE_OPTIONAL_COLUMNS = [
 ];
 const DEVICE_COLUMN_PREFS_KEY = 'trikusec.device-list.optional-columns.v1';
 const DEVICE_MAX_TOTAL_COLUMNS = 10;
-const DEVICE_MANDATORY_COLUMNS = 4;
+// Existing non-optional table columns that remain always visible
+const DEVICE_MANDATORY_COLUMNS = 8;
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchContainer = document.getElementById('device-search-container');
@@ -114,15 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const raw = localStorage.getItem(DEVICE_COLUMN_PREFS_KEY);
             if (!raw) {
-                return [...DEVICE_OPTIONAL_COLUMNS];
+                // Keep legacy columns visible by default; optional ones start hidden
+                return [];
             }
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) {
-                return [...DEVICE_OPTIONAL_COLUMNS];
+                return [];
             }
             return parsed.filter((key) => DEVICE_OPTIONAL_COLUMNS.includes(key));
         } catch (_) {
-            return [...DEVICE_OPTIONAL_COLUMNS];
+            return [];
         }
     }
 

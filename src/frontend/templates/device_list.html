@@ -53,28 +53,117 @@
                 <thead>
                     <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                         <th class="py-3 px-6 text-left">
-                            <a href="?sort=hostname&order={% if current_sort == 'hostname' and current_order == 'asc' %}desc{% else %}asc{% endif %}"
+                            <a href="?sort=hostname&order={% if current_sort == 'hostname' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>Name</span>
+                                {% if current_sort == 'hostname' %}
+                                    {% if current_order == 'asc' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    {% endif %}
+                                {% else %}
+                                    <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-left">OS</th>
+                        <th class="py-3 px-6 text-left w-4">OS</th>
+                        <th class="py-3 px-6 text-left">OS Version</th>
+                        <th class="py-3 px-6 text-center">
+                            <a href="?sort=hardening_index&order={% if current_sort == 'hardening_index' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                               class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
+                                <span>HARD INDEX</span>
+                                {% if current_sort == 'hardening_index' %}
+                                    {% if current_order == 'asc' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    {% endif %}
+                                {% else %}
+                                    <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="py-3 px-6 text-left">LYNIS</th>
                         <th class="py-3 px-6 text-left" data-optional-column="uptime">Uptime</th>
                         <th class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">TrikuSec Lynis Plugin</th>
                         <th class="py-3 px-6 text-left" data-optional-column="antivirus">Antivirus</th>
                         <th class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">Vulnerable Packages</th>
                         <th class="py-3 px-6 text-center" data-optional-column="non_compliant_days">Total Days Non-Compliant</th>
                         <th class="py-3 px-6 text-left">
-                            <a href="?sort=compliant&order={% if current_sort == 'compliant' and current_order == 'asc' %}desc{% else %}asc{% endif %}"
+                            <a href="?sort=compliant&order={% if current_sort == 'compliant' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>Compliant</span>
+                                {% if current_sort == 'compliant' %}
+                                    {% if current_order == 'asc' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    {% endif %}
+                                {% else %}
+                                    <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="py-3 px-6 text-center">
+                            <a href="?sort=warnings&order={% if current_sort == 'warnings' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                               class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
+                                <span>Warnings</span>
+                                {% if current_sort == 'warnings' %}
+                                    {% if current_order == 'asc' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    {% endif %}
+                                {% else %}
+                                    <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                {% endif %}
                             </a>
                         </th>
                         <th class="py-3 px-6 text-left relative">
                             <div class="flex items-center justify-between gap-2">
-                                <a href="?sort=last_update&order={% if current_sort == 'last_update' and current_order == 'asc' %}desc{% else %}asc{% endif %}"
+                                <a href="?sort=last_update&order={% if current_sort == 'last_update' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                    class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
                                     <span>Last Updated</span>
+                                    {% if current_sort == 'last_update' %}
+                                        {% if current_order == 'asc' %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        {% endif %}
+                                    {% else %}
+                                        <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    {% endif %}
                                 </a>
                                 <button id="device-columns-toggle" type="button" class="inline-flex items-center justify-center w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100" title="Customize columns" aria-label="Customize columns">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -119,10 +208,24 @@
                                 <span class="font-medium"><a href="{% url 'device_detail' device_id=device.id %}">{{ device.hostname|default:device.hostid }}</a></span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-left">
-                            <div class="flex items-center gap-2">
+                        <td class="py-3 px-4 text-center w-4">
+                            <span>
                                 {{ device.distro|distro_icon }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <div class="flex items-center">
                                 <span>{{ device.distro|default:device.os|default:"-" }}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            <div class="flex items-center justify-center">
+                                <span>{% if device.hardening_index %}{{ device.hardening_index }}{% else %}-{% endif %}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-6 text-left">
+                            <div class="flex items-center">
+                                <span>{{ device.lynis_version|default:"-" }}</span>
                             </div>
                         </td>
                         <td class="py-3 px-6 text-left" data-optional-column="uptime">
@@ -153,13 +256,16 @@
                             <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not Compliant</span>
                             {% endif %}
                         </td>
+                        <td class="py-3 px-6 text-center">
+                            <span class="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">{{ device.warnings }}</span>
+                        </td>
                         <td class="py-3 px-6 text-left">
                             <span>{{ device.last_update|timesince }}</span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="py-6 px-6 text-center text-gray-500">
+                        <td colspan="13" class="py-6 px-6 text-center text-gray-500">
                             No devices found.
                         </td>
                     </tr>
