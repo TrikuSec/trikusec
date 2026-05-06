@@ -74,8 +74,8 @@
                             </a>
                         </th>
                         <th class="py-3 px-6 text-left w-4">OS</th>
-                        <th class="py-3 px-6 text-left">OS Version</th>
-                        <th class="py-3 px-6 text-center">
+                        <th class="py-3 px-6 text-left" data-optional-column="os_version">OS Version</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="hardening_index">
                             <a href="?sort=hardening_index&order={% if current_sort == 'hardening_index' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>HARD INDEX</span>
@@ -96,7 +96,7 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-left">LYNIS</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="lynis_version">LYNIS</th>
                         <th class="py-3 px-6 text-left" data-optional-column="uptime">Uptime</th>
                         <th class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">TrikuSec Lynis Plugin</th>
                         <th class="py-3 px-6 text-left" data-optional-column="antivirus">Antivirus</th>
@@ -123,7 +123,7 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-center">
+                        <th class="py-3 px-6 text-center" data-optional-column="warnings">
                             <a href="?sort=warnings&order={% if current_sort == 'warnings' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>Warnings</span>
@@ -175,6 +175,22 @@
                                 <p class="text-xs text-gray-500 mb-2">AVAILABLE COLUMNS:</p>
                                 <div class="space-y-2 text-xs text-gray-700">
                                     <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="os_version" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>OS Version</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="hardening_index" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Hard Index</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="lynis_version" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Lynis Version</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="warnings" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Warnings</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="uptime" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                         <span>Uptime</span>
                                     </label>
@@ -213,17 +229,17 @@
                                 {{ device.distro|distro_icon }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-left">
+                        <td class="py-3 px-6 text-left" data-optional-column="os_version">
                             <div class="flex items-center">
                                 <span>{{ device.distro|default:device.os|default:"-" }}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-center" data-optional-column="hardening_index">
                             <div class="flex items-center justify-center">
                                 <span>{% if device.hardening_index %}{{ device.hardening_index }}{% else %}-{% endif %}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-left">
+                        <td class="py-3 px-6 text-left" data-optional-column="lynis_version">
                             <div class="flex items-center">
                                 <span>{{ device.lynis_version|default:"-" }}</span>
                             </div>
@@ -256,7 +272,7 @@
                             <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not Compliant</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-center" data-optional-column="warnings">
                             <span class="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">{{ device.warnings }}</span>
                         </td>
                         <td class="py-3 px-6 text-left">

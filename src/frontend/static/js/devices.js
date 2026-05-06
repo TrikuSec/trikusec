@@ -80,16 +80,26 @@ function deleteDevice(deviceId, hostname) {
 // Device search toggle + column customization
 
 const DEVICE_OPTIONAL_COLUMNS = [
+    'os_version',
+    'hardening_index',
+    'lynis_version',
+    'warnings',
     'uptime',
     'trikusec_plugin',
     'antivirus',
     'vulnerable_packages',
     'non_compliant_days',
 ];
+
+const DEVICE_DEFAULT_VISIBLE_OPTIONAL_COLUMNS = [
+    'os_version',
+    'hardening_index',
+    'lynis_version',
+    'warnings',
+];
 const DEVICE_COLUMN_PREFS_KEY = 'trikusec.device-list.optional-columns.v1';
 const DEVICE_MAX_TOTAL_COLUMNS = 10;
-// Existing non-optional table columns that remain always visible
-const DEVICE_MANDATORY_COLUMNS = 8;
+const DEVICE_MANDATORY_COLUMNS = 4;
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchContainer = document.getElementById('device-search-container');
@@ -115,16 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const raw = localStorage.getItem(DEVICE_COLUMN_PREFS_KEY);
             if (!raw) {
-                // Keep legacy columns visible by default; optional ones start hidden
-                return [];
+                return [...DEVICE_DEFAULT_VISIBLE_OPTIONAL_COLUMNS];
             }
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) {
-                return [];
+                return [...DEVICE_DEFAULT_VISIBLE_OPTIONAL_COLUMNS];
             }
             return parsed.filter((key) => DEVICE_OPTIONAL_COLUMNS.includes(key));
         } catch (_) {
-            return [];
+            return [...DEVICE_DEFAULT_VISIBLE_OPTIONAL_COLUMNS];
         }
     }
 
