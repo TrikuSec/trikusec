@@ -97,7 +97,7 @@ const DEVICE_DEFAULT_VISIBLE_OPTIONAL_COLUMNS = [
     'lynis_version',
     'warnings',
 ];
-const DEVICE_COLUMN_PREFS_KEY = 'trikusec.device-list.optional-columns.v1';
+const DEVICE_COLUMN_PREFS_KEY = 'trikusec.device-list.optional-columns.v2';
 const DEVICE_MAX_TOTAL_COLUMNS = 10;
 const DEVICE_MANDATORY_COLUMNS = 4;
 
