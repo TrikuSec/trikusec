@@ -30,6 +30,7 @@
 #              		 antivirus software and the last update.
 # - CUST-TRIKUSEC-0030: Custom test to check the status of the firewall.
 # - CUST-TRIKUSEC-0040: Debsecan full CVE list export for TrikuSec policy rules.
+# - CUST-TRIKUSEC-0060: Unattended-upgrades configuration collector for Ubuntu/Debian systems.
 #
 ###################################################################################
 
@@ -287,6 +288,129 @@
         Report "debsecan_installed=0"
         Report "debsecan_cve_count=0"
         Report "debsecan_cve_list=NO_DEBSECAN"
+    fi
+
+#
+#################################################################################
+#
+    # Test        : CUST-TRIKUSEC-0060
+    # Description : Collect unattended-upgrades configuration for Ubuntu/Debian systems
+
+    # Detect if unattended-upgrades is installed
+    UU_BINARY=$(command -v unattended-upgrade)
+    if [ ! "${UU_BINARY}" = "" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; SKIPREASON="No unattended-upgrades binary found"; fi
+    Register --test-no CUST-TRIKUSEC-0060 --preqs-met ${PREQS_MET} --skip-reason "${SKIPREASON}" --weight L --network NO --category security --description "TrikuSec unattended-upgrades configuration collector"
+
+    if [ ${SKIPTEST} -eq 0 ]; then
+        Report "unattended_upgrades_installed=1"
+
+        # Detect if running on a Debian/Ubuntu based system
+        IS_DEBIAN=0
+        if [ -f /etc/os-release ]; then
+            # shellcheck disable=SC1091
+            . /etc/os-release
+            case "${ID} ${ID_LIKE}" in
+                *debian*|*ubuntu*)
+                    IS_DEBIAN=1
+                    ;;
+            esac
+        fi
+
+        if [ ${IS_DEBIAN} -eq 1 ]; then
+            Display --indent 2 --text "Detected Debian/Ubuntu system" --result "${STATUS_OK}" --color GREEN
+            LogText "unattended-upgrades: Debian/Ubuntu system detected"
+
+            # 1. APT Periodic Configuration
+            APT_UPDATE_PKG_LISTS=$(apt-config dump 2>/dev/null | grep -E "^APT::Periodic::Update-Package-Lists" | cut -d'"' -f2)
+            APT_UNATTENDED_UPGRADE=$(apt-config dump 2>/dev/null | grep -E "^APT::Periodic::Unattended-Upgrade" | cut -d'"' -f2)
+
+            if [ ! "${APT_UPDATE_PKG_LISTS}" = "" ]; then
+                Display --indent 2 --text "APT::Periodic::Update-Package-Lists" --result "${APT_UPDATE_PKG_LISTS}" --color GREEN
+                Report "unattended_upgrades_update_pkg_lists=${APT_UPDATE_PKG_LISTS}"
+            else
+                Display --indent 2 --text "APT::Periodic::Update-Package-Lists" --result "not configured" --color YELLOW
+                Report "unattended_upgrades_update_pkg_lists=not_configured"
+            fi
+
+            if [ ! "${APT_UNATTENDED_UPGRADE}" = "" ]; then
+                Display --indent 2 --text "APT::Periodic::Unattended-Upgrade" --result "${APT_UNATTENDED_UPGRADE}" --color GREEN
+                Report "unattended_upgrades_enabled=${APT_UNATTENDED_UPGRADE}"
+            else
+                Display --indent 2 --text "APT::Periodic::Unattended-Upgrade" --result "not configured" --color YELLOW
+                Report "unattended_upgrades_enabled=not_configured"
+            fi
+
+            # 2. Automatic Reboot Settings
+            UU_REBOOT=$(apt-config dump 2>/dev/null | grep -E "^Unattended-Upgrade::Automatic-Reboot" | cut -d'"' -f2)
+            UU_REBOOT_TIME=$(apt-config dump 2>/dev/null | grep -E "^Unattended-Upgrade::Automatic-Reboot-Time" | cut -d'"' -f2)
+
+            if [ ! "${UU_REBOOT}" = "" ]; then
+                Display --indent 2 --text "Unattended-Upgrade::Automatic-Reboot" --result "${UU_REBOOT}" --color GREEN
+                Report "unattended_upgrades_automatic_reboot=${UU_REBOOT}"
+            else
+                Display --indent 2 --text "Unattended-Upgrade::Automatic-Reboot" --result "not configured" --color YELLOW
+                Report "unattended_upgrades_automatic_reboot=not_configured"
+            fi
+
+            if [ ! "${UU_REBOOT_TIME}" = "" ]; then
+                Display --indent 2 --text "Unattended-Upgrade::Automatic-Reboot-Time" --result "${UU_REBOOT_TIME}" --color GREEN
+                Report "unattended_upgrades_automatic_reboot_time=${UU_REBOOT_TIME}"
+            else
+                Display --indent 2 --text "Unattended-Upgrade::Automatic-Reboot-Time" --result "not configured" --color YELLOW
+                Report "unattended_upgrades_automatic_reboot_time=not_configured"
+            fi
+
+            # 3. APT Timer Status
+            APT_TIMERS=$(systemctl list-timers 2>/dev/null | grep apt || true)
+            APT_TIMER_COUNT=$(echo "${APT_TIMERS}" | grep -cE '(apt-daily|apt-daily-upgrade)' 2>/dev/null || echo 0)
+
+            if [ ${APT_TIMER_COUNT} -gt 0 ]; then
+                # Report each timer line
+                Report "unattended_upgrades_timers_count=${APT_TIMER_COUNT}"
+                # Store all timer output as a single report entry
+                APT_TIMERS_FLAT=$(echo "${APT_TIMERS}" | tr '\n' '|' | sed 's/|$//')
+                if [ ! "${APT_TIMERS_FLAT}" = "" ]; then
+                    Report "unattended_upgrades_timers=${APT_TIMERS_FLAT}"
+                fi
+                Display --indent 2 --text "APT systemd timers found" --result "${APT_TIMER_COUNT}" --color GREEN
+
+                # Check if apt-daily-upgrade.timer is enabled
+                if systemctl is-enabled apt-daily-upgrade.timer 2>/dev/null | grep -q "enabled"; then
+                    Display --indent 2 --text "apt-daily-upgrade.timer enabled" --result "${STATUS_OK}" --color GREEN
+                    Report "unattended_upgrades_apt_daily_upgrade_timer=enabled"
+                else
+                    Display --indent 2 --text "apt-daily-upgrade.timer enabled" --result "${STATUS_WARNING}" --color YELLOW
+                    Report "unattended_upgrades_apt_daily_upgrade_timer=disabled"
+                fi
+
+                # Check if apt-daily.timer is enabled
+                if systemctl is-enabled apt-daily.timer 2>/dev/null | grep -q "enabled"; then
+                    Display --indent 2 --text "apt-daily.timer enabled" --result "${STATUS_OK}" --color GREEN
+                    Report "unattended_upgrades_apt_daily_timer=enabled"
+                else
+                    Display --indent 2 --text "apt-daily.timer enabled" --result "${STATUS_WARNING}" --color YELLOW
+                    Report "unattended_upgrades_apt_daily_timer=disabled"
+                fi
+            else
+                Display --indent 2 --text "APT systemd timers" --result "not found" --color YELLOW
+                Report "unattended_upgrades_timers_count=0"
+                Report "unattended_upgrades_timers=not_found"
+            fi
+        else
+            Display --indent 2 --text "Not a Debian/Ubuntu system" --result "${STATUS_WARNING}" --color YELLOW
+            LogText "unattended-upgrades: skipping, not a Debian/Ubuntu system"
+            Report "unattended_upgrades_platform=non_debian"
+        fi
+
+        Display --indent 2 --text "- unattended-upgrades configuration collected" --result "${STATUS_OK}" --color GREEN
+    else
+        Report "unattended_upgrades_installed=0"
+        Report "unattended_upgrades_update_pkg_lists=NO_UNATTENDED_UPGRADES"
+        Report "unattended_upgrades_enabled=NO_UNATTENDED_UPGRADES"
+        Report "unattended_upgrades_automatic_reboot=NO_UNATTENDED_UPGRADES"
+        Report "unattended_upgrades_automatic_reboot_time=NO_UNATTENDED_UPGRADES"
+        Report "unattended_upgrades_timers_count=0"
+        Report "unattended_upgrades_timers=NO_UNATTENDED_UPGRADES"
     fi
 
 #
