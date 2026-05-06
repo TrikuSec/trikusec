@@ -74,8 +74,8 @@
                             </a>
                         </th>
                         <th class="py-3 px-6 text-left w-4">OS</th>
-                        <th class="py-3 px-6 text-left">OS Version</th>
-                        <th class="py-3 px-6 text-center">
+                        <th class="py-3 px-6 text-left" data-optional-column="os_version">OS Version</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="hardening_index">
                             <a href="?sort=hardening_index&order={% if current_sort == 'hardening_index' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>HARD INDEX</span>
@@ -96,7 +96,12 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-left">LYNIS</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="lynis_version">LYNIS</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="uptime">Uptime</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">TrikuSec Lynis Plugin</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="antivirus">Antivirus</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">Vulnerable Packages</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="non_compliant_days">Total Days Non-Compliant</th>
                         <th class="py-3 px-6 text-left">
                             <a href="?sort=compliant&order={% if current_sort == 'compliant' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
@@ -118,7 +123,7 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-center">
+                        <th class="py-3 px-6 text-center" data-optional-column="warnings">
                             <a href="?sort=warnings&order={% if current_sort == 'warnings' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center justify-center space-x-1 hover:text-gray-900 transition-colors">
                                 <span>Warnings</span>
@@ -139,35 +144,84 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-left">
-                            <a href="?sort=last_update&order={% if current_sort == 'last_update' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
-                               class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
-                                <span>Last Updated</span>
-                                {% if current_sort == 'last_update' %}
-                                    {% if current_order == 'asc' %}
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                                        </svg>
+                        <th class="py-3 px-6 text-left relative">
+                            <div class="flex items-center justify-between gap-2">
+                                <a href="?sort=last_update&order={% if current_sort == 'last_update' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                   class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
+                                    <span>Last Updated</span>
+                                    {% if current_sort == 'last_update' %}
+                                        {% if current_order == 'asc' %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        {% endif %}
                                     {% else %}
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                         </svg>
                                     {% endif %}
-                                {% else %}
-                                    <svg class="w-4 h-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                </a>
+                                <button id="device-columns-toggle" type="button" class="inline-flex items-center justify-center w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100" title="Customize columns" aria-label="Customize columns">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0 7.5 7.5 0 0 0-15 0Zm7.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                                     </svg>
-                                {% endif %}
-                            </a>
+                                </button>
+                            </div>
+                            <div id="device-columns-panel" class="hidden absolute right-0 top-full mt-2 z-20 w-72 rounded-md border border-gray-200 bg-white shadow-lg p-3 normal-case">
+                                <p class="text-xs text-gray-500 mb-2">AVAILABLE COLUMNS:</p>
+                                <div class="space-y-2 text-xs text-gray-700">
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="os_version" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>OS Version</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="hardening_index" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Hard Index</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="lynis_version" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Lynis Version</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="warnings" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Warnings</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="uptime" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Uptime</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="trikusec_plugin" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>TrikuSec Lynis Plugin</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="antivirus" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Antivirus</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="vulnerable_packages" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Vulnerable Packages (count)</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" data-column-checkbox="non_compliant_days" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Total Days Non-Compliant</span>
+                                    </label>
+                                </div>
+                                <p id="device-columns-limit-msg" class="mt-2 text-xs text-amber-600 hidden">Maximum number of columns reached.</p>
+                            </div>
                         </th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-600 text-sm font-light">
                     {% for device in devices %}
-                    <tr class="border-b border-gray-200 hover:bg-gray-100" data-device-name="{{ device.hostname|lower }}">
+                    <tr class="border-b border-gray-200 hover:bg-gray-100" data-device-name="{{ device.hostname|default:device.hostid|lower }}">
                         <td class="py-3 px-6 text-left whitespace-nowrap">
                             <div class="flex items-center">
-                                <span class="font-medium"><a href="{% url 'device_detail' device_id=device.id %}">{{ device.hostname }}</a></span>
+                                <span class="font-medium"><a href="{% url 'device_detail' device_id=device.id %}">{{ device.hostname|default:device.hostid }}</a></span>
                             </div>
                         </td>
                         <td class="py-3 px-4 text-center w-4">
@@ -175,21 +229,40 @@
                                 {{ device.distro|distro_icon }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-left">
+                        <td class="py-3 px-6 text-left" data-optional-column="os_version">
                             <div class="flex items-center">
-                                <span>{{ device.distro }}</span>
+                                <span>{{ device.distro|default:device.os|default:"-" }}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-center" data-optional-column="hardening_index">
                             <div class="flex items-center justify-center">
                                 <span>{% if device.hardening_index %}{{ device.hardening_index }}{% else %}-{% endif %}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-6 text-left">
+                        <td class="py-3 px-6 text-left" data-optional-column="lynis_version">
                             <div class="flex items-center">
                                 <span>{{ device.lynis_version|default:"-" }}</span>
                             </div>
                         </td>
+                        <td class="py-3 px-6 text-left" data-optional-column="uptime">
+                            {% if device.uptime_in_days is not None %}{{ device.uptime_in_days }} d{% else %}-{% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">
+                            {% if device.trikusec_plugin_installed %}
+                                <span class="bg-green-100 text-green-700 py-1 px-2 rounded-full text-xs">Installed</span>
+                            {% else %}
+                                <span class="bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">Not installed</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-left" data-optional-column="antivirus">
+                            {% if device.antivirus_installed %}
+                                <span class="bg-green-100 text-green-700 py-1 px-2 rounded-full text-xs">Installed</span>
+                            {% else %}
+                                <span class="bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">Not installed</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">{{ device.vulnerable_packages_count }}</td>
+                        <td class="py-3 px-6 text-center" data-optional-column="non_compliant_days">{{ device.total_days_non_compliant }}</td>
                         <td class="py-3 px-6 text-left">
                             {% if device.ruleset_count == 0 %}
                             <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">Unknown</span>
@@ -199,7 +272,7 @@
                             <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not Compliant</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="py-3 px-6 text-center" data-optional-column="warnings">
                             <span class="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">{{ device.warnings }}</span>
                         </td>
                         <td class="py-3 px-6 text-left">
@@ -208,12 +281,11 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-6 px-6 text-center text-gray-500">
+                        <td colspan="13" class="py-6 px-6 text-center text-gray-500">
                             No devices found.
                         </td>
                     </tr>
                     {% endfor %}
-
                 </tbody>
             </table>
         </div>
