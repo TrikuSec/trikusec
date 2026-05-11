@@ -344,10 +344,10 @@ class TestDeviceListCustomizableColumns:
         assert response.status_code == 200
         body = response.content.decode()
         assert 'Uptime' in body
-        assert 'TrikuSec Lynis Plugin' in body
+        assert 'Plugin' in body
         assert 'Antivirus' in body
-        assert 'Vulnerable Packages (count)' in body
-        assert 'Total Days Non-Compliant' in body
+        assert 'Vulnerabilities' in body
+        assert 'NC Days' in body
 
     def test_device_list_enriches_optional_column_values(self, test_user, test_license_key):
         client = Client()
