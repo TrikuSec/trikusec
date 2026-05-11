@@ -47,4 +47,10 @@ urlpatterns = [
     path('license/<int:license_id>/edit/', views.license_edit, name='license_edit'),
     path('license/<int:license_id>/delete/', views.license_delete, name='license_delete'),
     path('enroll/', views.enroll_device, name='enroll_device'),
+    path('device/<int:device_id>/labels/', views.device_update_labels, name='device_update_labels'),
+    path('labels/', views.label_list, name='label_list'),
+    path('labels/create/', views.label_create, name='label_create'),
+    path('labels/<int:label_id>/edit/', views.label_edit, name='label_edit'),
+    path('labels/<int:label_id>/delete/', views.label_delete, name='label_delete'),
+    path('labels/<int:label_id>/', views.label_detail, name='label_detail'),
 ]

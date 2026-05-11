@@ -111,6 +111,8 @@
                 tabindex="-1" id="user-menu-item-1">License keys</a>
               <a href="{% url 'settings' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
                 id="user-menu-item-3">Settings</a>
+              <a href="{% url 'label_list' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
+                id="user-menu-item-4">Labels</a>
               <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

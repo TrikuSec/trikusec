@@ -1,0 +1,52 @@
+<!-- Label edit side-panel (z-50, covers the selection panel) -->
+<div id="label-edit-panel" class="hidden fixed right-0 top-0 h-full w-1/4 bg-white shadow-md flex flex-col" style="z-index: 10000;">
+    <div class="flex justify-between items-center p-4 border-b bg-gray-200">
+        <h2 class="text-xl font-bold" id="label-edit-title">Edit Label</h2>
+        <button class="button-label-edit-panel text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <div class="flex-grow overflow-y-auto">
+        <form id="label-edit-form" method="POST" action="">
+            {% csrf_token %}
+            <input type="hidden" name="label_id" id="label_edit_id" value="">
+
+            <div class="p-4 mb-2">
+                <label for="label_edit_name" class="block text-sm font-medium text-gray-700">
+                    Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="label_edit_name" name="name" maxlength="50"
+                       class="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                       placeholder="e.g., web, dmz, database" required />
+            </div>
+
+            <div class="p-4 mb-2">
+                <label for="label_edit_color" class="block text-sm font-medium text-gray-700">Color</label>
+                <div class="flex items-center gap-3 mt-1">
+                    <input type="color" id="label_edit_color" name="color" value="#3B82F6"
+                           class="w-12 h-10 border border-gray-300 rounded cursor-pointer p-0.5" />
+                    <span id="label-edit-color-hex" class="text-sm text-gray-500 font-mono">#3B82F6</span>
+                </div>
+            </div>
+
+            <div class="p-4 mb-2">
+                <label for="label_edit_description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="label_edit_description" name="description" rows="3"
+                          class="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                          placeholder="Optional description"></textarea>
+            </div>
+
+            <!-- Error messages -->
+            <div id="label-edit-errors" class="hidden mx-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                <ul id="label-edit-error-list"></ul>
+            </div>
+        </form>
+    </div>
+    <!-- Buttons fixed at bottom -->
+    <div class="flex space-x-2 w-full p-4 bg-gray-200">
+        <button type="button" onclick="submitLabelEditForm()" class="w-1/2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+        <button type="button" class="button-label-edit-panel w-1/2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+    </div>
+</div>

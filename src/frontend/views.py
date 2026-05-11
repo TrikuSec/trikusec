@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.models import Q, F, Count, Sum
 from django.core.paginator import Paginator
 from django.conf import settings
-from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings
+from api.models import Device, FullReport, DiffReport, LicenseKey, PolicyRule, PolicyRuleset, Organization, Label, ActivityIgnorePattern, DeviceEvent, EnrollmentSettings
 from api.utils.lynis_report import LynisReport
 from api.utils.compliance import check_device_compliance, update_device_compliance
 from api.utils.license_utils import generate_license_key
@@ -25,6 +25,7 @@ from .forms import (
     EnrollmentPluginFormSet,
     EnrollmentPackageFormSet,
     EnrollmentSkipTestFormSet,
+    LabelForm,
 )
 import os
 import json
@@ -471,6 +472,20 @@ def device_list(request):
             device.total_days_non_compliant = max(0, elapsed_days)
 
     devices_qs = Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True))
+    
+    # Handle label filtering
+    label_filter = request.GET.get('label', None)
+    try:
+        label_filter = int(label_filter) if label_filter else None
+    except (ValueError, TypeError):
+        label_filter = None
+    
+    if label_filter is not None:
+        devices_qs = devices_qs.filter(labels__id=label_filter)
+    
+    # Get all labels for filter display
+    all_labels = Label.objects.annotate(device_count=Count('devices')).order_by('name')
+    
     has_devices = devices_qs.exists()
 
     # Handle sorting
@@ -494,7 +509,7 @@ def device_list(request):
         devices = []
     # If sorting by hardening_index, we need to extract it first and sort in Python
     elif sort_field == 'hardening_index':
-        devices = list(Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)))
+        devices = list(devices_qs)
 
         for device in devices:
             parsed_report = None
@@ -517,7 +532,7 @@ def device_list(request):
             order_by = f'-{sort_field}'
 
         # Order devices by selected field
-        devices = list(Device.objects.annotate(ruleset_count=Count('rulesets', distinct=True)).order_by(order_by))
+        devices = list(devices_qs.order_by(order_by))
 
         for device in devices:
             parsed_report = None
@@ -550,6 +565,8 @@ def device_list(request):
         'current_sort': sort_field,
         'current_order': sort_order,
         'has_devices': has_devices,
+        'all_labels': all_labels,
+        'selected_label': label_filter,
     })
 
 @login_required
@@ -607,6 +624,10 @@ def device_detail(request, device_id):
         }
         rules_data.append(rule_data)
 
+    # Serialize labels for JavaScript
+    labels_data = list(device.labels.values('id', 'name', 'color', 'description'))
+    all_labels_data = list(Label.objects.order_by('name').values('id', 'name', 'color', 'description'))
+
     return render(request, 'device_detail.html', {
         'device': device,
         'report': report,
@@ -616,6 +637,10 @@ def device_detail(request, device_id):
         'all_rules': all_rules,  # For rule selection sidebar template
         'rulesets_json': json.dumps(rulesets_data),
         'rules_json': json.dumps(rules_data),
+        'labels': device.labels.all(),
+        'all_labels': Label.objects.order_by('name'),
+        'labels_json': json.dumps(labels_data),
+        'all_labels_json': json.dumps(all_labels_data),
     })
 
 
@@ -2300,3 +2325,98 @@ def enroll_device(request):
     }
     
     return render(request, 'license/enroll_device.html', context)
+
+
+@login_required
+def label_list(request):
+    """List all labels with device counts."""
+    labels = Label.objects.annotate(
+        device_count=Count('devices')
+    ).order_by('name')
+    labels_data = list(Label.objects.order_by('name').values('id', 'name', 'color', 'description'))
+    return render(request, 'label/label_list.html', {
+        'labels': labels,
+        'labels_json': json.dumps(labels_data),
+    })
+
+
+@login_required
+def label_create(request):
+    """Create a new label."""
+    if request.method == 'POST':
+        form = LabelForm(request.POST)
+        if form.is_valid():
+            label = form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'label': {'id': label.id, 'name': label.name, 'color': label.color, 'description': label.description}
+                })
+            messages.success(request, f'Label "{label.name}" created successfully.')
+            return redirect('label_list')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        form = LabelForm()
+    return render(request, 'label/label_form.html', {'form': form, 'action': 'Create'})
+
+
+@login_required
+def label_edit(request, label_id):
+    """Edit an existing label."""
+    label = get_object_or_404(Label, id=label_id)
+    if request.method == 'POST':
+        form = LabelForm(request.POST, instance=label)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'label': {'id': label.id, 'name': label.name, 'color': label.color, 'description': label.description}
+                })
+            messages.success(request, f'Label "{label.name}" updated successfully.')
+            return redirect('label_list')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        form = LabelForm(instance=label)
+    return render(request, 'label/label_form.html', {'form': form, 'label': label, 'action': 'Edit'})
+
+
+@login_required
+def label_delete(request, label_id):
+    """Delete a label."""
+    label = get_object_or_404(Label, id=label_id)
+    if request.method == 'POST':
+        label_name = label.name
+        label.delete()
+        messages.success(request, f'Label "{label_name}" deleted successfully.')
+        return redirect('label_list')
+    return render(request, 'label/label_confirm_delete.html', {
+        'label': label,
+        'device_count': label.device_count(),
+    })
+
+
+@login_required
+def label_detail(request, label_id):
+    """Show label details with associated devices."""
+    label = get_object_or_404(Label, id=label_id)
+    devices = label.devices.select_related('licensekey').prefetch_related('rulesets')
+    return render(request, 'label/label_detail.html', {'label': label, 'devices': devices})
+
+
+@login_required
+def device_update_labels(request, device_id):
+    """Update labels assigned to a device (AJAX POST)."""
+    device = get_object_or_404(Device, id=device_id)
+    if request.method == 'POST':
+        label_ids = request.POST.getlist('labels')
+        try:
+            label_ids = [int(lid) for lid in label_ids if lid]
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Invalid label IDs'}, status=400)
+        device.labels.set(Label.objects.filter(id__in=label_ids))
+        labels_data = list(device.labels.values('id', 'name', 'color', 'description'))
+        return JsonResponse({'success': True, 'labels': labels_data})
+    return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
