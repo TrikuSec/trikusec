@@ -12,6 +12,42 @@ class Organization(models.Model):
     def __str__(self):
         return self.name
 
+class Label(models.Model):
+    """
+    Labels for organizing and categorizing devices.
+    Examples: 'web', 'dmz', 'database', 'production', 'staging'
+    """
+    name = models.CharField(max_length=50, unique=True, db_index=True)
+    color = models.CharField(
+        max_length=7,
+        default='#3B82F6',
+        help_text='Hex color code for UI display (e.g., #3B82F6)'
+    )
+    description = models.TextField(blank=True, default='')
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='labels'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['organization', 'name']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def device_count(self):
+        """Return the number of devices with this label."""
+        return self.devices.count()
+
+
 class LicenseKey(models.Model):
     licensekey = models.CharField(max_length=255, unique=True, db_index=True)
     name = models.CharField(max_length=255)
@@ -52,6 +88,12 @@ class Device(models.Model):
     lynis_version = models.CharField(max_length=255, blank=True, null=True)
     last_update = models.DateTimeField(blank=True, null=True)
     warnings = models.IntegerField(blank=True, null=True)
+    labels = models.ManyToManyField(
+        'Label',
+        related_name='devices',
+        blank=True,
+        help_text='Custom labels for organizing devices'
+    )
     rulesets = models.ManyToManyField('PolicyRuleset', related_name='devices', blank=True)
     compliant = models.BooleanField(default=True)
     

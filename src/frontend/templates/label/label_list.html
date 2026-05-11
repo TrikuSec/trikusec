@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Labels{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Labels</h1>
+        <button onclick="openLabelEditPanel(null)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">+ New Label</button>
+    </div>
+    {% if labels %}
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Name</th>
+                    <th class="py-3 px-6 text-left">Color</th>
+                    <th class="py-3 px-6 text-left hidden sm:table-cell">Description</th>
+                    <th class="py-3 px-6 text-center">Devices</th>
+                    <th class="py-3 px-6 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm">
+                {% for label in labels %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left whitespace-nowrap">
+                        <span class="inline-block px-3 py-1 rounded-full text-white text-xs font-semibold" style="background-color: {{ label.color }};">{{ label.name }}</span>
+                    </td>
+                    <td class="py-3 px-6 text-left">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block w-5 h-5 rounded border border-gray-300 flex-shrink-0" style="background-color: {{ label.color }};"></span>
+                            <span class="text-xs text-gray-500 font-mono">{{ label.color }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-6 text-left hidden sm:table-cell">
+                        {{ label.description|default:"-"|truncatewords:10 }}
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <a href="{% url 'device_list' %}?label={{ label.id }}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                            {{ label.device_count }}
+                        </a>
+                    </td>
+                    <td class="py-3 px-6 text-left">
+                        <div class="flex items-center space-x-2">
+                            <!-- View -->
+                            <a href="{% url 'label_detail' label_id=label.id %}" class="text-gray-600 hover:text-gray-800" title="View">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </a>
+                            <!-- Edit (opens sidepanel) -->
+                            <button onclick="openLabelEditPanel({{ label.id }})" class="text-gray-600 hover:text-gray-800" title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
+                                </svg>
+                            </button>
+                            <!-- Delete -->
+                            <a href="{% url 'label_delete' label_id=label.id %}" class="text-red-600 hover:text-red-800" title="Delete">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white shadow-md rounded-lg p-8 text-center">
+        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6h.008v.008H6V6Z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No labels created yet</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+            Labels help you organize and categorize your devices. Create your first label to get started.
+        </p>
+        <button onclick="openLabelEditPanel(null)" class="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Your First Label
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+{% include 'label/label_edit_sidebar.html' %}
+
+<script>
+    const allLabels = {{ labels_json|safe }};
+    const labelCreateUrl = '{% url "label_create" %}';
+</script>
+<script src="{% static 'js/labels.js' %}"></script>
+{% endblock %}

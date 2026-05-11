@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import json
-from .models import LicenseKey, Device, FullReport, DiffReport, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern
+from .models import LicenseKey, Device, FullReport, DiffReport, PolicyRule, PolicyRuleset, Organization, ActivityIgnorePattern, Label
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
@@ -38,12 +38,12 @@ class LicenseKeyAdmin(admin.ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ('hostname', 'hostid', 'os_display', 'lynis_version', 'warnings', 'compliance_status', 'last_update')
-    list_filter = ('compliant', 'os', 'created_at', 'last_update', 'licensekey')
-    search_fields = ('hostname', 'hostid', 'hostid2', 'os', 'distro')
+    list_display = ('hostname', 'hostid', 'os_display', 'lynis_version', 'warnings', 'labels_display', 'compliance_status', 'last_update')
+    list_filter = ('compliant', 'os', 'labels', 'created_at', 'last_update', 'licensekey')
+    search_fields = ('hostname', 'hostid', 'hostid2', 'os', 'distro', 'labels__name')
     readonly_fields = ('created_at', 'updated_at', 'hostid', 'hostid2')
     date_hierarchy = 'last_update'
-    filter_horizontal = ('rulesets',)
+    filter_horizontal = ('rulesets', 'labels')
     
     fieldsets = (
         ('Identification', {
@@ -51,6 +51,9 @@ class DeviceAdmin(admin.ModelAdmin):
         }),
         ('System Information', {
             'fields': ('os', 'distro', 'distro_version', 'lynis_version')
+        }),
+        ('Organization', {
+            'fields': ('labels',)
         }),
         ('Compliance', {
             'fields': ('warnings', 'compliant', 'rulesets')
@@ -74,6 +77,20 @@ class DeviceAdmin(admin.ModelAdmin):
         if obj.compliant:
             return format_html('<span style="color: green;">✓ Compliant</span>')
         return format_html('<span style="color: red;">✗ Non-compliant</span>')
+
+    @admin.display(description='Labels')
+    def labels_display(self, obj):
+        labels = obj.labels.all()[:3]
+        if not labels:
+            return '-'
+        html = ' '.join([
+            f'<span style="background-color:{label.color};color:white;'
+            f'padding:2px 8px;border-radius:3px;font-size:11px;">{label.name}</span>'
+            for label in labels
+        ])
+        if obj.labels.count() > 3:
+            html += f' <span style="color:gray;">+{obj.labels.count() - 3}</span>'
+        return format_html(html)
 
 @admin.register(FullReport)
 class FullReportAdmin(admin.ModelAdmin):
@@ -170,6 +187,37 @@ class PolicyRulesetAdmin(admin.ModelAdmin):
     @admin.display(description='Devices')
     def device_count(self, obj):
         return obj.devices.count()
+
+@admin.register(Label)
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color_badge', 'device_count', 'organization', 'created_at')
+    list_filter = ('organization', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'color', 'description', 'organization')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    @admin.display(description='Color')
+    def color_badge(self, obj):
+        return format_html(
+            '<span style="display:inline-block;width:20px;height:20px;'
+            'background-color:{};border-radius:3px;border:1px solid #ccc;"></span>',
+            obj.color
+        )
+
+    @admin.display(description='Devices')
+    def device_count(self, obj):
+        return obj.device_count()
+
 
 @admin.register(ActivityIgnorePattern)
 class ActivityIgnorePatternAdmin(admin.ModelAdmin):

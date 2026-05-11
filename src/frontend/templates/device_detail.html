@@ -17,6 +17,31 @@
     {% include 'policy/rule_selection_sidebar.html' %}
     {% include 'device/rule_view_sidebar.html' %}
 
+    <!-- Label sidepanels -->
+    {% include 'label/label_selection_sidebar.html' %}
+    {% include 'label/label_edit_sidebar.html' %}
+
+    <!-- Labels bar (above Overview) -->
+    <div class="flex items-center gap-2 flex-wrap mb-4">
+        <div id="device-labels-bar" class="flex items-center gap-2 flex-wrap">
+            {% for label in labels %}
+            <a href="{% url 'device_list' %}?label={{ label.id }}"
+               class="inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-semibold hover:opacity-80 transition-opacity"
+               style="background-color: {{ label.color }};" title="{{ label.description }}">{{ label.name }}</a>
+            {% endfor %}
+            {% if not labels %}
+            <span class="text-gray-400 text-xs italic" id="device-labels-empty">No labels</span>
+            {% endif %}
+        </div>
+        <button type="button" onclick="toggleLabelSelectionPanel()"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-xs transition-colors" title="Manage labels">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+            </svg>
+        </button>
+    </div>
+
     <!-- Device details Screen -->
     <div id="serverDetails">
         <!--<h2 class="text-2xl font-bold mb-6">{{ report.hostname }}</h2>-->
@@ -386,9 +411,14 @@
     // Pass data to JavaScript for sidebars
     const rulesets = {{ rulesets_json| safe }};
     const rules = {{ rules_json| safe }};
+    const deviceLabels = {{ labels_json| safe }};
+    const allLabels = {{ all_labels_json| safe }};
+    const deviceUpdateLabelsUrl = '{% url "device_update_labels" device_id=device.id %}';
+    const labelCreateUrl = '{% url "label_create" %}';
 </script>
 <script src="{% static 'js/policies.js' %}"></script>
 <script src="{% static 'js/rules.js' %}"></script>
 <script src="{% static 'js/rule_view.js' %}"></script>
 <script src="{% static 'js/devices.js' %}"></script>
+<script src="{% static 'js/labels.js' %}"></script>
 {% endblock %}

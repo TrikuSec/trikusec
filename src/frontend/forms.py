@@ -6,6 +6,7 @@ from api.models import (
     PolicyRuleset,
     PolicyRule,
     LicenseKey,
+    Label,
     ActivityIgnorePattern,
     EnrollmentSettings,
     EnrollmentPlugin,
@@ -18,12 +19,20 @@ import jmespath
 class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
-        fields = ['rulesets']
+        fields = ['rulesets', 'labels']
         widgets = {
             'rulesets': forms.SelectMultiple(attrs={
                 'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
             }),
+            'labels': forms.SelectMultiple(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'size': '5',
+            }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['labels'].help_text = 'Hold Ctrl/Cmd to select multiple labels'
 
 class PolicyRulesetForm(forms.ModelForm):
     class Meta:
@@ -342,4 +351,40 @@ EnrollmentSkipTestFormSet = inlineformset_factory(
     validate_min=False,
     validate_max=False,
 )
+
+
+class LabelForm(forms.ModelForm):
+    class Meta:
+        model = Label
+        fields = ['name', 'color', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'e.g., web, dmz, database',
+                'maxlength': '50',
+            }),
+            'color': forms.TextInput(attrs={
+                'type': 'color',
+                'class': 'mt-1 block w-20 h-10 border-gray-300 rounded-md cursor-pointer',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'mt-1 block w-full h-20 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800',
+                'placeholder': 'Optional description for this label',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['description'].required = False
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip().lower()
+        if not name:
+            raise forms.ValidationError('Label name cannot be empty.')
+        qs = Label.objects.filter(name__iexact=name)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(f'A label with name "{name}" already exists.')
+        return name
 

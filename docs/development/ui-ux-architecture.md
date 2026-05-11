@@ -493,7 +493,28 @@ In list and detail templates:
 - Follow the same HTML structure
 - Use consistent error handling patterns
 
-### 8. Firefox Compatibility
+### 8. Sidebar z-index: Use Inline Styles, Not Tailwind Classes
+
+When a sidebar needs to appear above page content (e.g., above an Actions dropdown button), **always set `z-index` via an inline `style` attribute**, not a Tailwind class:
+
+```html
+<!-- ✅ CORRECT: inline style bypasses Tailwind purging -->
+<div id="my-panel" class="hidden fixed right-0 top-0 ..." style="z-index: 9999;">
+
+<!-- ❌ WRONG: Tailwind arbitrary values like z-[9999] are purged if the
+     template was added after the Docker image was built -->
+<div id="my-panel" class="hidden fixed right-0 top-0 ... z-[9999]">
+```
+
+Tailwind compiles only the CSS classes present in template files **at image build time**. Any arbitrary z-index class (e.g., `z-[9999]`, `z-[60]`) added in a new template after the build is silently absent from `tailwind.min.css` — the browser ignores it, leaving the panel at `z-index: auto`. Standard scale classes (`z-10`, `z-50`) are safe only if another existing template already uses them. Inline styles are always safe.
+
+For stacked panels (selection panel + edit panel), use increasing values:
+```html
+<div id="item-selection-panel" ... style="z-index: 9999;">
+<div id="item-edit-panel"      ... style="z-index: 10000;">
+```
+
+### 9. Firefox Compatibility
 - **Always use event delegation** for buttons in sidebars, especially when panels are initially hidden
 - Direct event listeners may fail in Firefox when attached to hidden elements
 - Event delegation (`addEventListener` on parent, use `closest()` to find target) works reliably across all browsers
@@ -514,6 +535,7 @@ When implementing a new sidebar:
 - [ ] Works from detail page
 - [ ] Form data serializes correctly
 - [ ] Backend handles AJAX and fallback
+- [ ] Sidebar covers all page elements (Actions dropdown, etc.) — no bleed-through
 - [ ] No console errors
 - [ ] Loading state shows during save
 - [ ] Double-submit is prevented
