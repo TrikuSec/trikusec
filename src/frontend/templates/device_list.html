@@ -96,12 +96,12 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th class="py-3 px-6 text-left" data-optional-column="lynis_version">LYNIS</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="lynis_version">Lynis</th>
                         <th class="py-3 px-6 text-left" data-optional-column="uptime">Uptime</th>
-                        <th class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">TrikuSec Lynis Plugin</th>
+                        <th class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">Plugin</th>
                         <th class="py-3 px-6 text-left" data-optional-column="antivirus">Antivirus</th>
-                        <th class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">Vulnerable Packages</th>
-                        <th class="py-3 px-6 text-center" data-optional-column="non_compliant_days">Total Days Non-Compliant</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">Vulnerabilities</th>
+                        <th class="py-3 px-6 text-center" data-optional-column="non_compliant_days">NC Days</th>
                         <th class="py-3 px-6 text-left">
                             <a href="?sort=compliant&order={% if current_sort == 'compliant' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
                                class="flex items-center space-x-1 hover:text-gray-900 transition-colors">
@@ -184,7 +184,7 @@
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="lynis_version" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span>Lynis Version</span>
+                                        <span>Lynis</span>
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="warnings" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -196,7 +196,7 @@
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="trikusec_plugin" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span>TrikuSec Lynis Plugin</span>
+                                        <span>Plugin</span>
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="antivirus" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -204,11 +204,11 @@
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="vulnerable_packages" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span>Vulnerable Packages (count)</span>
+                                        <span>Vulnerabilities</span>
                                     </label>
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" data-column-checkbox="non_compliant_days" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span>Total Days Non-Compliant</span>
+                                        <span>NC Days</span>
                                     </label>
                                 </div>
                                 <p id="device-columns-limit-msg" class="mt-2 text-xs text-amber-600 hidden">Maximum number of columns reached.</p>
@@ -249,20 +249,32 @@
                         </td>
                         <td class="py-3 px-6 text-left" data-optional-column="trikusec_plugin">
                             {% if device.trikusec_plugin_installed %}
-                                <span class="bg-green-100 text-green-700 py-1 px-2 rounded-full text-xs">Installed</span>
+                                <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Installed</span>
                             {% else %}
-                                <span class="bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">Not installed</span>
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not installed</span>
                             {% endif %}
                         </td>
                         <td class="py-3 px-6 text-left" data-optional-column="antivirus">
                             {% if device.antivirus_installed %}
-                                <span class="bg-green-100 text-green-700 py-1 px-2 rounded-full text-xs">Installed</span>
+                                <span class="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">Installed</span>
                             {% else %}
-                                <span class="bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">Not installed</span>
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">Not installed</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">{{ device.vulnerable_packages_count }}</td>
-                        <td class="py-3 px-6 text-center" data-optional-column="non_compliant_days">{{ device.total_days_non_compliant }}</td>
+                        <td class="py-3 px-6 text-center" data-optional-column="vulnerable_packages">
+                            {% if device.vulnerable_packages_count > 0 %}
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">{{ device.vulnerable_packages_count }}</span>
+                            {% else %}
+                                <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-6 text-center" data-optional-column="non_compliant_days">
+                            {% if device.total_days_non_compliant > 0 %}
+                                <span class="bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs">{{ device.total_days_non_compliant }}</span>
+                            {% else %}
+                                <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">0</span>
+                            {% endif %}
+                        </td>
                         <td class="py-3 px-6 text-left">
                             {% if device.ruleset_count == 0 %}
                             <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">Unknown</span>
