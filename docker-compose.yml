@@ -24,7 +24,7 @@ services:
       # Domain-based configuration (automatically configures NGINX_CERT_CN)
       - TRIKUSEC_DOMAIN=${TRIKUSEC_DOMAIN}
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "https://localhost:8000/health/", "--no-check-certificate"]
+      test: ["CMD", "curl", "-skf", "https://localhost:8000/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
