@@ -20,6 +20,10 @@ urlpatterns = [
     path('device/<int:device_id>/delete/', views.device_delete, name='device_delete'),
     path('device/<int:device_id>/report/', views.device_report, name='device_report'),
     path('device/<int:device_id>/report/json/', views.device_report_json, name='device_report_json'),
+    # Resolve the same report by a stable string identifier (hostid, hostid2
+    # or hostname) so external collectors don't need to maintain an id map.
+    # See https://github.com/TrikuSec/trikusec/issues/141
+    path('device/<str:device_ref>/report/json/', views.device_report_json, name='device_report_json_by_ref'),
     path('device/<int:device_id>/rule/<int:rule_id>/evaluate/', views.rule_evaluate_for_device, name='rule_evaluate_for_device'),
     path('device/<int:device_id>/report/changelog/', views.device_report_changelog, name='device_report_changelog'),
     path('policies/', views.policy_list, name='policy_list'),
