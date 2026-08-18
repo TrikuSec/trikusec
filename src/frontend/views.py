@@ -776,10 +776,42 @@ def device_report(request, device_id):
     return HttpResponse(parsed_report, content_type='text/plain')
 
 
+def _resolve_device_by_ref(device_ref):
+    """Resolve a device by a string identifier (hostid, hostid2 or hostname).
+
+    ``hostid``/``hostid2`` are Lynis' own machine identifiers and are tried
+    first as they are the most stable; ``hostname`` is a convenience fallback.
+    None of these are guaranteed unique in the database (only the integer PK
+    is), so when several devices match we deterministically pick the most
+    recently updated one. See https://github.com/TrikuSec/trikusec/issues/141
+    """
+    for field in ('hostid', 'hostid2', 'hostname'):
+        device = (
+            Device.objects
+            .filter(**{field: device_ref})
+            .order_by(F('last_update').desc(nulls_last=True), '-updated_at', '-id')
+            .first()
+        )
+        if device is not None:
+            return device
+    raise Http404('No device found for the given identifier')
+
+
 @login_required
-def device_report_json(request, device_id):
-    """Device report view: show the parsed report as a JSON dictionary"""
-    device = get_object_or_404(Device, id=device_id)
+def device_report_json(request, device_id=None, device_ref=None):
+    """Device report view: show the parsed report as a JSON dictionary.
+
+    The device can be looked up by its internal integer id (the original
+    behaviour, ``/device/<int>/report/json/``) or by a stable string
+    identifier - hostid, hostid2 or hostname - via
+    ``/device/<str>/report/json/`` so external collectors don't need to
+    maintain an id mapping.
+    """
+    if device_id is not None:
+        device = get_object_or_404(Device, id=device_id)
+    else:
+        device = _resolve_device_by_ref(device_ref)
+
     report = FullReport.objects.filter(device=device).order_by('-created_at').first()
     if not report:
         return HttpResponse('No report found for the device', status=404)
@@ -790,7 +822,13 @@ def device_report_json(request, device_id):
 
     from django.core.serializers.json import DjangoJSONEncoder
     json_payload = json.dumps(parsed_report, indent=2, sort_keys=True, cls=DjangoJSONEncoder)
-    return HttpResponse(json_payload, content_type='application/json')
+    response = HttpResponse(json_payload, content_type='application/json')
+    # Surface which device was resolved so that, on a non-unique identifier
+    # (several devices share a hostname/hostid), a collector can detect the
+    # match and pin it by the stable integer id on subsequent requests.
+    response['X-Trikusec-Device-Id'] = str(device.id)
+    response['X-Trikusec-Hostid'] = device.hostid or ''
+    return response
 
 @login_required
 def device_report_changelog(request, device_id):

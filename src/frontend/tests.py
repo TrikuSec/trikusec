@@ -1028,6 +1028,217 @@ class TestDeviceReportViews:
         assert data['hostname'] == 'test-server'
         assert data['hardening_index'] == 65
 
+    # --- Resolution by string identifier (issue #141) ---
+
+    def test_device_report_json_by_hostid(self, test_user, test_license_key, sample_lynis_report):
+        """Report can be fetched by the Lynis hostid instead of the integer id."""
+        client = Client()
+        client.force_login(test_user)
+
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-abc-123',
+            hostid2='hostid2-abc-123',
+            hostname='web-prod-01',
+        )
+        FullReport.objects.create(device=device, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'hostid-abc-123'})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(device.id)
+        assert response['X-Trikusec-Hostid'] == 'hostid-abc-123'
+        assert json.loads(response.content)['hardening_index'] == 65
+
+    def test_device_report_json_by_hostid2(self, test_user, test_license_key, sample_lynis_report):
+        """hostid2 is accepted as a fallback identifier."""
+        client = Client()
+        client.force_login(test_user)
+
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-xyz',
+            hostid2='hostid2-xyz',
+            hostname='web-prod-02',
+        )
+        FullReport.objects.create(device=device, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'hostid2-xyz'})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(device.id)
+
+    def test_device_report_json_by_hostname(self, test_user, test_license_key, sample_lynis_report):
+        """hostname is accepted as a convenience identifier (incl. dots in FQDNs)."""
+        client = Client()
+        client.force_login(test_user)
+
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-fqdn',
+            hostid2='hostid2-fqdn',
+            hostname='web-prod-03.example.com',
+        )
+        FullReport.objects.create(device=device, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'web-prod-03.example.com'})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(device.id)
+
+    def test_device_report_json_by_ref_not_found(self, test_user, test_license_key):
+        """An unknown identifier yields a 404 without leaking device existence."""
+        client = Client()
+        client.force_login(test_user)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'does-not-exist'})
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_device_report_json_by_ref_no_report(self, test_user, test_license_key):
+        """A device with no uploaded report returns 404, not an empty payload."""
+        client = Client()
+        client.force_login(test_user)
+
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-no-report',
+            hostid2='hostid2-no-report',
+            hostname='no-report-host',
+        )
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'hostid-no-report'})
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_device_report_json_collision_returns_most_recent(self, test_user, test_license_key, sample_lynis_report):
+        """When several devices share an identifier, the most recently updated wins.
+
+        hostid/hostname are not unique in the schema; the resolver picks a
+        deterministic winner (latest last_update) and exposes its id via the
+        X-Trikusec-Device-Id header so a collector can pin it afterwards.
+        """
+        client = Client()
+        client.force_login(test_user)
+
+        now = timezone.now()
+        older = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='shared-hostid',
+            hostid2='shared-hostid2-old',
+            hostname='shared-host.example.com',
+            last_update=now - timedelta(days=5),
+        )
+        newer = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='shared-hostid',
+            hostid2='shared-hostid2-new',
+            hostname='shared-host.example.com',
+            last_update=now,
+        )
+        FullReport.objects.create(device=older, full_report=sample_lynis_report)
+        FullReport.objects.create(device=newer, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'shared-host.example.com'})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(newer.id)
+        assert response['X-Trikusec-Hostid'] == 'shared-hostid'
+
+    def test_device_report_json_by_ref_hostid_takes_precedence_over_hostname(self, test_user, test_license_key, sample_lynis_report):
+        """hostid is matched before hostname, so a value equal to a hostname but
+        also used as a hostid resolves to the hostid owner."""
+        client = Client()
+        client.force_login(test_user)
+
+        # One device whose hostname collides with another device's hostid
+        by_hostname = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-aaa',
+            hostid2='hostid2-aaa',
+            hostname='colliding-value',
+        )
+        by_hostid = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='colliding-value',
+            hostid2='hostid2-bbb',
+            hostname='some-other-host',
+        )
+        FullReport.objects.create(device=by_hostname, full_report=sample_lynis_report)
+        FullReport.objects.create(device=by_hostid, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'colliding-value'})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(by_hostid.id)
+
+    def test_device_report_json_by_ref_requires_login(self, test_license_key):
+        """The string route is protected by @login_required, same as the int route."""
+        Device.objects.create(
+            licensekey=test_license_key,
+            hostid='hostid-protected',
+            hostid2='hostid2-protected',
+            hostname='protected-host',
+        )
+
+        url = reverse('device_report_json_by_ref', kwargs={'device_ref': 'hostid-protected'})
+        response = Client().get(url)
+
+        # LoginRequiredMixin / login_required redirects anonymous users.
+        assert response.status_code in (302, 301)
+        assert '/login' in response['Location']
+
+    def test_device_report_json_int_route_exposes_device_id_header(self, test_user, test_device, sample_lynis_report):
+        """The original integer route also reports the resolved device id, so
+        collision disambiguation works consistently across both routes."""
+        client = Client()
+        client.force_login(test_user)
+
+        FullReport.objects.create(device=test_device, full_report=sample_lynis_report)
+
+        url = reverse('device_report_json', kwargs={'device_id': test_device.id})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['X-Trikusec-Device-Id'] == str(test_device.id)
+
+    def test_device_report_json_numeric_identifier_resolves_by_id(self, test_user, test_license_key, sample_lynis_report):
+        """A purely-numeric segment matches the <int> route (id lookup), not the
+        string route.
+
+        This is the documented Django ordered-patterns trade-off for issue
+        #141: a host whose hostname/hostid is itself a pure number cannot be
+        reached via the string route because the <int:device_id> pattern wins
+        first. Hostnames are virtually never bare integers, so this is
+        accepted; collectors should use the integer id for such cases.
+        """
+        client = Client()
+        client.force_login(test_user)
+
+        device = Device.objects.create(
+            licensekey=test_license_key,
+            hostid='12345',
+            hostid2='hostid2-12345',
+            hostname='12345',
+        )
+        FullReport.objects.create(device=device, full_report=sample_lynis_report)
+
+        # '12345' matches <int:device_id> first; since no device has id 12345
+        # here, the int route 404s instead of falling through to the str route.
+        response = client.get('/device/12345/report/json/')
+        assert response.status_code == 404
+
+        # The same device is still reachable by its real integer id.
+        response = client.get(reverse('device_report_json', kwargs={'device_id': device.id}))
+        assert response.status_code == 200
+
 @pytest.mark.django_db
 class TestUserProfileView:
     """Tests for the profile management view."""
